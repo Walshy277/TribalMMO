@@ -5,10 +5,10 @@ import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
 
 const actionTypes = [
-  { type: "training", label: "Train", description: "Hone your combat skills", duration: 300, skill: "Combat", icon: "🏋️", color: "hover:border-red-500/40" },
-  { type: "gathering", label: "Gather Resources", description: "Collect wood, stone, and herbs", duration: 300, skill: "Gathering", icon: "🪓", color: "hover:border-green-500/40" },
-  { type: "crafting", label: "Craft Item", description: "Create tools and equipment", duration: 600, skill: "Crafting", icon: "🔨", color: "hover:border-yellow-500/40" },
-  { type: "building", label: "Build", description: "Construct settlement buildings", duration: 3600, skill: "Crafting", icon: "🏗️", color: "hover:border-orange-500/40" },
+  { type: "training", label: "Train", description: "Hone your combat skills", duration: 300, skill: "Combat", icon: "🏋️" },
+  { type: "gathering", label: "Gather Resources", description: "Collect wood, stone, and herbs", duration: 300, skill: "Gathering", icon: "🪓" },
+  { type: "crafting", label: "Craft Item", description: "Create tools and equipment", duration: 600, skill: "Crafting", icon: "🔨" },
+  { type: "building", label: "Build", description: "Construct settlement buildings", duration: 3600, skill: "Crafting", icon: "🏗️" },
 ];
 
 export default function ActionsPage() {
@@ -82,32 +82,29 @@ export default function ActionsPage() {
   };
 
   if (!character) {
-    return <div className="text-tribal-400 text-center mt-20">Create a character first.</div>;
+    return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
   }
 
   const now = Date.now();
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">⚡</span>
-        <div>
-          <h1 className="text-2xl font-bold text-tribal-100">Actions</h1>
-          <p className="text-tribal-500 text-sm">Craft, train, and build</p>
-        </div>
+    <div className="space-y-5 animate-fade-in max-w-3xl">
+      <div>
+        <h1 className="text-2xl font-bold text-tribal-100">Actions</h1>
+        <p className="text-tribal-500 text-sm mt-0.5">Craft, train, and build</p>
       </div>
 
       {/* Active Actions */}
-      <div className="card border-tribal-600/30">
+      <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-tribal-200">Active Actions</h2>
-          <span className="bg-tribal-800 px-3 py-1 rounded-full text-tribal-300 text-sm">
-            {actions.length} / {maxSlots} slots
+          <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider">Active Actions</h2>
+          <span className="text-tribal-500 text-xs font-medium bg-tribal-900 px-2.5 py-1 rounded-full">
+            {actions.length} / {maxSlots}
           </span>
         </div>
         {actions.length === 0 ? (
-          <div className="text-center py-6">
-            <div className="text-4xl mb-2">💤</div>
+          <div className="text-center py-8">
+            <div className="text-4xl mb-2 opacity-50">💤</div>
             <p className="text-tribal-500">No active actions. Start one below.</p>
           </div>
         ) : (
@@ -121,27 +118,27 @@ export default function ActionsPage() {
               const actionInfo = actionTypes.find((a) => a.type === action.type);
 
               return (
-                <div key={action.id} className={`bg-tribal-800/50 p-4 rounded-lg border ${isComplete ? "border-green-600/40" : "border-tribal-700/30"}`}>
+                <div key={action.id} className={`bg-tribal-900/50 p-4 rounded-lg border ${isComplete ? "border-green-700/40" : "border-tribal-800/50"}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">{actionInfo?.icon || "⚡"}</span>
-                      <span className="text-tribal-200 font-semibold capitalize">{action.type}</span>
+                      <span className="text-lg">{actionInfo?.icon || "⚡"}</span>
+                      <span className="text-tribal-200 font-semibold capitalize text-sm">{action.type}</span>
                     </div>
                     {isComplete ? (
                       <button
                         onClick={() => completeAction(action.id, action.type)}
                         className="bg-green-700 hover:bg-green-600 text-white font-semibold py-1.5 px-4 rounded-lg transition-colors text-sm"
                       >
-                        ✅ Collect
+                        Collect
                       </button>
                     ) : (
-                      <span className="text-tribal-400 text-sm font-mono">{remaining}s</span>
+                      <span className="text-tribal-500 text-sm font-mono">{remaining}s</span>
                     )}
                   </div>
-                  <div className="w-full bg-tribal-700/50 rounded-full h-2.5">
+                  <div className="w-full bg-tribal-800 rounded-full h-2">
                     <div
-                      className={`h-2.5 rounded-full transition-all duration-1000 ${
-                        isComplete ? "bg-gradient-to-r from-green-600 to-green-400" : "bg-gradient-to-r from-tribal-600 to-tribal-400"
+                      className={`h-2 rounded-full transition-all duration-1000 ${
+                        isComplete ? "bg-green-500" : "bg-tribal-500"
                       }`}
                       style={{ width: `${progress}%` }}
                     />
@@ -154,18 +151,18 @@ export default function ActionsPage() {
       </div>
 
       {/* Available Actions */}
-      <div className="card border-tribal-600/30">
-        <h2 className="text-lg font-semibold text-tribal-200 mb-4">Start New Action</h2>
+      <div className="card">
+        <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Start New Action</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {actionTypes.map((action) => (
-            <div key={action.type} className={`bg-tribal-800/40 p-4 rounded-lg border border-tribal-700/20 ${action.color} transition-all group`}>
+            <div key={action.type} className="bg-tribal-900/50 p-4 rounded-lg border border-tribal-800/50">
               <div className="flex items-start gap-3">
-                <span className="text-3xl group-hover:scale-110 transition-transform">{action.icon}</span>
+                <span className="text-2xl mt-0.5">{action.icon}</span>
                 <div className="flex-1">
                   <div className="font-semibold text-tribal-200">{action.label}</div>
-                  <div className="text-sm text-tribal-400 mt-0.5">{action.description}</div>
+                  <div className="text-sm text-tribal-500 mt-0.5">{action.description}</div>
                   <div className="text-xs text-tribal-600 mt-1">
-                    {action.duration >= 3600 ? `${action.duration / 3600} hour` : `${action.duration / 60} minutes`}
+                    {action.duration >= 3600 ? `${action.duration / 3600} hour` : `${action.duration / 60} min`}
                   </div>
                   <button
                     onClick={() => startAction(action.type, action.duration, action.skill)}

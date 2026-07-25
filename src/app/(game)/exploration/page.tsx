@@ -5,9 +5,9 @@ import { supabase } from "@/lib/supabase/client";
 import { useState, useCallback } from "react";
 
 const zones = [
-  { name: "Forest", icon: "🌲", color: "text-green-400", bg: "from-green-900/20" },
-  { name: "Plains", icon: "🌾", color: "text-yellow-400", bg: "from-yellow-900/20" },
-  { name: "Riverbank", icon: "🌊", color: "text-blue-400", bg: "from-blue-900/20" },
+  { name: "Forest", icon: "🌲", color: "text-green-400" },
+  { name: "Plains", icon: "🌾", color: "text-yellow-400" },
+  { name: "Riverbank", icon: "🌊", color: "text-blue-400" },
 ];
 
 const events = [
@@ -21,8 +21,6 @@ const events = [
   { type: "weather", icon: "🌧️", text: "Dark clouds gather overhead. Rain begins to fall.", color: "text-blue-400" },
   { type: "resource", icon: "🌸", text: "You find a patch of medicinal herbs.", color: "text-pink-400" },
   { type: "flavor", icon: "🦅", text: "An eagle soars above you, circling lazily.", color: "text-tribal-300" },
-  { type: "resource", icon: "🦴", text: "You uncover old bones half-buried in the dirt.", color: "text-gray-300" },
-  { type: "flavor", icon: "🌙", text: "The moon peeks through the clouds above.", color: "text-indigo-300" },
 ];
 
 export default function ExplorationPage() {
@@ -31,7 +29,7 @@ export default function ExplorationPage() {
   const [log, setLog] = useState<{ text: string; icon: string; color: string }[]>([]);
   const [exploring, setExploring] = useState(false);
   const [showCombat, setShowCombat] = useState(false);
-  const [encounter, setEncounter] = useState<string>("");
+  const [encounter, setEncounter] = useState<string | null>(null);
   const [lastEvent, setLastEvent] = useState<typeof events[0] | null>(null);
 
   const explore = useCallback(async () => {
@@ -108,35 +106,32 @@ export default function ExplorationPage() {
   };
 
   if (!character) {
-    return <div className="text-tribal-400 text-center mt-20">Create a character first.</div>;
+    return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
   }
 
   const staminaPercent = (character.stamina / character.max_stamina) * 100;
   const zone = zones[currentZone];
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">🗺️</span>
-        <div>
-          <h1 className="text-2xl font-bold text-tribal-100">Exploration</h1>
-          <p className="text-tribal-500 text-sm">Venture into the wilds of Nervella</p>
-        </div>
+    <div className="space-y-5 animate-fade-in max-w-3xl">
+      <div>
+        <h1 className="text-2xl font-bold text-tribal-100">Exploration</h1>
+        <p className="text-tribal-500 text-sm mt-0.5">Venture into the wilds of Nervella</p>
       </div>
 
       {/* Combat Modal */}
       {showCombat && (
-        <div className="card border-red-700/50 bg-gradient-to-br from-red-950/50 to-tribal-900 animate-fade-in animate-pulse-glow">
+        <div className="card border-red-700/40 animate-fade-in animate-pulse-glow">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-2xl">⚔️</span>
             <h2 className="text-lg font-bold text-red-300">Combat Encounter!</h2>
           </div>
           <p className="text-tribal-200 mb-2">{encounter}</p>
           <p className="text-tribal-400 text-sm mb-4">
-            Your combat stats: STR {character.strength} • AGI {character.agility} • END {character.endurance}
+            Your combat stats: STR {character.strength} · AGI {character.agility} · END {character.endurance}
           </p>
           <div className="flex gap-3">
-            <button onClick={() => resolveCombat(true)} className="flex-1 bg-red-700 hover:bg-red-600 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors">
+            <button onClick={() => resolveCombat(true)} className="flex-1 bg-red-700 hover:bg-red-600 text-white font-semibold py-2.5 rounded-lg transition-colors">
               ⚔️ Fight
             </button>
             <button onClick={() => resolveCombat(false)} className="flex-1 btn-secondary py-2.5">
@@ -147,32 +142,32 @@ export default function ExplorationPage() {
       )}
 
       {/* Zone & Stamina */}
-      <div className={`card border-tribal-600/30 bg-gradient-to-r ${zone.bg} to-transparent`}>
+      <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-2xl">{zone.icon}</span>
             <div>
-              <h2 className="font-semibold text-tribal-200">Current Zone</h2>
-              <p className={`text-lg font-bold ${zone.color}`}>{zone.name}</p>
+              <div className="text-tribal-500 text-xs uppercase font-medium">Current Zone</div>
+              <div className={`text-lg font-bold ${zone.color}`}>{zone.name}</div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-tribal-400 text-sm">Steps taken</div>
-            <div className="text-tribal-100 text-xl font-bold">{log.length}</div>
+            <div className="text-tribal-500 text-xs uppercase font-medium">Steps</div>
+            <div className="text-tribal-100 text-lg font-bold">{log.length}</div>
           </div>
         </div>
 
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-tribal-400 text-xs">Stamina</span>
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-tribal-500 text-xs">Stamina</span>
             <span className="text-tribal-300 text-xs font-medium">{character.stamina} / {character.max_stamina}</span>
           </div>
-          <div className="w-full bg-tribal-800/80 rounded-full h-3">
+          <div className="w-full bg-tribal-800 rounded-full h-2.5">
             <div
-              className={`h-3 rounded-full transition-all duration-500 ${
-                staminaPercent > 50 ? "bg-gradient-to-r from-green-600 to-green-400" :
-                staminaPercent > 25 ? "bg-gradient-to-r from-yellow-600 to-yellow-400" :
-                "bg-gradient-to-r from-red-600 to-red-400"
+              className={`h-2.5 rounded-full transition-all duration-500 ${
+                staminaPercent > 50 ? "bg-green-500" :
+                staminaPercent > 25 ? "bg-yellow-500" :
+                "bg-red-500"
               }`}
               style={{ width: `${staminaPercent}%` }}
             />
@@ -182,18 +177,10 @@ export default function ExplorationPage() {
         <div className="flex gap-3">
           <button
             onClick={explore}
-            className="flex-1 btn-primary py-3 text-lg"
+            className="flex-1 btn-primary py-3 text-base"
             disabled={exploring || character.stamina <= 0 || showCombat}
           >
-            {exploring ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin">⏳</span> Exploring...
-              </span>
-            ) : character.stamina <= 0 ? (
-              "No Stamina"
-            ) : (
-              "🗺️ Explore Forward"
-            )}
+            {exploring ? "Exploring..." : character.stamina <= 0 ? "No Stamina" : "🗺️ Explore Forward"}
           </button>
           <button
             onClick={rest}
@@ -205,35 +192,32 @@ export default function ExplorationPage() {
         </div>
       </div>
 
-      {/* Last Event Highlight */}
+      {/* Last Event */}
       {lastEvent && (
-        <div className={`card border-tribal-600/20 bg-gradient-to-r from-tribal-800/50 to-transparent animate-fade-in`}>
+        <div className="card animate-fade-in">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{lastEvent.icon}</span>
+            <span className="text-2xl">{lastEvent.icon}</span>
             <p className={`font-medium ${lastEvent.color}`}>{lastEvent.text}</p>
           </div>
         </div>
       )}
 
       {/* Event Log */}
-      <div className="card border-tribal-600/20">
-        <h2 className="text-lg font-semibold text-tribal-200 mb-3 flex items-center gap-2">
-          <span>📜</span> Event Log
-        </h2>
+      <div className="card">
+        <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-3">Event Log</h2>
         {log.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-4xl mb-2">🏕️</div>
+            <div className="text-4xl mb-2 opacity-50">🏕️</div>
             <p className="text-tribal-500">No events yet. Start exploring!</p>
           </div>
         ) : (
-          <div className="space-y-1.5 max-h-72 overflow-y-auto">
+          <div className="space-y-1 max-h-72 overflow-y-auto">
             {log.map((entry, i) => (
               <div
                 key={i}
-                className={`flex items-start gap-2 py-1.5 px-2 rounded ${i === 0 ? "bg-tribal-800/40" : ""}`}
-                style={{ animationDelay: `${i * 50}ms` }}
+                className={`flex items-start gap-2.5 py-2 px-2.5 rounded-lg ${i === 0 ? "bg-tribal-800/50" : ""}`}
               >
-                <span className="text-sm mt-0.5">{entry.icon}</span>
+                <span className="text-sm mt-0.5 shrink-0">{entry.icon}</span>
                 <p className={`text-sm ${i === 0 ? entry.color + " font-medium" : "text-tribal-400"}`}>
                   {entry.text}
                 </p>

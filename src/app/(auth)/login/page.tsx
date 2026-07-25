@@ -26,32 +26,32 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-tribal-950 via-tribal-900/50 to-tribal-950">
-      <div className="card w-full max-w-md border-tribal-600/20 animate-fade-in">
-        <div className="text-center mb-6">
-          <div className="text-5xl mb-3">🏕️</div>
-          <h1 className="text-2xl font-bold text-tribal-100">Welcome Back</h1>
-          <p className="text-tribal-400 text-sm mt-1">Enter the world of Nervella</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="w-full max-w-md animate-fade-in">
+      <div className="text-center mb-8">
+        <div className="text-6xl mb-4">🏕️</div>
+        <h1 className="text-3xl font-bold text-tribal-100">Welcome Back</h1>
+        <p className="text-tribal-400 mt-2">Enter the world of Nervella</p>
+      </div>
+      <div className="card">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-tribal-300 mb-1.5">Email</label>
+            <label className="block text-sm font-semibold text-tribal-300 mb-2">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input w-full"
+              className="input"
               placeholder="your@email.com"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-tribal-300 mb-1.5">Password</label>
+            <label className="block text-sm font-semibold text-tribal-300 mb-2">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input w-full"
+              className="input"
               placeholder="••••••••"
               required
             />
@@ -61,14 +61,14 @@ export default function LoginPage() {
               {error}
             </div>
           )}
-          <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
+          <button type="submit" className="btn-primary w-full py-3 text-base" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <div className="mt-6 pt-4 border-t border-tribal-800 text-center">
+        <div className="mt-6 pt-4 border-t border-tribal-700/50 text-center">
           <p className="text-tribal-400 text-sm">
             New to TribalMMO?{" "}
-            <a href="/auth/signup" className="text-tribal-300 hover:text-tribal-100 font-medium transition-colors">
+            <a href="/signup" className="text-tribal-200 hover:text-tribal-100 font-semibold transition-colors">
               Create an account
             </a>
           </p>

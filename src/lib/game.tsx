@@ -17,7 +17,7 @@ type Action = Database["public"]["Tables"]["actions"]["Row"];
 interface CharacterWithSkills extends Character {
   skills: Skill[];
   inventory: (Inventory & { item: Item })[];
-  faction?: FactionMember & { faction: Faction };
+  faction?: FactionMember & { faction: Faction & { faction_members?: any[] } };
   pets: Pet[];
 }
 
@@ -46,14 +46,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       .from("characters")
       .select("*, skills(*), inventory(*, item:*items(*)), pets(*)")
       .eq("user_id", user.id)
-      .single();
+      .single() as any;
 
     if (char) {
       const { data: member } = await supabase
         .from("faction_members")
-        .select("*, faction:factions(*)")
+        .select("*, faction:factions(*, faction_members(*))")
         .eq("character_id", char.id)
-        .single();
+        .single() as any;
 
       setCharacter({ ...char, faction: member ?? undefined });
     } else {

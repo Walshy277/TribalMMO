@@ -40,22 +40,19 @@ export default function SettlementPage() {
     await fetchSettlement();
   };
 
-  if (!character) return <div className="text-tribal-400 text-center mt-20">Create a character first.</div>;
-  if (loading) return <div className="text-tribal-400 text-center mt-20">Loading...</div>;
+  if (!character) return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
+  if (loading) return <div className="text-tribal-500 text-center mt-20">Loading...</div>;
 
   if (!character.faction) {
     return (
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">🏘️</span>
-          <div>
-            <h1 className="text-2xl font-bold text-tribal-100">Settlement</h1>
-            <p className="text-tribal-500 text-sm">Build your tribe's home</p>
-          </div>
+      <div className="space-y-5 animate-fade-in max-w-3xl">
+        <div>
+          <h1 className="text-2xl font-bold text-tribal-100">Settlement</h1>
+          <p className="text-tribal-500 text-sm mt-0.5">Build your tribe's home</p>
         </div>
-        <div className="card border-tribal-600/30 text-center">
+        <div className="card text-center py-8">
           <div className="text-4xl mb-3">🏘️</div>
-          <p className="text-tribal-400 mb-4">You need to join a faction to have a settlement.</p>
+          <p className="text-tribal-400 mb-5">You need to join a faction to have a settlement.</p>
           <a href="/factions" className="btn-primary inline-block py-2 px-6">Join a Faction</a>
         </div>
       </div>
@@ -65,44 +62,41 @@ export default function SettlementPage() {
   const isChieftain = character.faction.role === "chieftain";
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">🏘️</span>
-        <div>
-          <h1 className="text-2xl font-bold text-tribal-100">Settlement</h1>
-          <p className="text-tribal-500 text-sm">{character.faction.faction.name}</p>
-        </div>
+    <div className="space-y-5 animate-fade-in max-w-3xl">
+      <div>
+        <h1 className="text-2xl font-bold text-tribal-100">Settlement</h1>
+        <p className="text-tribal-500 text-sm mt-0.5">{character.faction.faction.name}</p>
       </div>
 
       {settlement ? (
         <>
-          <div className="card border-tribal-600/30 bg-gradient-to-r from-tribal-800/50 to-transparent">
+          <div className="card">
             <div className="flex items-center gap-3">
-              <span className="text-4xl">🏛️</span>
+              <span className="text-3xl">🏛️</span>
               <div>
                 <h2 className="text-xl font-bold text-tribal-100">{settlement.name}</h2>
-                <p className="text-tribal-400">Tier {settlement.tier} Settlement</p>
+                <p className="text-tribal-400 text-sm">Tier {settlement.tier} Settlement</p>
               </div>
             </div>
           </div>
 
-          <div className="card border-tribal-600/30">
-            <h2 className="text-lg font-semibold text-tribal-200 mb-4">Buildings</h2>
+          <div className="card">
+            <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Buildings</h2>
             {buildings.length === 0 ? (
               <div className="text-center py-6">
-                <div className="text-4xl mb-2">🏗️</div>
+                <div className="text-4xl mb-2 opacity-50">🏗️</div>
                 <p className="text-tribal-500">No buildings constructed yet.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {buildings.map((building) => {
                   const info = buildingTypes.find((bt) => bt.name === building.name);
                   return (
-                    <div key={building.id} className="bg-tribal-800/50 p-4 rounded-lg border border-tribal-700/20">
+                    <div key={building.id} className="bg-tribal-900/50 p-4 rounded-lg border border-tribal-800/50">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{info?.icon || "🏠"}</span>
+                        <span className="text-xl">{info?.icon || "🏠"}</span>
                         <div>
-                          <div className="font-semibold text-tribal-200">{building.name}</div>
+                          <div className="font-semibold text-tribal-200 text-sm">{building.name}</div>
                           <div className="text-tribal-500 text-xs">Tier {building.tier}</div>
                         </div>
                       </div>
@@ -114,20 +108,20 @@ export default function SettlementPage() {
           </div>
 
           {isChieftain && (
-            <div className="card border-tribal-600/30">
-              <h2 className="text-lg font-semibold text-tribal-200 mb-4">Build New Structure</h2>
+            <div className="card">
+              <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Build New Structure</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {buildingTypes
                   .filter((bt) => !buildings.find((b) => b.name === bt.name))
                   .map((bt) => (
-                    <div key={bt.name} className="bg-tribal-800/40 p-4 rounded-lg border border-tribal-700/20 hover:border-tribal-500/30 transition-all">
+                    <div key={bt.name} className="bg-tribal-900/50 p-4 rounded-lg border border-tribal-800/50 hover:border-tribal-700/50 transition-colors">
                       <div className="flex items-start gap-3">
-                        <span className="text-3xl">{bt.icon}</span>
+                        <span className="text-2xl mt-0.5">{bt.icon}</span>
                         <div className="flex-1">
-                          <div className="font-semibold text-tribal-200">{bt.name}</div>
-                          <div className="text-tribal-400 text-sm mt-0.5">{bt.description}</div>
+                          <div className="font-semibold text-tribal-200 text-sm">{bt.name}</div>
+                          <div className="text-tribal-500 text-xs mt-0.5">{bt.description}</div>
                           <button onClick={() => buildStructure(bt.name)} className="btn-primary text-sm mt-3">
-                            🏗️ Build (5 min)
+                            Build (5 min)
                           </button>
                         </div>
                       </div>
@@ -138,9 +132,9 @@ export default function SettlementPage() {
           )}
         </>
       ) : (
-        <div className="card border-tribal-600/30 text-center">
+        <div className="card text-center py-8">
           <div className="text-4xl mb-3">🏗️</div>
-          <p className="text-tribal-400 mb-4">Your faction does not have a settlement yet.</p>
+          <p className="text-tribal-400 mb-5">Your faction does not have a settlement yet.</p>
           {isChieftain && (
             <button
               onClick={async () => {

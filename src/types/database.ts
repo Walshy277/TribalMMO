@@ -55,6 +55,7 @@ export interface Database {
           max_stamina?: number
           created_at?: string
         }
+        Relationships: []
       }
       skills: {
         Row: {
@@ -81,6 +82,7 @@ export interface Database {
           experience?: number
           specialization?: string | null
         }
+        Relationships: []
       }
       items: {
         Row: {
@@ -107,6 +109,7 @@ export interface Database {
           stats?: Json
           recipe_id?: string | null
         }
+        Relationships: []
       }
       inventory: {
         Row: {
@@ -130,6 +133,28 @@ export interface Database {
           quantity?: number
           equipped?: boolean
         }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          id: string
+          username: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          username?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          username?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       factions: {
         Row: {
@@ -156,6 +181,7 @@ export interface Database {
           founder_id?: string
           created_at?: string
         }
+        Relationships: []
       }
       faction_members: {
         Row: {
@@ -179,6 +205,7 @@ export interface Database {
           role?: string
           joined_at?: string
         }
+        Relationships: []
       }
       settlements: {
         Row: {
@@ -202,6 +229,7 @@ export interface Database {
           tier?: number
           created_at?: string
         }
+        Relationships: []
       }
       buildings: {
         Row: {
@@ -228,6 +256,7 @@ export interface Database {
           build_time?: number
           built_at?: string | null
         }
+        Relationships: []
       }
       territories: {
         Row: {
@@ -254,6 +283,7 @@ export interface Database {
           faction_id?: string | null
           claimed_at?: string | null
         }
+        Relationships: []
       }
       actions: {
         Row: {
@@ -283,6 +313,7 @@ export interface Database {
           completes_at?: string
           result?: Json | null
         }
+        Relationships: []
       }
       marketplace_listings: {
         Row: {
@@ -309,6 +340,7 @@ export interface Database {
           price?: number
           created_at?: string
         }
+        Relationships: []
       }
       pets: {
         Row: {
@@ -329,6 +361,7 @@ export interface Database {
           type?: string
           name?: string
         }
+        Relationships: []
       }
     }
     Views: {
@@ -338,6 +371,9 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
       [_ in never]: never
     }
   }
