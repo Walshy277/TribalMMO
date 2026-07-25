@@ -79,3 +79,81 @@ body {
 .animate-progress {
   animation: progress-fill 0.8s ease-out;
 }
+
+.btn-primary {
+  background: linear-gradient(135deg, #a67329, #8b5e1f);
+  color: #fdf8f0;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(166, 115, 41, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #c48b3d, #a67329);
+  box-shadow: 0 0 16px rgba(166, 115, 41, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: rgba(74, 49, 21, 0.6);
+  color: #f5e6cc;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(107, 71, 26, 0.4);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(107, 71, 26, 0.8);
+  border-color: rgba(166, 115, 41, 0.4);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card {
+  background: rgba(45, 31, 15, 0.7);
+  border: 1px solid rgba(107, 71, 26, 0.25);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  backdrop-filter: blur(8px);
+}
+
+.input {
+  background: rgba(45, 31, 15, 0.6);
+  border: 1px solid rgba(107, 71, 26, 0.4);
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  color: #f5e6cc;
+  transition: all 0.2s;
+  outline: none;
+  font-size: 0.9375rem;
+}
+
+.input:focus {
+  border-color: #a67329;
+  box-shadow: 0 0 0 2px rgba(166, 115, 41, 0.2);
+}
+
+.input::placeholder {
+  color: rgba(196, 139, 61, 0.4);
+}
+
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23c48b3d' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.5rem;
+}

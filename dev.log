@@ -83,3 +83,13 @@
  GET /auth/login 200 in 4.9s (next.js: 4.2s, application-code: 668ms)
  GET /auth/login 200 in 451ms (next.js: 52ms, application-code: 398ms)
 ✓ Compiled in 367ms
+ GET /auth/login 200 in 5.1s (next.js: 569ms, application-code: 4.5s)
+ GET /auth/login 200 in 2.7s (next.js: 233ms, application-code: 2.5s)
+✓ Compiled in 256ms
+ GET /auth/login 200 in 580ms (next.js: 260ms, application-code: 320ms)
+✓ Compiled in 266ms
+ GET /auth/login 200 in 1040ms (next.js: 493ms, application-code: 548ms)
+✓ Compiled in 1101ms
+ GET /auth/login 200 in 2.5s (next.js: 765ms, application-code: 1761ms)
+✓ Compiled in 364ms
+ GET /auth/login 200 in 788ms (next.js: 517ms, application-code: 271ms)
