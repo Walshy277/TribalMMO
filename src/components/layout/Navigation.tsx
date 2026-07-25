@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/lib/auth";
+import { useGame } from "@/lib/game";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: "🏠" },
@@ -11,16 +13,19 @@ const navItems = [
   { href: "/inventory", label: "Inventory", icon: "🎒" },
   { href: "/crafting", label: "Crafting", icon: "🔨" },
   { href: "/factions", label: "Factions", icon: "🛡️" },
-  { href: "/settlement", label: "Settlement", icon: "🏠" },
+  { href: "/settlement", label: "Settlement", icon: "🏘️" },
   { href: "/marketplace", label: "Market", icon: "💰" },
 ];
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const { character } = useGame();
+
+  if (!user) return null;
 
   return (
     <>
-      {/* Mobile toggle */}
       <button
         className="md:hidden fixed bottom-4 left-4 z-50 bg-tribal-700 text-tribal-100 p-3 rounded-full shadow-lg"
         onClick={() => setIsOpen(!isOpen)}
@@ -28,18 +33,17 @@ export function Navigation() {
         {isOpen ? "✕" : "☰"}
       </button>
 
-      {/* Sidebar */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-tribal-900 border-r border-tribal-700 transform transition-transform duration-200 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-56 bg-tribal-900 border-r border-tribal-700 transform transition-transform duration-200 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <nav className="p-4 space-y-1">
+        <nav className="p-3 space-y-1">
           {navItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-3 py-2 rounded text-tribal-300 hover:bg-tribal-800 hover:text-tribal-100 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded text-tribal-300 hover:bg-tribal-800 hover:text-tribal-100 transition-colors text-sm"
               onClick={() => setIsOpen(false)}
             >
               <span>{item.icon}</span>
@@ -47,9 +51,18 @@ export function Navigation() {
             </a>
           ))}
         </nav>
+
+        {character && (
+          <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-tribal-700">
+            <div className="text-tribal-200 text-sm font-semibold truncate">{character.name}</div>
+            <div className="flex gap-1 mt-1">
+              <span className="text-tribal-500 text-xs">STR {character.strength}</span>
+              <span className="text-tribal-500 text-xs">AGI {character.agility}</span>
+            </div>
+          </div>
+        )}
       </aside>
 
-      {/* Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"

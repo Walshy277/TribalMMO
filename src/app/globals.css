@@ -1,32 +1,21 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --background: #1a1108;
-  --foreground: #fdf8f0;
+@theme {
+  --color-tribal-50: #fdf8f0;
+  --color-tribal-100: #f5e6cc;
+  --color-tribal-200: #e8c999;
+  --color-tribal-300: #d4a766;
+  --color-tribal-400: #c48b3d;
+  --color-tribal-500: #a67329;
+  --color-tribal-600: #8b5e1f;
+  --color-tribal-700: #6b471a;
+  --color-tribal-800: #4a3115;
+  --color-tribal-900: #2d1f0f;
+  --color-tribal-950: #1a1108;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--color-tribal-100);
+  background: var(--color-tribal-950);
   font-family: system-ui, -apple-system, sans-serif;
-}
-
-@layer components {
-  .btn-primary {
-    @apply bg-tribal-500 hover:bg-tribal-600 text-white font-semibold py-2 px-4 rounded transition-colors;
-  }
-
-  .btn-secondary {
-    @apply bg-tribal-800 hover:bg-tribal-700 text-tribal-100 font-semibold py-2 px-4 rounded transition-colors;
-  }
-
-  .card {
-    @apply bg-tribal-900 border border-tribal-700 rounded-lg p-4;
-  }
-
-  .input {
-    @apply bg-tribal-900 border border-tribal-700 rounded px-3 py-2 text-tribal-100 focus:outline-none focus:border-tribal-500;
-  }
 }
