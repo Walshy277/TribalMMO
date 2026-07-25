@@ -1,0 +1,253 @@
+TribalMMO
+
+Full Game Design Document
+
+1. High-Level Overview
+
+The Long Tribe is a persistent online tribal-era RPG where players form player-run factions, build shared settlements, and shape the world through exploration, crafting, combat, diplomacy, and territory control. Progression is finite, choices are permanent, and the endgame is political and social, not numerical. Pets exist only as optional buff companions.
+
+2. World & Setting
+
+Nervella
+
+A prehistoric fantasy continent defined by forests, plains, mountains, riverlands, ancient ruins, and spirit sites. The world is static but persistent, shaped entirely by player actions.
+
+Environmental Systems
+
+Weather: Rain, storms, and droughts affect exploration and gathering.
+
+Seasons: Spring, summer, autumn, and winter affect resources and rituals.
+
+Spirit Phenomena: Rare events granting temporary buffs.
+
+3. Player Character
+
+Character Creation
+
+Players choose a name, appearance, and background (flavor only).
+
+Core Stats (Finite)
+
+Stats cap at Tier III:
+
+- Strength
+- Agility
+- Endurance
+- Focus
+- Cunning
+
+Stats increase through skill tiers, equipment, rituals, and settlement bonuses.
+
+4. Skills & Progression (Finite)
+
+Skill Categories
+
+Each skill has three tiers:
+
+- Gathering
+- Crafting
+- Combat
+- Survival
+- Diplomacy
+
+Tier Unlocks
+
+Tier I to Tier II: Basic recipes, basic zones, and the ability to join factions.
+
+Tier II to Tier III: Advanced recipes, access to ruins and spirit sites, the ability to found factions, and the ability to hold faction roles.
+
+Specializations (Permanent)
+
+Chosen at Tier II and Tier III:
+
+- Smith
+- Bonecarver
+- Herbalist
+- Fletcher
+- Scout
+- Raider
+- Ritualist
+
+5. Pet System (Optional)
+
+Pets provide minor passive buffs and require minimal care. They do not fight or level infinitely.
+
+Pet Types
+
+- Hawk: +3% scouting yield
+- Boar: +5% carrying capacity
+- Lizard: +2% crafting speed
+- Fox: +3% evasion
+- Beetle: +2% herb gathering
+
+6. Player-Run Factions
+
+Founding a Faction
+
+Requirements:
+
+- Tier II skill
+- Founding Rite quest
+- Resource cost (wood, stone, hides)
+
+Faction Identity
+
+Founders choose a name, symbol, philosophy, and starting location.
+
+Faction Philosophies
+
+Each philosophy provides balanced bonuses:
+
+- Warborn: +5% raid damage
+- Earthkeepers: +10% building speed
+- Pathfinders: +10% exploration yield
+- Spiritseekers: +5% ritual success
+
+Faction Roles
+
+- Chieftain
+- Warden
+- Artisan Master
+- Scout Captain
+- Ritual Keeper
+
+Faction Laws
+
+Chieftains set tax rates, resource distribution, raid policies, and membership rules.
+
+7. Settlement System
+
+Each faction controls one main settlement.
+
+Settlement Buildings (Tier I-III)
+
+- Longhouse
+- Barracks
+- Workshop
+- Garden
+- Storage Pit
+- Spirit Circle
+- Watchtower
+
+Settlement Progression
+
+Upgrades require resources, time, and player contributions.
+
+8. Territory Control
+
+The world map is divided into hex territories.
+
+Territory Types
+
+- Forest
+- Plains
+- Mountains
+- Riverlands
+- Ruins
+- Spirit Sites
+
+Territory Actions
+
+Factions can claim territory, build outposts, harvest resources, raid rivals, and defend territory.
+
+Territory Bonuses
+
+Resource yield, exploration access, spirit blessings, and defensive advantages.
+
+9. Gameplay Loops
+
+Exploration (SimpleMMO Style)
+
+Tap-forward movement triggering resource finds, encounters, weather effects, ruin events, and spirit phenomena.
+
+Actions (Torn Style)
+
+Timed actions include:
+
+- Crafting
+- Training
+- Building
+- Scouting
+- Rituals
+- Diplomacy
+
+Durations range from 5 minutes to 8 hours.
+
+Combat
+
+Turn-based, text-driven, deterministic combat including wild encounters, ruin guardians, faction skirmishes, territory raids, and PvP.
+
+10. Spirit System
+
+Spirits are environmental forces.
+
+Spirit Types
+
+Fire, Water, Earth, Air, Shadow, and Light.
+
+Spirit Interactions
+
+Rituals, offerings, and seasonal events.
+
+Spirit Rewards
+
+Temporary buffs, crafting bonuses, combat modifiers, and weather manipulation.
+
+11. Economy & Crafting
+
+Resource Types
+
+Wood, stone, bone, clay, copper, tin, herbs, hides, and ritual components.
+
+Crafting Professions
+
+Smith, Bonecarver, Herbalist, Weaver, and Fletcher.
+
+Crafting System
+
+Timers, skill checks, quality tiers, and settlement bonuses.
+
+Player Market
+
+Auction house, faction marketplaces, and seasonal supply and demand.
+
+12. Social Systems
+
+Diplomacy
+
+Alliances, wars, trade, and shared territory.
+
+Communication
+
+Faction chat, alliance chat, world announcements, and settlement boards.
+
+Events
+
+Seasonal festivals, spirit phenomena, territory conflicts, and ruin expeditions.
+
+13. Monetization
+
+Cosmetic-focused:
+
+- Cosmetics
+- Settlement skins
+- Pet skins
+- Convenience boosts
+- Seasonal passes
+
+14. Long-Term Extensibility
+
+Future expansions:
+
+- New continents
+- Mounts
+- Weather manipulation
+- Spirit fusion rituals
+- Player-run towns
+- Clan wars
+- Procedural ruins
+- Seasonal story arcs
+
+15. Summary
+
+TribalMMO is a social, political, tribal-era RPG with finite progression and player-driven worldbuilding. Its strength lies in faction dynamics, settlement building, and territory control.

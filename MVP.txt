@@ -1,0 +1,327 @@
+TribalMMO
+
+Minimum Viable Product (MVP) Specification
+
+A lightweight, functional foundation of the game that includes core loops, basic systems, and essential player interactions. This MVP is designed to be fully playable, expandable, and stable while avoiding unnecessary complexity.
+
+1. Core MVP Goals
+
+- Deliver a playable tribal-era RPG with text-driven mechanics.
+- Enable player-run factions and basic settlement building.
+- Provide finite progression through skills and specializations.
+- Implement SimpleMMO-style exploration and Torn-style timed actions.
+- Support territory control at a basic level.
+- Ensure the game is stable, scalable, and content-light.
+
+2. MVP Features Overview
+
+Included
+
+- Account creation and character creation
+- Exploration system
+- Timed action system
+- Basic combat
+- Skills (Tier I-II only)
+- Specializations (Tier II only)
+- Faction creation and membership
+- Basic settlement system (Tier I buildings)
+- Territory claiming (simple version)
+- Basic crafting and gathering
+- Pets (single-slot buff system)
+- Player marketplace (basic listings)
+
+Not Included (Post-MVP)
+
+- Tier III skills
+- Advanced settlement tiers
+- Diplomacy systems
+- Seasonal events
+- Spirit rituals
+- Ruins and advanced zones
+- Complex crafting quality tiers
+- Clan wars
+
+3. Player Systems
+
+3.1 Character Creation
+
+- Name
+- Appearance (simple presets)
+- Background (cosmetic only)
+
+3.2 Core Stats (Tier I-II)
+
+- Strength
+- Agility
+- Endurance
+- Focus
+- Cunning
+
+Stats increase only through skill tier unlocks and equipment.
+
+3.3 Skills (Tier I-II)
+
+- Gathering
+- Crafting
+- Combat
+- Survival
+- Diplomacy
+
+Tier II unlocks specializations.
+
+3.4 Specializations (Tier II)
+
+- Smith
+- Bonecarver
+- Herbalist
+- Fletcher
+- Scout
+- Raider
+- Ritualist (placeholder, rituals not in MVP)
+
+4. Exploration System (Core MVP Loop)
+
+4.1 Tap-Forward Exploration
+
+Players click or tap to move through zones:
+
+- Forest
+- Plains
+- Riverbank
+
+4.2 Random Events
+
+Each step may trigger:
+
+- Resource find
+- Simple encounter
+- Weather effect
+- Flavor text
+
+4.3 Stamina
+
+- 100 maximum
+- Regenerates over time
+
+5. Timed Action System
+
+5.1 Action Types
+
+- Crafting
+- Training
+- Gathering (bulk)
+- Building (settlement)
+
+5.2 Durations
+
+- 5 minutes
+- 15 minutes
+- 1 hour
+- 4 hours
+
+5.3 Action Slots
+
+- 1 slot at start
+- 2 slots unlocked at Tier II
+
+6. Combat System
+
+6.1 Combat Type
+
+- Turn-based
+- Text-driven
+- Deterministic with light randomness
+
+6.2 Combat Encounters
+
+- Wild animals
+- Rival faction scouts (non-player NPCs)
+
+6.3 Player Stats Used
+
+- Strength
+- Agility
+- Endurance
+
+6.4 Equipment
+
+- Basic weapons
+- Basic armor
+
+7. Factions (Player-Run)
+
+7.1 Founding Requirements
+
+- Tier II skill
+- 500 wood
+- 300 stone
+- 100 hides
+
+7.2 Faction Features (MVP)
+
+- Name
+- Symbol (preset icons)
+- Philosophy (simple bonus)
+- Member list
+- Faction chat
+
+7.3 Faction Philosophies
+
+- Warborn: +3% combat damage
+- Earthkeepers: +5% building speed
+- Pathfinders: +5% exploration yield
+
+8. Settlement System
+
+8.1 Settlement Buildings (Tier I Only)
+
+- Longhouse (faction HQ)
+- Workshop (crafting speed +5%)
+- Garden (herb yield +5%)
+- Storage Pit (resource cap +500)
+
+8.2 Building Requirements
+
+Each building requires:
+
+- Wood
+- Stone
+- Time (timed action)
+- Member contributions
+
+8.3 Settlement Bonuses
+
+Applied to all faction members.
+
+9. Territory System
+
+9.1 Territory Map
+
+- 25 hex tiles
+- Forest, plains, riverbank
+
+9.2 Claiming Territory
+
+- Faction must have a Longhouse
+- Requires 200 wood + 200 stone
+
+9.3 Territory Bonuses
+
+- Forest: +5% wood gathering
+- Plains: +5% hunting yield
+- Riverbank: +5% fishing yield
+
+10. Crafting & Gathering
+
+10.1 Resources
+
+- Wood
+- Stone
+- Herbs
+- Hides
+
+10.2 Crafting Recipes (MVP)
+
+- Basic tools
+- Basic weapons
+- Basic armor
+- Simple potions
+
+10.3 Gathering Methods
+
+- Exploration finds
+- Timed gathering actions
+
+11. Pets (Optional Buffs)
+
+11.1 Pet Types
+
+- Hawk: +2% scouting yield
+- Boar: +3% carrying capacity
+- Lizard: +1% crafting speed
+
+11.2 Pet System
+
+- One pet slot
+- No leveling
+- No combat
+
+12. Marketplace
+
+12.1 Basic Features
+
+- List items
+- Buy items
+- Simple tax (5%)
+
+12.2 Supported Items
+
+- Resources
+- Crafted items
+- Pets
+
+13. UI/UX MVP Requirements
+
+13.1 Pages
+
+- Dashboard
+- Character
+- Exploration
+- Actions
+- Combat
+- Inventory
+- Crafting
+- Factions
+- Settlement
+- Marketplace
+
+13.2 Visual Style
+
+- Clean tribal aesthetic
+- Icon-based navigation
+- Text-focused content
+
+14. Technical MVP Requirements
+
+14.1 Backend
+
+- User accounts
+- Faction system
+- Settlement system
+- Exploration engine
+- Timed action scheduler
+- Combat engine
+- Marketplace
+
+14.2 Frontend
+
+- Responsive UI
+- Lightweight animations
+- Text-driven interactions
+
+14.3 Database
+
+- Users
+- Characters
+- Factions
+- Settlements
+- Territories
+- Items
+- Pets
+- Actions
+
+15. Post-MVP Roadmap
+
+- Tier III skills
+- Advanced settlements
+- Diplomacy system
+- Spirit rituals
+- Ruins and advanced zones
+- Seasonal events
+- Clan wars
+- Mounts
+- Weather manipulation
+
+16. Summary
+
+This MVP provides a fully functional tribal-era RPG with exploration, crafting, combat, factions, settlements, and territory control. It is intentionally minimal, stable, and expandable, forming the foundation for TribalMMO's long-term development.
