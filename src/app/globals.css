@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #1a1108;
+  --foreground: #fdf8f0;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-tribal-500 hover:bg-tribal-600 text-white font-semibold py-2 px-4 rounded transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-tribal-800 hover:bg-tribal-700 text-tribal-100 font-semibold py-2 px-4 rounded transition-colors;
+  }
+
+  .card {
+    @apply bg-tribal-900 border border-tribal-700 rounded-lg p-4;
+  }
+
+  .input {
+    @apply bg-tribal-900 border border-tribal-700 rounded px-3 py-2 text-tribal-100 focus:outline-none focus:border-tribal-500;
+  }
+}
