@@ -9,7 +9,7 @@ A lightweight, functional foundation of the game that includes core loops, basic
 - Deliver a playable tribal-era RPG with text-driven mechanics.
 - Enable player-run factions and basic settlement building.
 - Provide finite progression through skills and specializations.
-- Implement SimpleMMO-style exploration and Torn-style timed actions.
+- Implement tap-forward exploration and timed actions.
 - Support territory control at a basic level.
 - Ensure the game is stable, scalable, and content-light.
 

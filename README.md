@@ -4,7 +4,7 @@ A persistent online tribal-era RPG where players form factions, build settlement
 
 ## Overview
 
-**The Long Tribe** is a text-driven, social MMO set in a prehistoric fantasy continent called Nervella. Progression is finite, choices are permanent, and the endgame is political and social, not numerical.
+TribalMMO is a text-driven, social MMO set in a prehistoric fantasy continent called Nervella. Progression is finite, choices are permanent, and the endgame is political and social, not numerical.
 
 ### Key Features
 

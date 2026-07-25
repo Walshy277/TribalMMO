@@ -4,7 +4,7 @@ Full Game Design Document
 
 1. High-Level Overview
 
-The Long Tribe is a persistent online tribal-era RPG where players form player-run factions, build shared settlements, and shape the world through exploration, crafting, combat, diplomacy, and territory control. Progression is finite, choices are permanent, and the endgame is political and social, not numerical. Pets exist only as optional buff companions.
+TribalMMO is a persistent online tribal-era RPG where players form player-run factions, build shared settlements, and shape the world through exploration, crafting, combat, diplomacy, and territory control. Progression is finite, choices are permanent, and the endgame is political and social, not numerical. Pets exist only as optional buff companions.
 
 2. World & Setting
 
@@ -156,11 +156,11 @@ Resource yield, exploration access, spirit blessings, and defensive advantages.
 
 9. Gameplay Loops
 
-Exploration (SimpleMMO Style)
+Exploration
 
 Tap-forward movement triggering resource finds, encounters, weather effects, ruin events, and spirit phenomena.
 
-Actions (Torn Style)
+Actions
 
 Timed actions include:
 
