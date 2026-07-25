@@ -27,52 +27,67 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="card w-full max-w-md">
-        <h1 className="text-2xl font-bold text-tribal-100 text-center mb-6">Create Account</h1>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-tribal-950 via-tribal-900/50 to-tribal-950">
+      <div className="card w-full max-w-md border-tribal-600/20 animate-fade-in">
+        <div className="text-center mb-6">
+          <div className="text-5xl mb-3">🔥</div>
+          <h1 className="text-2xl font-bold text-tribal-100">Join the Tribe</h1>
+          <p className="text-tribal-400 text-sm mt-1">Create your account to begin</p>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-tribal-300 mb-1">Username</label>
+            <label className="block text-sm font-medium text-tribal-300 mb-1.5">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="input w-full"
+              placeholder="Your tribal name"
               required
+              minLength={2}
             />
           </div>
           <div>
-            <label className="block text-sm text-tribal-300 mb-1">Email</label>
+            <label className="block text-sm font-medium text-tribal-300 mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input w-full"
+              placeholder="your@email.com"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-tribal-300 mb-1">Password</label>
+            <label className="block text-sm font-medium text-tribal-300 mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input w-full"
+              placeholder="••••••••"
               required
               minLength={6}
             />
+            <p className="text-tribal-600 text-xs mt-1">Minimum 6 characters</p>
           </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
+          {error && (
+            <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-3 text-red-300 text-sm">
+              {error}
+            </div>
+          )}
+          <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
             {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
-        <p className="text-tribal-400 text-sm text-center mt-4">
-          Already have an account?{" "}
-          <a href="/auth/login" className="text-tribal-300 hover:text-tribal-200">
-            Login
-          </a>
-        </p>
+        <div className="mt-6 pt-4 border-t border-tribal-800 text-center">
+          <p className="text-tribal-400 text-sm">
+            Already have an account?{" "}
+            <a href="/auth/login" className="text-tribal-300 hover:text-tribal-100 font-medium transition-colors">
+              Login
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

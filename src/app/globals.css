@@ -12,10 +12,70 @@
   --color-tribal-800: #4a3115;
   --color-tribal-900: #2d1f0f;
   --color-tribal-950: #1a1108;
+  --color-fire: #e85d04;
+  --color-water: #0096c7;
+  --color-earth: #606c38;
+  --color-blood: #9d0208;
+  --color-spirit: #7b2cbf;
+}
+
+:root {
+  --bg-gradient: linear-gradient(180deg, #1a1108 0%, #0d0a05 100%);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4a3115 #1a1108;
 }
 
 body {
-  color: var(--color-tribal-100);
-  background: var(--color-tribal-950);
+  color: #f5e6cc;
+  background: var(--bg-gradient);
   font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(166, 115, 41, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(166, 115, 41, 0.6); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+.animate-progress {
+  animation: progress-fill 0.8s ease-out;
 }

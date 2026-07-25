@@ -26,41 +26,53 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="card w-full max-w-md">
-        <h1 className="text-2xl font-bold text-tribal-100 text-center mb-6">Login</h1>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-tribal-950 via-tribal-900/50 to-tribal-950">
+      <div className="card w-full max-w-md border-tribal-600/20 animate-fade-in">
+        <div className="text-center mb-6">
+          <div className="text-5xl mb-3">🏕️</div>
+          <h1 className="text-2xl font-bold text-tribal-100">Welcome Back</h1>
+          <p className="text-tribal-400 text-sm mt-1">Enter the world of Nervella</p>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-tribal-300 mb-1">Email</label>
+            <label className="block text-sm font-medium text-tribal-300 mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input w-full"
+              placeholder="your@email.com"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-tribal-300 mb-1">Password</label>
+            <label className="block text-sm font-medium text-tribal-300 mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input w-full"
+              placeholder="••••••••"
               required
             />
           </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
+          {error && (
+            <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-3 text-red-300 text-sm">
+              {error}
+            </div>
+          )}
+          <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <p className="text-tribal-400 text-sm text-center mt-4">
-          No account?{" "}
-          <a href="/auth/signup" className="text-tribal-300 hover:text-tribal-200">
-            Create one
-          </a>
-        </p>
+        <div className="mt-6 pt-4 border-t border-tribal-800 text-center">
+          <p className="text-tribal-400 text-sm">
+            New to TribalMMO?{" "}
+            <a href="/auth/signup" className="text-tribal-300 hover:text-tribal-100 font-medium transition-colors">
+              Create an account
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

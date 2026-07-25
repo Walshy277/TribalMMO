@@ -1,0 +1,85 @@
+
+> tribalmmo@0.1.0 dev
+> next dev --turbopack
+
+▲ Next.js 16.2.12 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.202:3000
+- Environments: .env.local
+✓ Ready in 1984ms
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\kezza\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\kezza\Desktop\TribalMMO\package-lock.json
+
+
+○ Compiling / ...
+ GET / 200 in 183ms (next.js: 17ms, application-code: 165ms)
+ GET / 200 in 704ms (next.js: 84ms, application-code: 621ms)
+ GET / 200 in 1113ms (next.js: 272ms, application-code: 842ms)
+ GET / 200 in 612ms (next.js: 17ms, application-code: 596ms)
+ GET / 200 in 615ms (next.js: 34ms, application-code: 581ms)
+ GET / 200 in 616ms (next.js: 166ms, application-code: 450ms)
+ GET / 200 in 756ms (next.js: 278ms, application-code: 478ms)
+ GET / 200 in 758ms (next.js: 395ms, application-code: 363ms)
+ GET / 200 in 809ms (next.js: 27ms, application-code: 783ms)
+ GET / 200 in 719ms (next.js: 26ms, application-code: 693ms)
+ GET / 200 in 732ms (next.js: 24ms, application-code: 708ms)
+ GET / 200 in 734ms (next.js: 133ms, application-code: 601ms)
+ GET / 200 in 738ms (next.js: 222ms, application-code: 515ms)
+ GET / 200 in 736ms (next.js: 310ms, application-code: 425ms)
+ GET / 200 in 564ms (next.js: 23ms, application-code: 540ms)
+ GET / 200 in 458ms (next.js: 17ms, application-code: 442ms)
+ GET / 200 in 440ms (next.js: 22ms, application-code: 418ms)
+ GET / 200 in 438ms (next.js: 171ms, application-code: 266ms)
+ GET / 200 in 444ms (next.js: 97ms, application-code: 347ms)
+ GET / 200 in 520ms (next.js: 248ms, application-code: 272ms)
+ GET / 200 in 562ms (next.js: 16ms, application-code: 546ms)
+ GET / 200 in 481ms (next.js: 26ms, application-code: 454ms)
+ GET / 200 in 378ms (next.js: 27ms, application-code: 352ms)
+ GET / 200 in 371ms (next.js: 214ms, application-code: 158ms)
+ GET / 200 in 377ms (next.js: 135ms, application-code: 243ms)
+ GET / 200 in 373ms (next.js: 288ms, application-code: 86ms)
+ GET / 200 in 894ms (next.js: 199ms, application-code: 695ms)
+ GET / 200 in 451ms (next.js: 16ms, application-code: 435ms)
+ GET / 200 in 469ms (next.js: 33ms, application-code: 436ms)
+ GET / 200 in 470ms (next.js: 85ms, application-code: 385ms)
+ GET / 200 in 477ms (next.js: 167ms, application-code: 310ms)
+ GET / 200 in 478ms (next.js: 239ms, application-code: 239ms)
+ GET / 200 in 530ms (next.js: 21ms, application-code: 509ms)
+ GET / 200 in 426ms (next.js: 41ms, application-code: 384ms)
+ GET / 200 in 424ms (next.js: 14ms, application-code: 410ms)
+ GET / 200 in 423ms (next.js: 76ms, application-code: 347ms)
+ GET / 200 in 424ms (next.js: 135ms, application-code: 289ms)
+ GET / 200 in 425ms (next.js: 197ms, application-code: 228ms)
+ GET / 200 in 437ms (next.js: 18ms, application-code: 419ms)
+ GET / 200 in 366ms (next.js: 13ms, application-code: 352ms)
+ GET / 200 in 362ms (next.js: 15ms, application-code: 347ms)
+ GET / 200 in 362ms (next.js: 73ms, application-code: 289ms)
+ GET / 200 in 363ms (next.js: 134ms, application-code: 229ms)
+ GET / 200 in 363ms (next.js: 198ms, application-code: 165ms)
+ GET / 200 in 415ms (next.js: 17ms, application-code: 398ms)
+ GET / 200 in 347ms (next.js: 18ms, application-code: 329ms)
+ GET / 200 in 346ms (next.js: 16ms, application-code: 330ms)
+ GET / 200 in 347ms (next.js: 79ms, application-code: 268ms)
+ GET / 200 in 423ms (next.js: 145ms, application-code: 278ms)
+ GET / 200 in 423ms (next.js: 201ms, application-code: 222ms)
+ GET / 200 in 181ms (next.js: 12ms, application-code: 169ms)
+ GET / 200 in 112ms (next.js: 16ms, application-code: 95ms)
+✓ Compiled in 2.8s
+ GET / 200 in 1521ms (next.js: 793ms, application-code: 728ms)
+ GET / 200 in 617ms (next.js: 314ms, application-code: 303ms)
+ GET / 200 in 627ms (next.js: 110ms, application-code: 517ms)
+ GET / 200 in 613ms (next.js: 460ms, application-code: 153ms)
+ GET / 200 in 4.0s (next.js: 885ms, application-code: 3.2s)
+ GET / 200 in 1606ms (next.js: 241ms, application-code: 1366ms)
+ GET / 200 in 1434ms (next.js: 820ms, application-code: 614ms)
+ GET / 200 in 356ms (next.js: 19ms, application-code: 337ms)
+ GET / 200 in 290ms (next.js: 20ms, application-code: 271ms)
+ GET / 200 in 303ms (next.js: 102ms, application-code: 200ms)
+○ Compiling /auth/login ...
+ GET /auth/login 200 in 4.9s (next.js: 4.2s, application-code: 668ms)
+ GET /auth/login 200 in 451ms (next.js: 52ms, application-code: 398ms)
+✓ Compiled in 367ms
