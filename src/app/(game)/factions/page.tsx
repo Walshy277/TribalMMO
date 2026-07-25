@@ -3,11 +3,14 @@
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
+import { Shield, Swords, Globe, Compass, Users, Plus } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const philosophies = [
-  { id: "warborn", name: "Warborn", bonus: "+3% combat damage", icon: "⚔️" },
-  { id: "earthkeepers", name: "Earthkeepers", bonus: "+5% building speed", icon: "🌍" },
-  { id: "pathfinders", name: "Pathfinders", bonus: "+5% exploration yield", icon: "🧭" },
+const philosophies: { id: string; name: string; bonus: string; icon: LucideIcon }[] = [
+  { id: "warborn", name: "Warborn", bonus: "+3% combat damage", icon: Swords },
+  { id: "earthkeepers", name: "Earthkeepers", bonus: "+5% building speed", icon: Globe },
+  { id: "pathfinders", name: "Pathfinders", bonus: "+5% exploration yield", icon: Compass },
 ];
 
 export default function FactionsPage() {
@@ -79,13 +82,17 @@ export default function FactionsPage() {
               <div className="text-tribal-500 text-xs uppercase font-medium mb-1">Your Faction</div>
               <h2 className="text-xl font-bold text-tribal-100">{myFaction.faction.name}</h2>
               <div className="flex items-center gap-4 mt-2 text-sm">
-                <span className="text-tribal-400">Role: <span className="text-tribal-200 capitalize">{myFaction.role}</span></span>
+                <span className="text-tribal-400 flex items-center gap-1">
+                  <Shield size={14} /> Role: <span className="text-tribal-200 capitalize">{myFaction.role}</span>
+                </span>
                 <span className="text-tribal-600">·</span>
                 <span className="text-tribal-400 capitalize">{myFaction.faction.philosophy}</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-tribal-500 text-xs uppercase">Members</div>
+              <div className="text-tribal-500 text-xs uppercase flex items-center gap-1 justify-end">
+                <Users size={12} /> Members
+              </div>
               <div className="text-tribal-100 text-xl font-bold">{myFaction.faction.faction_members?.length || 0}</div>
             </div>
           </div>
@@ -93,7 +100,7 @@ export default function FactionsPage() {
       ) : showCreate ? (
         <div className="card">
           <div className="text-center mb-5">
-            <div className="text-4xl mb-2">🏛️</div>
+            <Shield size={36} className="text-tribal-400 mx-auto mb-2" />
             <h2 className="text-xl font-bold text-tribal-100">Found a Faction</h2>
           </div>
           <form onSubmit={createFaction} className="space-y-4">
@@ -105,36 +112,41 @@ export default function FactionsPage() {
             <div>
               <label className="block text-sm font-semibold text-tribal-300 mb-2">Philosophy</label>
               <div className="space-y-2">
-                {philosophies.map((p) => (
-                  <label key={p.id} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
-                    philosophy === p.id ? "bg-tribal-800 text-tribal-100 border-tribal-600/50" : "bg-tribal-900/50 text-tribal-400 hover:bg-tribal-800/50 border-tribal-800/50"
-                  }`}>
-                    <input type="radio" name="philosophy" value={p.id} checked={philosophy === p.id} onChange={(e) => setPhilosophy(e.target.value)} className="hidden" />
-                    <span className="text-xl">{p.icon}</span>
-                    <div>
-                      <div className="font-semibold text-sm">{p.name}</div>
-                      <div className="text-xs opacity-70">{p.bonus}</div>
-                    </div>
-                  </label>
-                ))}
+                {philosophies.map((p) => {
+                  const Icon = p.icon;
+                  return (
+                    <label key={p.id} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
+                      philosophy === p.id ? "bg-tribal-800 text-tribal-100 border-tribal-600/50" : "bg-tribal-900/50 text-tribal-400 hover:bg-tribal-800/50 border-tribal-800/50"
+                    }`}>
+                      <input type="radio" name="philosophy" value={p.id} checked={philosophy === p.id} onChange={(e) => setPhilosophy(e.target.value)} className="hidden" />
+                      <Icon size={20} className="shrink-0" />
+                      <div>
+                        <div className="font-semibold text-sm">{p.name}</div>
+                        <div className="text-xs opacity-70">{p.bonus}</div>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             </div>
             {error && <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-3 text-red-300 text-sm">{error}</div>}
             <div className="flex gap-3">
-              <button type="submit" className="btn-primary flex-1 py-3" disabled={creating}>
-                {creating ? "Creating..." : "Create Faction"}
-              </button>
-              <button type="button" className="btn-secondary py-3" onClick={() => setShowCreate(false)}>Cancel</button>
+              <Button type="submit" variant="primary" className="flex-1" size="lg" loading={creating}>
+                Create Faction
+              </Button>
+              <Button type="button" variant="secondary" size="lg" onClick={() => setShowCreate(false)}>
+                Cancel
+              </Button>
             </div>
           </form>
         </div>
       ) : (
         <div className="card text-center py-8">
-          <div className="text-4xl mb-3">🏛️</div>
+          <Shield size={36} className="text-tribal-600 mx-auto mb-3" />
           <p className="text-tribal-400 mb-5">You are not a member of any faction.</p>
-          <button onClick={() => setShowCreate(true)} className="btn-primary py-3 px-6">
+          <Button variant="primary" size="lg" icon={<Plus size={18} />} onClick={() => setShowCreate(true)}>
             Create Faction
-          </button>
+          </Button>
         </div>
       )}
 
@@ -142,7 +154,7 @@ export default function FactionsPage() {
         <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">All Factions</h2>
         {factions.length === 0 ? (
           <div className="text-center py-6">
-            <div className="text-4xl mb-2 opacity-50">🏛️</div>
+            <Shield size={32} className="text-tribal-700 mx-auto mb-2" />
             <p className="text-tribal-500">No factions exist yet. Be the first!</p>
           </div>
         ) : (
@@ -151,16 +163,18 @@ export default function FactionsPage() {
               <div key={faction.id} className="bg-tribal-900/50 p-4 rounded-lg border border-tribal-800/50 hover:border-tribal-700/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-xl">🛡️</span>
+                    <Shield size={18} className="text-tribal-400" />
                     <div>
                       <span className="text-tribal-200 font-semibold text-sm">{faction.name}</span>
                       <p className="text-tribal-500 text-xs capitalize">{faction.philosophy}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-tribal-500 text-sm">{faction.faction_members?.length || 0} members</span>
+                    <span className="text-tribal-500 text-sm flex items-center gap-1">
+                      <Users size={14} /> {faction.faction_members?.length || 0}
+                    </span>
                     {!myFaction && (
-                      <button onClick={() => joinFaction(faction.id)} className="btn-secondary text-sm py-1.5 px-4">Join</button>
+                      <Button variant="secondary" size="sm" onClick={() => joinFaction(faction.id)}>Join</Button>
                     )}
                   </div>
                 </div>

@@ -4,18 +4,33 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useGame } from "@/lib/game";
 import { usePathname } from "next/navigation";
+import {
+  Home,
+  User,
+  Map,
+  Zap,
+  Sword,
+  Backpack,
+  Hammer,
+  Shield,
+  Building2,
+  Coins,
+  Menu,
+  X,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const navItems = [
-  { href: "/", label: "Dashboard", icon: "🏠" },
-  { href: "/character", label: "Character", icon: "👤" },
-  { href: "/exploration", label: "Explore", icon: "🗺️" },
-  { href: "/actions", label: "Actions", icon: "⚡" },
-  { href: "/combat", label: "Combat", icon: "⚔️" },
-  { href: "/inventory", label: "Inventory", icon: "🎒" },
-  { href: "/crafting", label: "Crafting", icon: "🔨" },
-  { href: "/factions", label: "Factions", icon: "🛡️" },
-  { href: "/settlement", label: "Settlement", icon: "🏘️" },
-  { href: "/marketplace", label: "Market", icon: "💰" },
+const navItems: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/", label: "Dashboard", icon: Home },
+  { href: "/character", label: "Character", icon: User },
+  { href: "/exploration", label: "Explore", icon: Map },
+  { href: "/actions", label: "Actions", icon: Zap },
+  { href: "/combat", label: "Combat", icon: Sword },
+  { href: "/inventory", label: "Inventory", icon: Backpack },
+  { href: "/crafting", label: "Crafting", icon: Hammer },
+  { href: "/factions", label: "Factions", icon: Shield },
+  { href: "/settlement", label: "Settlement", icon: Building2 },
+  { href: "/marketplace", label: "Market", icon: Coins },
 ];
 
 export function Navigation() {
@@ -32,7 +47,7 @@ export function Navigation() {
         className="md:hidden fixed bottom-5 left-5 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-tribal-700 text-tribal-100 shadow-lg shadow-black/30 border border-tribal-600/50 active:scale-95 transition-transform"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? "✕" : "☰"}
+        {isOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
       <aside
@@ -43,6 +58,7 @@ export function Navigation() {
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
             const active = pathname === item.href;
+            const Icon = item.icon;
             return (
               <a
                 key={item.href}
@@ -54,7 +70,7 @@ export function Navigation() {
                 }`}
                 onClick={() => setIsOpen(false)}
               >
-                <span className="text-lg">{item.icon}</span>
+                <Icon size={18} />
                 <span>{item.label}</span>
               </a>
             );

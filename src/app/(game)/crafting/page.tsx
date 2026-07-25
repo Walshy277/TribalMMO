@@ -2,6 +2,9 @@
 
 import { useGame } from "@/lib/game";
 import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { Hammer, Swords, Shield, FlaskConical, Lock, Clock } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 const recipes = [
   { name: "Stone Axe", type: "weapon", tier: 1, materials: "3 Wood, 2 Stone", desc: "A basic axe for chopping" },
@@ -14,7 +17,7 @@ const recipes = [
   { name: "Bow", type: "weapon", tier: 2, materials: "6 Wood, 2 Hides", desc: "A ranged weapon" },
 ];
 
-const typeIcons: Record<string, string> = { weapon: "⚔️", armor: "🛡️", consumable: "🧪", tool: "🔨" };
+const typeIcons: Record<string, LucideIcon> = { weapon: Swords, armor: Shield, consumable: FlaskConical, tool: Hammer };
 
 export default function CraftingPage() {
   const { character } = useGame();
@@ -62,34 +65,37 @@ export default function CraftingPage() {
           <p className="text-tribal-500">No recipes available.</p>
         ) : (
           <div className="space-y-2">
-            {availableRecipes.map((recipe, i) => (
-              <div
-                key={i}
-                className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                  selectedRecipe === i
-                    ? "bg-tribal-800 border-tribal-600/50"
-                    : "bg-tribal-900/50 border-tribal-800/50 hover:border-tribal-700/50"
-                }`}
-                onClick={() => setSelectedRecipe(selectedRecipe === i ? null : i)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{typeIcons[recipe.type]}</span>
-                    <div>
-                      <span className="text-tribal-200 font-semibold text-sm">{recipe.name}</span>
-                      <p className="text-tribal-500 text-xs">{recipe.desc}</p>
+            {availableRecipes.map((recipe, i) => {
+              const Icon = typeIcons[recipe.type] || Hammer;
+              return (
+                <div
+                  key={i}
+                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                    selectedRecipe === i
+                      ? "bg-tribal-800 border-tribal-600/50"
+                      : "bg-tribal-900/50 border-tribal-800/50 hover:border-tribal-700/50"
+                  }`}
+                  onClick={() => setSelectedRecipe(selectedRecipe === i ? null : i)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Icon size={18} className="text-tribal-400 shrink-0" />
+                      <div>
+                        <span className="text-tribal-200 font-semibold text-sm">{recipe.name}</span>
+                        <p className="text-tribal-500 text-xs">{recipe.desc}</p>
+                      </div>
                     </div>
+                    <span className="text-tribal-600 text-xs bg-tribal-800 px-2 py-1 rounded">Tier {recipe.tier}</span>
                   </div>
-                  <span className="text-tribal-600 text-xs bg-tribal-800 px-2 py-1 rounded">Tier {recipe.tier}</span>
+                  {selectedRecipe === i && (
+                    <div className="mt-3 pt-3 border-t border-tribal-700/30 animate-fade-in">
+                      <p className="text-tribal-400 text-sm mb-2">Materials: {recipe.materials}</p>
+                      <Button variant="primary" size="sm" icon={<Hammer size={14} />}>Craft (Start Action)</Button>
+                    </div>
+                  )}
                 </div>
-                {selectedRecipe === i && (
-                  <div className="mt-3 pt-3 border-t border-tribal-700/30 animate-fade-in">
-                    <p className="text-tribal-400 text-sm mb-2">Materials: {recipe.materials}</p>
-                    <button className="btn-primary text-sm">🔨 Craft (Start Action)</button>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -99,20 +105,25 @@ export default function CraftingPage() {
         <div className="card">
           <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Locked Recipes</h2>
           <div className="space-y-2">
-            {lockedRecipes.map((recipe, i) => (
-              <div key={i} className="bg-tribal-900/30 p-4 rounded-lg border border-tribal-800/30 opacity-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl grayscale">{typeIcons[recipe.type]}</span>
-                    <div>
-                      <span className="text-tribal-300 font-semibold text-sm">{recipe.name}</span>
-                      <p className="text-tribal-600 text-xs">{recipe.desc}</p>
+            {lockedRecipes.map((recipe, i) => {
+              const Icon = typeIcons[recipe.type] || Hammer;
+              return (
+                <div key={i} className="bg-tribal-900/30 p-4 rounded-lg border border-tribal-800/30 opacity-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Icon size={18} className="text-tribal-600 shrink-0" />
+                      <div>
+                        <span className="text-tribal-300 font-semibold text-sm">{recipe.name}</span>
+                        <p className="text-tribal-600 text-xs">{recipe.desc}</p>
+                      </div>
                     </div>
+                    <span className="text-tribal-600 text-xs bg-tribal-900 px-2 py-1 rounded flex items-center gap-1">
+                      <Lock size={10} /> Tier {recipe.tier}
+                    </span>
                   </div>
-                  <span className="text-tribal-600 text-xs bg-tribal-900 px-2 py-1 rounded">Tier {recipe.tier}</span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

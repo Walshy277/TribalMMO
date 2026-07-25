@@ -3,19 +3,32 @@
 import { useGame } from "@/lib/game";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/Button";
+import { Swords, Shield, Heart, Dumbbell, Zap, Trophy, Skull, Map, Target } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const enemies = [
-  { name: "Wild Boar", icon: "🐗", hp: 15, atk: 3, def: 1, xp: 10, flavor: "It charges with tusks bared!" },
-  { name: "Angry Wolf", icon: "🐺", hp: 20, atk: 4, def: 2, xp: 15, flavor: "It snarls and circles you." },
-  { name: "Forest Bear", icon: "🐻", hp: 35, atk: 6, def: 3, xp: 25, flavor: "A massive bear blocks your path." },
-  { name: "Rival Scout", icon: "🗡️", hp: 18, atk: 5, def: 2, xp: 20, flavor: "A rival faction scout challenges you." },
-  { name: "River Serpent", icon: "🐍", hp: 12, atk: 3, def: 1, xp: 12, flavor: "A serpent lunges from the water!" },
-  { name: "Stone Golem", icon: "🗿", hp: 40, atk: 4, def: 5, xp: 30, flavor: "An ancient golem awakens." },
+interface EnemyDef {
+  name: string;
+  icon: LucideIcon;
+  hp: number;
+  atk: number;
+  def: number;
+  xp: number;
+  flavor: string;
+}
+
+const enemies: EnemyDef[] = [
+  { name: "Wild Boar", icon: Skull, hp: 15, atk: 3, def: 1, xp: 10, flavor: "It charges with tusks bared!" },
+  { name: "Angry Wolf", icon: Skull, hp: 20, atk: 4, def: 2, xp: 15, flavor: "It snarls and circles you." },
+  { name: "Forest Bear", icon: Skull, hp: 35, atk: 6, def: 3, xp: 25, flavor: "A massive bear blocks your path." },
+  { name: "Rival Scout", icon: Swords, hp: 18, atk: 5, def: 2, xp: 20, flavor: "A rival faction scout challenges you." },
+  { name: "River Serpent", icon: Skull, hp: 12, atk: 3, def: 1, xp: 12, flavor: "A serpent lunges from the water!" },
+  { name: "Stone Golem", icon: Skull, hp: 40, atk: 4, def: 5, xp: 30, flavor: "An ancient golem awakens." },
 ];
 
 interface CombatState {
   active: boolean;
-  enemy: typeof enemies[0];
+  enemy: EnemyDef;
   enemyHp: number;
   playerHp: number;
   maxPlayerHp: number;
@@ -124,7 +137,9 @@ export default function CombatPage() {
             <div className="grid grid-cols-2 gap-6">
               {/* Player */}
               <div className="text-center">
-                <div className="text-5xl mb-2">👤</div>
+                <div className="w-14 h-14 mx-auto rounded-full bg-tribal-800 border border-tribal-700/50 flex items-center justify-center mb-2">
+                  <Swords size={24} className="text-green-400" />
+                </div>
                 <div className="text-tribal-500 text-xs uppercase">You</div>
                 <div className="text-lg font-bold text-tribal-100 mb-3">{character.name}</div>
                 <div className="w-full bg-tribal-800 rounded-full h-3">
@@ -133,12 +148,16 @@ export default function CombatPage() {
                     style={{ width: `${(combat.playerHp / combat.maxPlayerHp) * 100}%` }}
                   />
                 </div>
-                <div className="text-tribal-400 text-xs mt-1.5">{combat.playerHp} / {combat.maxPlayerHp} HP</div>
+                <div className="text-tribal-400 text-xs mt-1.5 flex items-center justify-center gap-1">
+                  <Heart size={12} /> {combat.playerHp} / {combat.maxPlayerHp}
+                </div>
               </div>
 
               {/* Enemy */}
               <div className="text-center">
-                <div className="text-5xl mb-2">{combat.enemy.icon}</div>
+                <div className="w-14 h-14 mx-auto rounded-full bg-red-950/50 border border-red-900/40 flex items-center justify-center mb-2">
+                  <combat.enemy.icon size={24} className="text-red-400" />
+                </div>
                 <div className="text-tribal-500 text-xs uppercase">Enemy</div>
                 <div className="text-lg font-bold text-tribal-100 mb-3">{combat.enemy.name}</div>
                 <div className="w-full bg-tribal-800 rounded-full h-3">
@@ -147,7 +166,9 @@ export default function CombatPage() {
                     style={{ width: `${(combat.enemyHp / combat.enemy.hp) * 100}%` }}
                   />
                 </div>
-                <div className="text-tribal-400 text-xs mt-1.5">{combat.enemyHp} / {combat.enemy.hp} HP</div>
+                <div className="text-tribal-400 text-xs mt-1.5 flex items-center justify-center gap-1">
+                  <Heart size={12} /> {combat.enemyHp} / {combat.enemy.hp}
+                </div>
               </div>
             </div>
           </div>
@@ -174,18 +195,18 @@ export default function CombatPage() {
           {/* Actions */}
           {combat.active ? (
             <div className="flex gap-3">
-              <button onClick={playerAttack} className="flex-1 bg-red-700 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition-colors text-base">
-                ⚔️ Attack
-              </button>
-              <button onClick={flee} className="flex-1 btn-secondary py-3 text-base">
-                🏃 Flee
-              </button>
+              <Button variant="danger" className="flex-1" size="lg" icon={<Swords size={18} />} onClick={playerAttack}>
+                Attack
+              </Button>
+              <Button variant="secondary" className="flex-1" size="lg" icon={<Map size={18} />} onClick={flee}>
+                Flee
+              </Button>
             </div>
           ) : (
-            <button onClick={endCombat} className="btn-primary w-full py-3 text-base">
-              {combat.result === "won" ? `🏆 Collect Reward (+${combat.enemy.xp} XP)` :
-               combat.result === "lost" ? "💀 Recover" : "🗺️ Continue"}
-            </button>
+            <Button variant={combat.result === "won" ? "success" : "secondary"} className="w-full" size="lg" icon={combat.result === "won" ? <Trophy size={18} /> : <Map size={18} />} onClick={endCombat}>
+              {combat.result === "won" ? `Collect Reward (+${combat.enemy.xp} XP)` :
+               combat.result === "lost" ? "Recover" : "Continue"}
+            </Button>
           )}
         </div>
       ) : (
@@ -195,16 +216,19 @@ export default function CombatPage() {
             <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Your Combat Stats</h2>
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: "Strength", value: character.strength, icon: "💪", color: "text-red-400" },
-                { label: "Agility", value: character.agility, icon: "🏃", color: "text-green-400" },
-                { label: "Endurance", value: character.endurance, icon: "🛡️", color: "text-yellow-400" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center bg-tribal-900/50 rounded-lg p-4">
-                  <div className="text-2xl mb-1">{stat.icon}</div>
-                  <div className="text-tribal-500 text-xs uppercase">{stat.label}</div>
-                  <div className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</div>
-                </div>
-              ))}
+                { label: "Strength", value: character.strength, icon: Dumbbell, color: "text-red-400" },
+                { label: "Agility", value: character.agility, icon: Zap, color: "text-green-400" },
+                { label: "Endurance", value: character.endurance, icon: Shield, color: "text-yellow-400" },
+              ].map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <div key={stat.label} className="text-center bg-tribal-900/50 rounded-lg p-4">
+                    <Icon size={22} className={`mx-auto mb-1 ${stat.color}`} />
+                    <div className="text-tribal-500 text-xs uppercase">{stat.label}</div>
+                    <div className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -212,23 +236,26 @@ export default function CombatPage() {
           <div className="card">
             <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Enemies in the Wild</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {enemies.map((enemy) => (
-                <div key={enemy.name} className="bg-tribal-900/50 rounded-lg p-3 text-center">
-                  <div className="text-2xl">{enemy.icon}</div>
-                  <div className="text-tribal-200 text-sm font-medium mt-1">{enemy.name}</div>
-                  <div className="text-tribal-500 text-xs">HP {enemy.hp} · ATK {enemy.atk}</div>
-                </div>
-              ))}
+              {enemies.map((enemy, i) => {
+                const Icon = enemy.icon;
+                return (
+                  <div key={i} className="bg-tribal-900/50 rounded-lg p-3 text-center">
+                    <Icon size={20} className="text-tribal-400 mx-auto mb-1" />
+                    <div className="text-tribal-200 text-sm font-medium mt-1">{enemy.name}</div>
+                    <div className="text-tribal-500 text-xs">HP {enemy.hp} · ATK {enemy.atk}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           {/* Start Combat */}
           <div className="card text-center py-8">
-            <div className="text-4xl mb-3">⚔️</div>
+            <Swords size={36} className="text-tribal-600 mx-auto mb-3" />
             <p className="text-tribal-400 mb-5">Seek out enemies in the wilderness to test your strength.</p>
-            <button onClick={startCombat} className="btn-primary py-3 px-8 text-base">
+            <Button variant="primary" size="lg" icon={<Swords size={18} />} onClick={startCombat}>
               Search for Enemies
-            </button>
+            </Button>
           </div>
 
           {/* Combat Skill */}

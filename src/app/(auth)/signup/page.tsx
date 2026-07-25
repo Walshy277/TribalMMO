@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { Flame, UserPlus } from "lucide-react";
 
 export default function SignupPage() {
   const { signUp } = useAuth();
@@ -29,7 +31,9 @@ export default function SignupPage() {
   return (
     <div className="w-full max-w-md animate-fade-in">
       <div className="text-center mb-8">
-        <div className="text-6xl mb-4">🔥</div>
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-tribal-800 border border-tribal-700/50 flex items-center justify-center mb-4">
+          <Flame size={32} className="text-tribal-400" />
+        </div>
         <h1 className="text-3xl font-bold text-tribal-100">Join the Tribe</h1>
         <p className="text-tribal-400 mt-2">Create your account to begin</p>
       </div>
@@ -76,9 +80,9 @@ export default function SignupPage() {
               {error}
             </div>
           )}
-          <button type="submit" className="btn-primary w-full py-3 text-base" disabled={loading}>
-            {loading ? "Creating account..." : "Create Account"}
-          </button>
+          <Button type="submit" variant="primary" size="lg" className="w-full" icon={<UserPlus size={18} />} loading={loading}>
+            Create Account
+          </Button>
         </form>
         <div className="mt-6 pt-4 border-t border-tribal-700/50 text-center">
           <p className="text-tribal-400 text-sm">

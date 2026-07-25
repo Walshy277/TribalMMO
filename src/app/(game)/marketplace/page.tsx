@@ -3,6 +3,8 @@
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
+import { Coins, Package, Plus, X, ShoppingCart } from "lucide-react";
 
 export default function MarketplacePage() {
   const { character, refreshCharacter } = useGame();
@@ -44,9 +46,14 @@ export default function MarketplacePage() {
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider">Listings</h2>
-          <button onClick={() => setShowCreate(!showCreate)} className={`text-sm py-1.5 px-4 rounded-lg transition-colors ${showCreate ? "btn-secondary" : "btn-primary"}`}>
-            {showCreate ? "Cancel" : "+ Create Listing"}
-          </button>
+          <Button
+            variant={showCreate ? "secondary" : "primary"}
+            size="sm"
+            icon={showCreate ? <X size={14} /> : <Plus size={14} />}
+            onClick={() => setShowCreate(!showCreate)}
+          >
+            {showCreate ? "Cancel" : "Create Listing"}
+          </Button>
         </div>
 
         {showCreate && (
@@ -55,10 +62,10 @@ export default function MarketplacePage() {
               <label className="block text-sm font-semibold text-tribal-300 mb-2">Item</label>
               <select value={selectedItem} onChange={(e) => setSelectedItem(e.target.value)} className="input" required>
                 <option value="">Select an item...</option>
-                <option value="wood">🪵 Wood</option>
-                <option value="stone">🪨 Stone</option>
-                <option value="herbs">🌿 Herbs</option>
-                <option value="hides">🧶 Hides</option>
+                <option value="wood">Wood</option>
+                <option value="stone">Stone</option>
+                <option value="herbs">Herbs</option>
+                <option value="hides">Hides</option>
               </select>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -71,13 +78,13 @@ export default function MarketplacePage() {
                 <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="input" min={1} />
               </div>
             </div>
-            <button type="submit" className="btn-primary w-full py-2.5" disabled={loading}>List Item</button>
+            <Button type="submit" variant="primary" className="w-full" loading={loading}>List Item</Button>
           </form>
         )}
 
         {listings.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-4xl mb-2 opacity-50">🏪</div>
+            <ShoppingCart size={32} className="text-tribal-700 mx-auto mb-2" />
             <p className="text-tribal-500">No items listed for sale.</p>
           </div>
         ) : (
@@ -86,7 +93,7 @@ export default function MarketplacePage() {
               <div key={listing.id} className="bg-tribal-900/50 p-4 rounded-lg border border-tribal-800/50 hover:border-tribal-700/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-xl">📦</span>
+                    <Package size={18} className="text-tribal-400 shrink-0" />
                     <div>
                       <span className="text-tribal-200 font-semibold text-sm">{listing.item?.name || "Unknown"}</span>
                       <span className="text-tribal-500 text-sm ml-2">x{listing.quantity}</span>
@@ -94,8 +101,10 @@ export default function MarketplacePage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-tribal-200 font-semibold text-sm">{listing.price} coins</span>
-                    <button className="btn-secondary text-sm py-1.5 px-4">Buy</button>
+                    <span className="text-tribal-200 font-semibold text-sm flex items-center gap-1">
+                      <Coins size={14} className="text-tribal-400" /> {listing.price}
+                    </span>
+                    <Button variant="secondary" size="sm">Buy</Button>
                   </div>
                 </div>
               </div>

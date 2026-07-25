@@ -4,6 +4,16 @@ import { useGame } from "@/lib/game";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { User, Swords, Shield, Crosshair, Brain, Dumbbell, Axe, Hammer, Tent, Handshake } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+const skillIcons: Record<string, LucideIcon> = {
+  Gathering: Axe,
+  Crafting: Hammer,
+  Combat: Swords,
+  Survival: Tent,
+  Diplomacy: Handshake,
+};
 
 export default function CharacterPage() {
   const { user, loading: authLoading } = useAuth();
@@ -22,7 +32,7 @@ export default function CharacterPage() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-5xl mb-3">👤</div>
+          <User size={48} className="text-tribal-600 mx-auto mb-3" />
           <p className="text-tribal-400 mb-4">No character found.</p>
           <a href="/" className="btn-primary inline-block">Go to Dashboard</a>
         </div>
@@ -31,9 +41,6 @@ export default function CharacterPage() {
   }
 
   const skills = character.skills || [];
-  const skillIcons: Record<string, string> = {
-    Gathering: "🪓", Crafting: "🔨", Combat: "⚔️", Survival: "🏕️", Diplomacy: "🤝",
-  };
 
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
@@ -47,18 +54,21 @@ export default function CharacterPage() {
         <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Core Stats</h2>
         <div className="grid grid-cols-5 gap-3">
           {[
-            { label: "Strength", value: character.strength, icon: "💪", color: "text-red-400" },
-            { label: "Agility", value: character.agility, icon: "🏃", color: "text-green-400" },
-            { label: "Endurance", value: character.endurance, icon: "🛡️", color: "text-yellow-400" },
-            { label: "Focus", value: character.focus, icon: "🎯", color: "text-blue-400" },
-            { label: "Cunning", value: character.cunning, icon: "🦊", color: "text-purple-400" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center bg-tribal-900/50 p-4 rounded-lg">
-              <div className="text-xl mb-1">{stat.icon}</div>
-              <div className="text-tribal-600 text-[10px] font-medium uppercase">{stat.label}</div>
-              <div className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</div>
-            </div>
-          ))}
+            { label: "Strength", value: character.strength, icon: Dumbbell, color: "text-red-400" },
+            { label: "Agility", value: character.agility, icon: Swords, color: "text-green-400" },
+            { label: "Endurance", value: character.endurance, icon: Shield, color: "text-yellow-400" },
+            { label: "Focus", value: character.focus, icon: Crosshair, color: "text-blue-400" },
+            { label: "Cunning", value: character.cunning, icon: Brain, color: "text-purple-400" },
+          ].map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className="text-center bg-tribal-900/50 p-4 rounded-lg">
+                <Icon size={20} className={`mx-auto mb-1 ${stat.color}`} />
+                <div className="text-tribal-600 text-[10px] font-medium uppercase">{stat.label}</div>
+                <div className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -84,11 +94,12 @@ export default function CharacterPage() {
           {skills.map((skill: any) => {
             const maxXP = skill.tier * 100;
             const progress = Math.min(100, (skill.experience / maxXP) * 100);
+            const Icon = skillIcons[skill.name] || Hammer;
             return (
               <div key={skill.id} className="bg-tribal-900/50 p-4 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-lg">{skillIcons[skill.name] || "📚"}</span>
+                    <Icon size={18} className="text-tribal-400" />
                     <span className="text-tribal-200 font-semibold">{skill.name}</span>
                   </div>
                   <div className="flex items-center gap-3">

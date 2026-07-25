@@ -3,12 +3,15 @@
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
+import { Zap, Swords, Axe, Hammer, Building2, Check, Clock } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 const actionTypes = [
-  { type: "training", label: "Train", description: "Hone your combat skills", duration: 300, skill: "Combat", icon: "🏋️" },
-  { type: "gathering", label: "Gather Resources", description: "Collect wood, stone, and herbs", duration: 300, skill: "Gathering", icon: "🪓" },
-  { type: "crafting", label: "Craft Item", description: "Create tools and equipment", duration: 600, skill: "Crafting", icon: "🔨" },
-  { type: "building", label: "Build", description: "Construct settlement buildings", duration: 3600, skill: "Crafting", icon: "🏗️" },
+  { type: "training", label: "Train", description: "Hone your combat skills", duration: 300, skill: "Combat", icon: Swords },
+  { type: "gathering", label: "Gather Resources", description: "Collect wood, stone, and herbs", duration: 300, skill: "Gathering", icon: Axe },
+  { type: "crafting", label: "Craft Item", description: "Create tools and equipment", duration: 600, skill: "Crafting", icon: Hammer },
+  { type: "building", label: "Build", description: "Construct settlement buildings", duration: 3600, skill: "Crafting", icon: Building2 },
 ];
 
 export default function ActionsPage() {
@@ -98,13 +101,13 @@ export default function ActionsPage() {
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider">Active Actions</h2>
-          <span className="text-tribal-500 text-xs font-medium bg-tribal-900 px-2.5 py-1 rounded-full">
-            {actions.length} / {maxSlots}
+          <span className="text-tribal-500 text-xs font-medium bg-tribal-900 px-2.5 py-1 rounded-full flex items-center gap-1">
+            <Zap size={12} /> {actions.length} / {maxSlots}
           </span>
         </div>
         {actions.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-4xl mb-2 opacity-50">💤</div>
+            <Clock size={32} className="text-tribal-700 mx-auto mb-2" />
             <p className="text-tribal-500">No active actions. Start one below.</p>
           </div>
         ) : (
@@ -116,21 +119,19 @@ export default function ActionsPage() {
               const isComplete = now >= completesAt;
               const remaining = Math.max(0, Math.ceil((completesAt - now) / 1000));
               const actionInfo = actionTypes.find((a) => a.type === action.type);
+              const Icon = actionInfo?.icon || Zap;
 
               return (
                 <div key={action.id} className={`bg-tribal-900/50 p-4 rounded-lg border ${isComplete ? "border-green-700/40" : "border-tribal-800/50"}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{actionInfo?.icon || "⚡"}</span>
+                      <Icon size={16} className="text-tribal-400" />
                       <span className="text-tribal-200 font-semibold capitalize text-sm">{action.type}</span>
                     </div>
                     {isComplete ? (
-                      <button
-                        onClick={() => completeAction(action.id, action.type)}
-                        className="bg-green-700 hover:bg-green-600 text-white font-semibold py-1.5 px-4 rounded-lg transition-colors text-sm"
-                      >
+                      <Button variant="success" size="sm" icon={<Check size={14} />} onClick={() => completeAction(action.id, action.type)}>
                         Collect
-                      </button>
+                      </Button>
                     ) : (
                       <span className="text-tribal-500 text-sm font-mono">{remaining}s</span>
                     )}
@@ -154,27 +155,35 @@ export default function ActionsPage() {
       <div className="card">
         <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Start New Action</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {actionTypes.map((action) => (
-            <div key={action.type} className="bg-tribal-900/50 p-4 rounded-lg border border-tribal-800/50">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl mt-0.5">{action.icon}</span>
-                <div className="flex-1">
-                  <div className="font-semibold text-tribal-200">{action.label}</div>
-                  <div className="text-sm text-tribal-500 mt-0.5">{action.description}</div>
-                  <div className="text-xs text-tribal-600 mt-1">
-                    {action.duration >= 3600 ? `${action.duration / 3600} hour` : `${action.duration / 60} min`}
+          {actionTypes.map((action) => {
+            const Icon = action.icon;
+            return (
+              <div key={action.type} className="bg-tribal-900/50 p-4 rounded-lg border border-tribal-800/50">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-tribal-800/50 flex items-center justify-center shrink-0">
+                    <Icon size={20} className="text-tribal-400" />
                   </div>
-                  <button
-                    onClick={() => startAction(action.type, action.duration, action.skill)}
-                    className="btn-primary text-sm mt-3"
-                    disabled={actions.length >= maxSlots}
-                  >
-                    {actions.length >= maxSlots ? "Slots Full" : "Start"}
-                  </button>
+                  <div className="flex-1">
+                    <div className="font-semibold text-tribal-200">{action.label}</div>
+                    <div className="text-sm text-tribal-500 mt-0.5">{action.description}</div>
+                    <div className="text-xs text-tribal-600 mt-1 flex items-center gap-1">
+                      <Clock size={12} />
+                      {action.duration >= 3600 ? `${action.duration / 3600} hour` : `${action.duration / 60} min`}
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => startAction(action.type, action.duration, action.skill)}
+                      disabled={actions.length >= maxSlots}
+                    >
+                      {actions.length >= maxSlots ? "Slots Full" : "Start"}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
