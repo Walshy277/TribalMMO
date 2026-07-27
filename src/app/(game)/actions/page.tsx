@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { StaminaBar } from "@/components/ui/StaminaBar";
+import { Alert } from "@/components/ui/Alert";
 import { Zap, Swords, Axe, Hammer, Check, Clock, Coins, Package, AlertTriangle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -231,9 +232,7 @@ export default function ActionsPage() {
       </div>
 
       {error && (
-        <div className="bg-tribal-900/40 border border-tribal-700/40 rounded-lg p-3 text-tribal-300 text-sm flex items-center gap-2">
-          <AlertTriangle size={14} /> {error}
-        </div>
+        <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
       )}
 
       {lastRewards && (

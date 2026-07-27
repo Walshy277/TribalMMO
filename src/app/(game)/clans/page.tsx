@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
 import { Shield, Swords, Globe, Compass, Users, Plus, Crown, UserMinus, ArrowUp, ArrowDown, AlertTriangle, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -187,6 +188,11 @@ export default function ClansPage() {
 
     setActionLoading(true);
     const newRole = currentRole === "chieftain" ? "officer" : "member";
+    if (newRole === "officer") {
+      setError("Cannot demote below officer. Transfer leadership instead.");
+      setActionLoading(false);
+      return;
+    }
     await supabase.from("clan_members").update({ role: newRole }).eq("id", memberId);
     await refreshCharacter();
     await fetchClans();
@@ -206,13 +212,7 @@ export default function ClansPage() {
       </div>
 
       {error && (
-        <div className="bg-[#2a1414] border border-[#6e2424] rounded-lg p-3 text-[#d05050] text-sm flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={14} />
-            {error}
-          </div>
-          <button onClick={() => setError("")}><X size={14} /></button>
-        </div>
+        <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
       )}
 
       {myClan ? (

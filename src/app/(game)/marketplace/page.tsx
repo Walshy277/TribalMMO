@@ -5,6 +5,7 @@ import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Coins, Package, Plus, X, ShoppingCart, Search, ArrowUpDown, Trash2, Filter } from "lucide-react";
+import { Alert } from "@/components/ui/Alert";
 
 interface Listing {
   id: string;
@@ -238,7 +239,7 @@ export default function MarketplacePage() {
             </div>
             <p className="text-tribal-700 text-xs">5% tax on sale. You receive {Math.ceil(price * (1 - TAX_RATE))} coins per item.</p>
             {error && (
-              <div className="bg-[#2a1414] border border-[#6e2424] rounded-lg p-3 text-[#d05050] text-sm">{error}</div>
+              <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
             )}
             <Button type="submit" variant="primary" className="w-full" loading={loading} disabled={sellableItems.length === 0}>
               {sellableItems.length === 0 ? "No items to sell" : "Create Listing"}

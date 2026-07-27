@@ -5,6 +5,7 @@ import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Gavel, Clock, Coins, Package, Plus, X, Search, Trophy, AlertTriangle, Check } from "lucide-react";
+import { Alert } from "@/components/ui/Alert";
 
 interface AuctionRow {
   id: string;
@@ -365,7 +366,7 @@ export default function AuctionHousePage() {
               </div>
             </div>
             {error && (
-              <div className="bg-[#2a1414] border border-[#6e2424] rounded-lg p-3 text-[#d05050] text-sm">{error}</div>
+              <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
             )}
             <Button type="submit" variant="primary" className="w-full" loading={loading} disabled={sellableItems.length === 0}>
               {sellableItems.length === 0 ? "No items to auction" : "Create Auction"}
@@ -387,7 +388,7 @@ export default function AuctionHousePage() {
         </div>
 
         {error && !showCreate && (
-          <div className="bg-[#2a1414] border border-[#6e2424] rounded-lg p-3 text-[#d05050] text-sm mb-4">{error}</div>
+          <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
         )}
 
         {filteredAuctions.length === 0 ? (

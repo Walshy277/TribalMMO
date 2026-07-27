@@ -9,6 +9,8 @@ import { supabase } from "@/lib/supabase/client";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { StaminaBar } from "@/components/ui/StaminaBar";
 import { computeEffectiveStats } from "@/lib/stats";
+import { skillIcons, petIcons } from "@/lib/constants";
+import { formatTimeAgo, formatTimeUntil } from "@/lib/utils";
 import {
   User,
   Dumbbell,
@@ -16,34 +18,12 @@ import {
   Shield,
   Crosshair,
   Brain,
-  Axe,
-  Hammer,
-  Tent,
-  Handshake,
   Map,
   Zap,
   Store,
+  Hammer,
   Cat,
-  Dog,
-  Bird,
-  Skull,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-const skillIcons: Record<string, LucideIcon> = {
-  Gathering: Axe,
-  Crafting: Hammer,
-  Combat: Swords,
-  Survival: Tent,
-  Diplomacy: Handshake,
-};
-
-const petIcons: Record<string, LucideIcon> = {
-  wolf: Dog,
-  cat: Cat,
-  hawk: Bird,
-  snake: Skull,
-};
 
 interface Transaction {
   id: string;
@@ -101,7 +81,7 @@ export default function CharacterPage() {
   const totalItems = character.inventory?.reduce((sum, inv) => sum + inv.quantity, 0) || 0;
   const equippedItems = character.inventory?.filter((inv) => inv.equipped) || [];
   const highestTier = skills.reduce((max, s) => Math.max(max, s.tier), 1);
-  const effectiveStats = computeEffectiveStats(character, character.inventory, character.clan?.clan);
+  const effectiveStats = computeEffectiveStats(character, character.inventory, character.clan?.clan, pets);
 
   const statColor = (stat: string) => {
     switch (stat) {
@@ -309,24 +289,4 @@ export default function CharacterPage() {
       </div>
     </div>
   );
-}
-
-function formatTimeUntil(isoDate: string): string {
-  const diff = new Date(isoDate).getTime() - Date.now();
-  if (diff <= 0) return "now";
-  const minutes = Math.floor(diff / 60000);
-  const seconds = Math.floor((diff % 60000) / 1000);
-  if (minutes > 0) return `${minutes}m ${seconds}s`;
-  return `${seconds}s`;
-}
-
-function formatTimeAgo(isoDate: string): string {
-  const diff = Date.now() - new Date(isoDate).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
 }

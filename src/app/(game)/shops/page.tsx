@@ -4,19 +4,12 @@ import { useEffect, useState } from "react";
 import { useGame, type CharacterWithSkills } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { Store, Coins, Package, Search, ShoppingCart, Swords, Shield, FlaskConical, Hammer, Lock, TrendingDown } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Store, Coins, Package, Search, ShoppingCart, Lock, TrendingDown } from "lucide-react";
+import { typeIcons } from "@/lib/constants";
+import { Alert } from "@/components/ui/Alert";
 import type { Database } from "@/types/database";
 
 type ShopItem = Database["public"]["Tables"]["shop_items"]["Row"];
-
-const typeIcons: Record<string, LucideIcon> = {
-  weapon: Swords,
-  armor: Shield,
-  consumable: FlaskConical,
-  tool: Hammer,
-  resource: Package,
-};
 
 const TABS = ["buy", "sell"] as const;
 
@@ -177,10 +170,10 @@ export default function ShopsPage() {
       </div>
 
       {error && (
-        <div className="bg-[#2a1414]/40 border border-[#6e2424]/40 rounded-lg p-3 text-[#d05050] text-sm">{error}</div>
+        <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
       )}
       {success && (
-        <div className="bg-[#122a1b]/40 border border-[#2d6e44]/40 rounded-lg p-3 text-[#5ab87c] text-sm">{success}</div>
+        <Alert variant="success" onDismiss={() => setSuccess("")}>{success}</Alert>
       )}
       {migrationMissing && (
         <div className="bg-tribal-900/40 border border-tribal-700/40 rounded-lg p-3 text-tribal-300 text-sm">

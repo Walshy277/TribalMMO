@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { Hammer, Swords, Shield, FlaskConical, Lock, Clock, Check, AlertTriangle } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Hammer, Lock, Clock, AlertTriangle } from "lucide-react";
+import { typeIcons } from "@/lib/constants";
 
 interface Material {
   name: string;
@@ -32,8 +32,6 @@ const recipes: Recipe[] = [
   { name: "Reinforced Armor", type: "armor", tier: 2, materials: [{ name: "Hides", quantity: 8 }, { name: "Stone", quantity: 4 }, { name: "Wood", quantity: 2 }], desc: "Sturdy protection", duration: 1800, resultStats: { defense: 7 } },
   { name: "Bow", type: "weapon", tier: 2, materials: [{ name: "Wood", quantity: 6 }, { name: "Hides", quantity: 2 }], desc: "A ranged weapon", duration: 1200, resultStats: { attack: 6 } },
 ];
-
-const typeIcons: Record<string, LucideIcon> = { weapon: Swords, armor: Shield, consumable: FlaskConical, tool: Hammer };
 
 export default function CraftingPage() {
   const { character, refreshCharacter } = useGame();
@@ -124,8 +122,6 @@ export default function CraftingPage() {
     setCrafting(false);
     setSelectedRecipe(null);
   };
-
-  const currentAction = character.skills?.find(() => true);
 
   return (
     <div className="space-y-5 animate-fade-in max-w-3xl">

@@ -5,7 +5,7 @@ import { useGame, type CharacterWithSkills } from "@/lib/game";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { Swords, Shield, Heart, Dumbbell, Zap, Trophy, Map } from "lucide-react";
+import { Swords, Shield, Heart, Dumbbell, Zap, Trophy, Footprints } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { computeEffectiveStats } from "@/lib/stats";
 
@@ -64,7 +64,7 @@ export default function CombatPage() {
     return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
   }
 
-  const effectiveStats = computeEffectiveStats(character, character.inventory, character.clan?.clan);
+  const effectiveStats = computeEffectiveStats(character, character.inventory, character.clan?.clan, character.pets);
 
   const startCombat = () => {
     const enemy = enemies[Math.floor(Math.random() * enemies.length)];
@@ -217,12 +217,12 @@ export default function CombatPage() {
               <Button variant="danger" className="flex-1" size="lg" icon={<Swords size={18} />} onClick={playerAttack}>
                 Attack
               </Button>
-              <Button variant="secondary" className="flex-1" size="lg" icon={<Map size={18} />} onClick={flee}>
+              <Button variant="secondary" className="flex-1" size="lg" icon={<Footprints size={18} />} onClick={flee}>
                 Flee
               </Button>
             </div>
           ) : (
-            <Button variant={combat.result === "won" ? "success" : "secondary"} className="w-full" size="lg" icon={combat.result === "won" ? <Trophy size={18} /> : <Map size={18} />} onClick={endCombat}>
+            <Button variant={combat.result === "won" ? "success" : "secondary"} className="w-full" size="lg" icon={combat.result === "won" ? <Trophy size={18} /> : <Footprints size={18} />} onClick={endCombat}>
               {combat.result === "won" ? "Collect Reward" :
                combat.result === "lost" ? "Recover" : "Continue"}
             </Button>

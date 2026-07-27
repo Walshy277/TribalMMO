@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
+import { formatTimeAgo } from "@/lib/utils";
 import { Sparkles, Package, Coins, Heart, Send, Clock, Star, AlertTriangle } from "lucide-react";
 
 interface ShrineDonation {
@@ -192,15 +194,9 @@ export default function ShrinePage() {
       </div>
 
       {error && (
-        <div className="bg-[#2a1414] border border-[#6e2424] rounded-lg p-3 text-[#d05050] text-sm flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={14} />
-            {error}
-          </div>
-          <button onClick={() => setError("")} className="text-[#d05050] hover:text-[#e06060]">
-            <span className="sr-only">Dismiss</span>✕
-          </button>
-        </div>
+        <Alert variant="error" onDismiss={() => setError("")} icon={<AlertTriangle size={14} />}>
+          {error}
+        </Alert>
       )}
 
       {success && (
@@ -417,15 +413,4 @@ export default function ShrinePage() {
       </div>
     </div>
   );
-}
-
-function formatTimeAgo(isoDate: string): string {
-  const diff = Date.now() - new Date(isoDate).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
 }

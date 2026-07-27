@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { Swords, Shield, Package, PawPrint, Coins, FlaskConical, Hammer, Info, X, ArrowRightLeft, Trash2 } from "lucide-react";
+import { Swords, Shield, Package, PawPrint, Coins, FlaskConical, Hammer, X, ArrowRightLeft, Trash2 } from "lucide-react";
+import { typeIcons } from "@/lib/constants";
+import { Alert } from "@/components/ui/Alert";
 import type { LucideIcon } from "lucide-react";
 
-const typeIcons: Record<string, LucideIcon> = { weapon: Swords, armor: Shield, consumable: FlaskConical, tool: Hammer, resource: Package };
 const slotTypes: Record<string, string> = { weapon: "weapon", armor: "armor" };
 
 interface ItemDetail {
@@ -21,6 +22,8 @@ export default function InventoryPage() {
   const { character, refreshCharacter } = useGame();
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     document.title = "Inventory — TribalMMO";
@@ -40,61 +43,99 @@ export default function InventoryPage() {
   const equipItem = async (invId: string, itemType: string) => {
     if (!character) return;
     setLoading(true);
+    setError("");
+    setSuccess("");
 
     const slot = slotTypes[itemType];
     if (!slot) { setLoading(false); return; }
 
-    const currentlyEquipped = character.inventory.find((inv) => inv.equipped && inv.item?.type === slot);
-    if (currentlyEquipped) {
-      await supabase.from("inventory").update({ equipped: false }).eq("id", currentlyEquipped.id);
-    }
+    try {
+      const currentlyEquipped = character.inventory.find((inv) => inv.equipped && inv.item?.type === slot);
+      if (currentlyEquipped) {
+        const { error } = await supabase.from("inventory").update({ equipped: false }).eq("id", currentlyEquipped.id);
+        if (error) throw error;
+      }
 
-    await supabase.from("inventory").update({ equipped: true }).eq("id", invId);
-    await refreshCharacter();
+      const { error } = await supabase.from("inventory").update({ equipped: true }).eq("id", invId);
+      if (error) throw error;
+
+      setSuccess("Item equipped.");
+      await refreshCharacter();
+      setSelectedItem(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to equip item.");
+    }
     setLoading(false);
-    setSelectedItem(null);
   };
 
   const unequipItem = async (invId: string) => {
     if (!character) return;
     setLoading(true);
-    await supabase.from("inventory").update({ equipped: false }).eq("id", invId);
-    await refreshCharacter();
+    setError("");
+    setSuccess("");
+
+    try {
+      const { error } = await supabase.from("inventory").update({ equipped: false }).eq("id", invId);
+      if (error) throw error;
+      setSuccess("Item unequipped.");
+      await refreshCharacter();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to unequip item.");
+    }
     setLoading(false);
   };
 
   const useConsumable = async (invId: string, item: ItemDetail) => {
     if (!character) return;
     setLoading(true);
+    setError("");
+    setSuccess("");
 
-    const heal = item.stats?.heal || 0;
-    if (heal > 0) {
-      const newStamina = Math.min(character.max_stamina, (character.computed_stamina || character.stamina) + heal);
-      await supabase.from("characters").update({ stamina: newStamina, stamina_updated_at: new Date().toISOString() }).eq("id", character.id);
-    }
-
-    const invItem = character.inventory.find((inv) => inv.id === invId);
-    if (invItem) {
-      const newQty = invItem.quantity - 1;
-      if (newQty <= 0) {
-        await supabase.from("inventory").delete().eq("id", invId);
-      } else {
-        await supabase.from("inventory").update({ quantity: newQty }).eq("id", invId);
+    try {
+      const heal = item.stats?.heal || 0;
+      if (heal > 0) {
+        const newStamina = Math.min(character.max_stamina, (character.computed_stamina || character.stamina) + heal);
+        const { error } = await supabase.from("characters").update({ stamina: newStamina, stamina_updated_at: new Date().toISOString() }).eq("id", character.id);
+        if (error) throw error;
       }
-    }
 
-    await refreshCharacter();
+      const invItem = character.inventory.find((inv) => inv.id === invId);
+      if (invItem) {
+        const newQty = invItem.quantity - 1;
+        if (newQty <= 0) {
+          const { error } = await supabase.from("inventory").delete().eq("id", invId);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", invId);
+          if (error) throw error;
+        }
+      }
+
+      setSuccess(heal > 0 ? `Used ${item.name}. Recovered ${heal} stamina.` : `Used ${item.name}.`);
+      await refreshCharacter();
+      setSelectedItem(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to use item.");
+    }
     setLoading(false);
-    setSelectedItem(null);
   };
 
   const dropItem = async (invId: string) => {
     if (!character) return;
     setLoading(true);
-    await supabase.from("inventory").delete().eq("id", invId);
-    await refreshCharacter();
+    setError("");
+    setSuccess("");
+
+    try {
+      const { error } = await supabase.from("inventory").delete().eq("id", invId);
+      if (error) throw error;
+      setSuccess("Item dropped.");
+      await refreshCharacter();
+      setSelectedItem(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to drop item.");
+    }
     setLoading(false);
-    setSelectedItem(null);
   };
 
   const selectedInvItem = selectedItem ? character.inventory.find((inv) => inv.id === selectedItem) : null;
@@ -120,6 +161,9 @@ export default function InventoryPage() {
           <span className="text-tribal-500 text-sm">gold</span>
         </div>
       </div>
+
+      {error && <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>}
+      {success && <Alert variant="success" onDismiss={() => setSuccess("")}>{success}</Alert>}
 
       <div className="card">
         <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Equipment</h2>

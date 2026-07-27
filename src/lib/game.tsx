@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Database } from "@/types/database";
@@ -13,7 +13,6 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> {
 }
 
 const STAMINA_REGEN_INTERVAL_MS = 180000; // 3 minutes per 1 stamina
-const STAMINA_REGEN_TICK_MS = 1000; // UI tick every second
 
 type Character = Database["public"]["Tables"]["characters"]["Row"];
 type Skill = Database["public"]["Tables"]["skills"]["Row"];
@@ -75,13 +74,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [character, setCharacter] = useState<CharacterWithSkills | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
-  const [, setTick] = useState(0);
-
-  // Regen tick for real-time stamina display
-  useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), STAMINA_REGEN_TICK_MS);
-    return () => clearInterval(interval);
-  }, []);
 
   const fetchCharacter = async () => {
     if (!user) {

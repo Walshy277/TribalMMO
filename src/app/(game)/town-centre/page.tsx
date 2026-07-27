@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
@@ -10,7 +11,6 @@ import { Alert } from "@/components/ui/Alert";
 import {
   Store,
   Bed,
-  Heart,
   AlertTriangle,
   Shield,
   Coins,
@@ -110,15 +110,7 @@ export default function TownCentrePage() {
       )}
 
       {success && (
-        <div className="card animate-fade-in" style={{ background: "rgba(18,42,27,0.3)", borderColor: "rgba(45,110,68,0.2)" }}>
-          <div className="flex items-center gap-2">
-            <Heart size={14} className="text-[#4a9e6a]" />
-            <span className="text-[#6bc98a] text-sm font-semibold">{success}</span>
-          </div>
-          <button onClick={() => setSuccess("")} className="text-tribal-600 hover:text-tribal-400 text-xs mt-1">
-            dismiss
-          </button>
-        </div>
+        <Alert variant="success" onDismiss={() => setSuccess("")}>{success}</Alert>
       )}
 
       <div className="card">
@@ -192,14 +184,14 @@ export default function TownCentrePage() {
           ].map((link) => {
             const Icon = link.icon;
             return (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-tribal-900/30 border border-tribal-800/20 hover:bg-tribal-800/40 transition-colors"
               >
                 <Icon size={16} style={{ color: link.color }} />
                 <span className="text-tribal-300 text-sm font-medium">{link.label}</span>
-              </a>
+              </Link>
             );
           })}
         </div>

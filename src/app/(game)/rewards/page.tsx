@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
 import { Gift, Coins, Clock, CheckCircle, Star, Flame, Package, Shield, Zap } from "lucide-react";
 
 interface DailyReward {
@@ -158,14 +159,11 @@ export default function RewardsPage() {
       </div>
 
       {error && (
-        <div className="bg-tribal-900/40 border border-tribal-700/40 rounded-lg p-3 text-tribal-300 text-sm">{error}</div>
+        <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
       )}
 
       {success && (
-        <div className="bg-[#122a1b]/40 border border-[#2d6e44]/40 rounded-lg p-4 text-[#5ab87c] text-sm flex items-center gap-2 animate-fade-in">
-          <CheckCircle size={16} className="text-[#4a9e6a]" />
-          {success}
-        </div>
+        <Alert variant="success" onDismiss={() => setSuccess("")}>{success}</Alert>
       )}
 
       {migrationMissing && (
