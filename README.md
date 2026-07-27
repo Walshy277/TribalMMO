@@ -33,12 +33,69 @@ TribalMMO is a text-driven, social MMO set in a prehistoric fantasy continent ca
 
 ## Tech Stack
 
-*To be determined during development.*
+- **Framework:** Next.js 16 (App Router, Turbopack)
+- **Language:** TypeScript 6
+- **Styling:** Tailwind CSS 4
+- **Database:** Supabase (PostgreSQL + Row Level Security)
+- **Icons:** Lucide React
+- **Runtime:** React 19
 
 ## Getting Started
 
-*Coming soon.*
+### Prerequisites
+
+- Node.js 18+
+- A [Supabase](https://supabase.com) project
+
+### Setup
+
+1. Clone the repository:
+   ```bash
+   git clone <repo-url>
+   cd TribalMMO
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Copy the environment file and fill in your Supabase credentials:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+4. Run the database migration in your Supabase SQL Editor:
+   - Open `supabase/migrations/001_initial_schema.sql`
+   - Execute it in the Supabase Dashboard SQL Editor
+
+5. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000)
+
+## Project Structure
+
+```
+src/
+  app/
+    (auth)/          # Login and signup pages
+    (game)/          # Main game pages (dashboard, combat, crafting, etc.)
+  components/
+    layout/          # Header and Navigation
+    ui/              # Reusable Button, Card, Input, StaminaBar
+  lib/
+    auth.tsx         # Authentication context (Supabase Auth)
+    game.tsx         # Game state context (character, skills, inventory)
+    supabase/        # Supabase client (browser) and admin (server)
+  types/
+    database.ts      # Supabase database type definitions
+supabase/
+  migrations/        # SQL schema migrations
+```
 
 ## License
 
-*To be determined.*
+To be determined.

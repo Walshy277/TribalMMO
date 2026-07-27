@@ -2,8 +2,9 @@
 
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
+import { StaminaBar } from "@/components/ui/StaminaBar";
 import {
   Map,
   TreePine,
@@ -13,51 +14,57 @@ import {
   LogOut,
   TreeDeciduous,
   Mountain,
-  Droplets,
   Bug,
   Wind,
-  CloudRain,
   Flower2,
   Bird,
-  Moon,
-  Footprints,
-  BedDouble,
   Flame,
   Leaf,
   Compass,
+  Footprints,
+  BedDouble,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const zones: { name: string; icon: LucideIcon; color: string }[] = [
-  { name: "Forest", icon: TreePine, color: "text-green-400" },
-  { name: "Plains", icon: Wheat, color: "text-yellow-400" },
-  { name: "Riverbank", icon: Waves, color: "text-blue-400" },
+  { name: "Forest", icon: TreePine, color: "text-[#4a9e6a]" },
+  { name: "Plains", icon: Wheat, color: "text-tribal-300" },
+  { name: "Riverbank", icon: Waves, color: "text-[#6a90a8]" },
 ];
 
 const events = [
-  { type: "resource", icon: TreeDeciduous, text: "You found some wood!", color: "text-amber-400" },
-  { type: "resource", icon: Leaf, text: "You gathered a handful of herbs.", color: "text-green-400" },
-  { type: "resource", icon: Mountain, text: "You discovered a stone deposit.", color: "text-gray-400" },
-  { type: "encounter", icon: Bug, text: "A wild boar charges at you!", color: "text-red-400" },
-  { type: "encounter", icon: Swords, text: "A rival scout appears from the bushes!", color: "text-red-400" },
+  { type: "resource", icon: TreeDeciduous, text: "You found some wood!", color: "text-tribal-300" },
+  { type: "resource", icon: Leaf, text: "You gathered a handful of herbs.", color: "text-[#4a9e6a]" },
+  { type: "resource", icon: Mountain, text: "You discovered a stone deposit.", color: "text-tribal-300" },
+  { type: "encounter", icon: Bug, text: "A wild boar charges at you!", color: "text-[#b83a3a]" },
+  { type: "encounter", icon: Swords, text: "A rival scout appears from the bushes!", color: "text-[#b83a3a]" },
   { type: "flavor", icon: Wind, text: "The wind rustles through the ancient trees.", color: "text-tribal-400" },
   { type: "flavor", icon: Flame, text: "You hear distant drums echoing across the plains.", color: "text-tribal-300" },
-  { type: "weather", icon: CloudRain, text: "Dark clouds gather overhead. Rain begins to fall.", color: "text-blue-400" },
-  { type: "resource", icon: Flower2, text: "You find a patch of medicinal herbs.", color: "text-pink-400" },
+  { type: "resource", icon: Flower2, text: "You find a patch of medicinal herbs.", color: "text-[#aa5a7a]" },
   { type: "flavor", icon: Bird, text: "An eagle soars above you, circling lazily.", color: "text-tribal-300" },
 ];
+
+type LogEntry = { text: string; icon: LucideIcon; color: string };
 
 export default function ExplorationPage() {
   const { character, refreshCharacter } = useGame();
   const [currentZone, setCurrentZone] = useState(0);
-  const [log, setLog] = useState<{ text: string; icon: LucideIcon; color: string }[]>([]);
+  const [log, setLog] = useState<LogEntry[]>([]);
   const [exploring, setExploring] = useState(false);
   const [showCombat, setShowCombat] = useState(false);
   const [encounter, setEncounter] = useState<string | null>(null);
-  const [lastEvent, setLastEvent] = useState<typeof events[0] | null>(null);
+  const [lastEvent, setLastEvent] = useState<typeof events[number] | null>(null);
+
+  useEffect(() => {
+    document.title = "Exploration — TribalMMO";
+  }, []);
+
+  const addLog = useCallback((entry: LogEntry) => {
+    setLog((prev) => [entry, ...prev].slice(0, 30));
+  }, []);
 
   const explore = useCallback(async () => {
-    if (!character || exploring || character.stamina <= 0) return;
+    if (!character || exploring || character.computed_stamina <= 0) return;
 
     setExploring(true);
 
@@ -66,13 +73,14 @@ export default function ExplorationPage() {
     const event = events[Math.floor(Math.random() * events.length)];
     setLastEvent(event);
 
-    const newStamina = Math.max(0, character.stamina - 5);
-    await supabase
+    const newStamina = Math.max(0, character.computed_stamina - 5);
+    const { error } = await supabase
       .from("characters")
       .update({ stamina: newStamina })
       .eq("id", character.id);
+    if (error) console.error("Failed to update stamina:", error);
 
-    setLog((prev) => [{ text: `[${zones[zone].name}] ${event.text}`, icon: event.icon, color: event.color }, ...prev].slice(0, 30));
+    addLog({ text: `[${zones[zone].name}] ${event.text}`, icon: event.icon, color: event.color });
 
     if (event.type === "encounter") {
       setEncounter(event.text);
@@ -81,16 +89,17 @@ export default function ExplorationPage() {
 
     await refreshCharacter();
     setExploring(false);
-  }, [character, exploring, refreshCharacter]);
+  }, [character, exploring, refreshCharacter, addLog]);
 
   const rest = async () => {
     if (!character) return;
-    const newStamina = Math.min(character.max_stamina, character.stamina + 20);
-    await supabase
+    const newStamina = Math.min(character.max_stamina, character.computed_stamina + 20);
+    const { error } = await supabase
       .from("characters")
       .update({ stamina: newStamina })
       .eq("id", character.id);
-    setLog((prev) => [{ text: "You rest by a tree and recover stamina.", icon: BedDouble, color: "text-green-400" }, ...prev].slice(0, 30));
+    if (error) console.error("Failed to update stamina:", error);
+    addLog({ text: "You rest by a tree and recover stamina.", icon: BedDouble, color: "text-[#4a9e6a]" });
     await refreshCharacter();
   };
 
@@ -115,15 +124,16 @@ export default function ExplorationPage() {
           .eq("id", combatSkill.id);
       }
 
-      setLog((prev) => [{ text: `Victory! You defeated the enemy. +${xpGain} Combat XP`, icon: Flame, color: "text-yellow-400" }, ...prev].slice(0, 30));
+      addLog({ text: "Victory! You defeated the enemy. Combat experience gained.", icon: Flame, color: "text-tribal-300" });
     } else {
       const dmg = Math.max(1, 10 - character.endurance);
-      const newStamina = Math.max(0, character.stamina - dmg);
-      await supabase
+      const newStamina = Math.max(0, character.computed_stamina - dmg);
+      const { error } = await supabase
         .from("characters")
         .update({ stamina: newStamina })
         .eq("id", character.id);
-      setLog((prev) => [{ text: `Defeat! You were driven back. -${dmg} Stamina`, icon: LogOut, color: "text-red-400" }, ...prev].slice(0, 30));
+      if (error) console.error("Failed to update stamina:", error);
+      addLog({ text: `Defeat! You were driven back. -${dmg} Stamina`, icon: LogOut, color: "text-[#b83a3a]" });
     }
 
     await refreshCharacter();
@@ -133,7 +143,6 @@ export default function ExplorationPage() {
     return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
   }
 
-  const staminaPercent = (character.stamina / character.max_stamina) * 100;
   const zone = zones[currentZone];
   const ZoneIcon = zone.icon;
 
@@ -144,15 +153,14 @@ export default function ExplorationPage() {
         <p className="text-tribal-500 text-sm mt-0.5">Venture into the wilds of Nervella</p>
       </div>
 
-      {/* Combat Modal */}
       {showCombat && (
-        <div className="card border-red-700/40 animate-fade-in animate-pulse-glow">
+        <div className="card border-[#6e2424] animate-fade-in animate-pulse-glow">
           <div className="flex items-center gap-2 mb-3">
-            <Swords size={22} className="text-red-400" />
-            <h2 className="text-lg font-bold text-red-300">Combat Encounter!</h2>
+            <Swords size={22} className="text-[#b83a3a]" />
+            <h2 className="text-lg font-bold text-[#d05050]">Combat Encounter!</h2>
           </div>
           <p className="text-tribal-200 mb-2">{encounter}</p>
-          <p className="text-tribal-400 text-sm mb-4">
+          <p className="text-tribal-500 text-sm mb-4">
             Your combat stats: STR {character.strength} · AGI {character.agility} · END {character.endurance}
           </p>
           <div className="flex gap-3">
@@ -166,40 +174,26 @@ export default function ExplorationPage() {
         </div>
       )}
 
-      {/* Zone & Stamina */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <ZoneIcon size={24} className={zone.color} />
             <div>
-              <div className="text-tribal-500 text-xs uppercase font-medium">Current Zone</div>
+              <div className="text-tribal-600 text-[11px] uppercase font-bold tracking-wider">Current Zone</div>
               <div className={`text-lg font-bold ${zone.color}`}>{zone.name}</div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-tribal-500 text-xs uppercase font-medium">Steps</div>
-            <div className="text-tribal-100 text-lg font-bold flex items-center gap-1 justify-end">
-              <Footprints size={16} className="text-tribal-500" />
+            <div className="text-tribal-600 text-[11px] uppercase font-bold tracking-wider">Steps</div>
+            <div className="text-tribal-100 text-lg font-bold flex items-center gap-1 justify-end tabular-nums">
+              <Footprints size={16} className="text-tribal-600" />
               {log.length}
             </div>
           </div>
         </div>
 
         <div className="mb-5">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-tribal-500 text-xs">Stamina</span>
-            <span className="text-tribal-300 text-xs font-medium">{character.stamina} / {character.max_stamina}</span>
-          </div>
-          <div className="w-full bg-tribal-800 rounded-full h-2.5">
-            <div
-              className={`h-2.5 rounded-full transition-all duration-500 ${
-                staminaPercent > 50 ? "bg-green-500" :
-                staminaPercent > 25 ? "bg-yellow-500" :
-                "bg-red-500"
-              }`}
-              style={{ width: `${staminaPercent}%` }}
-            />
-          </div>
+          <StaminaBar current={character.computed_stamina} max={character.max_stamina} size="sm" />
         </div>
 
         <div className="flex gap-3">
@@ -209,24 +203,23 @@ export default function ExplorationPage() {
             size="lg"
             icon={<Map size={18} />}
             onClick={explore}
-            disabled={exploring || character.stamina <= 0 || showCombat}
+            disabled={exploring || character.computed_stamina <= 0 || showCombat}
             loading={exploring}
           >
-            {character.stamina <= 0 ? "No Stamina" : "Explore Forward"}
+            {character.computed_stamina <= 0 ? "No Stamina" : "Explore Forward"}
           </Button>
           <Button
             variant="secondary"
             size="lg"
             icon={<BedDouble size={18} />}
             onClick={rest}
-            disabled={showCombat || character.stamina >= character.max_stamina}
+            disabled={showCombat || character.computed_stamina >= character.max_stamina}
           >
             Rest
           </Button>
         </div>
       </div>
 
-      {/* Last Event */}
       {lastEvent && (
         <div className="card animate-fade-in">
           <div className="flex items-center gap-3">
@@ -236,13 +229,12 @@ export default function ExplorationPage() {
         </div>
       )}
 
-      {/* Event Log */}
       <div className="card">
-        <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-3">Event Log</h2>
+        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Event Log</h2>
         {log.length === 0 ? (
           <div className="text-center py-8">
-            <Compass size={32} className="text-tribal-700 mx-auto mb-2" />
-            <p className="text-tribal-500">No events yet. Start exploring!</p>
+            <Compass size={32} className="text-tribal-800 mx-auto mb-2" />
+            <p className="text-tribal-600">No events yet. Start exploring!</p>
           </div>
         ) : (
           <div className="space-y-1 max-h-72 overflow-y-auto">
@@ -251,10 +243,10 @@ export default function ExplorationPage() {
               return (
                 <div
                   key={i}
-                  className={`flex items-start gap-2.5 py-2 px-2.5 rounded-lg ${i === 0 ? "bg-tribal-800/50" : ""}`}
+                  className={`flex items-start gap-2.5 py-2 px-2.5 rounded-lg ${i === 0 ? "bg-tribal-800/30" : ""}`}
                 >
                   <Icon size={14} className={`mt-0.5 shrink-0 ${entry.color}`} />
-                  <p className={`text-sm ${i === 0 ? entry.color + " font-medium" : "text-tribal-400"}`}>
+                  <p className={`text-sm ${i === 0 ? entry.color + " font-medium" : "text-tribal-500"}`}>
                     {entry.text}
                   </p>
                 </div>

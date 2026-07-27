@@ -21,9 +21,9 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "text-xs px-3 py-1.5 gap-1.5",
-  md: "text-sm px-4 py-2 gap-2",
-  lg: "text-base px-6 py-3 gap-2.5",
+  sm: "text-xs px-3 py-1.5 gap-1.5 rounded-lg",
+  md: "text-sm px-4 py-2.5 gap-2 rounded-xl",
+  lg: "text-sm px-6 py-3 gap-2.5 rounded-xl",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -49,7 +49,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading ? (
-          <Loader2 className="animate-spin" size={size === "sm" ? 14 : size === "lg" ? 20 : 16} />
+          <Loader2 className="animate-spin" size={size === "sm" ? 14 : size === "lg" ? 18 : 16} />
         ) : icon ? (
           <span className="shrink-0 [&>svg]:w-4 [&>svg]:h-4">{icon}</span>
         ) : null}

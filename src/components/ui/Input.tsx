@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, forwardRef, ReactNode } from "react";
+import { InputHTMLAttributes, forwardRef } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -10,11 +10,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div>
         {label && (
-          <label className="block text-sm font-semibold text-tribal-300 mb-2">{label}</label>
+          <label className="block text-[11px] font-bold text-[#9a7d56] mb-1.5 uppercase tracking-[0.12em]" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>{label}</label>
         )}
         <input ref={ref} className={`input ${className}`} {...props} />
         {hint && (
-          <p className="text-tribal-600 text-xs mt-1.5">{hint}</p>
+          <p className="text-[#4d3a27] text-xs mt-1">{hint}</p>
         )}
       </div>
     );

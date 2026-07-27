@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useGame } from "@/lib/game";
 import { usePathname } from "next/navigation";
 import {
-  Home,
   User,
   Map,
   Zap,
@@ -13,24 +13,29 @@ import {
   Backpack,
   Hammer,
   Shield,
-  Building2,
   Coins,
+  Gavel,
+  Store,
+  Gift,
   Menu,
   X,
+  Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const navItems: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/", label: "Dashboard", icon: Home },
   { href: "/character", label: "Character", icon: User },
   { href: "/exploration", label: "Explore", icon: Map },
   { href: "/actions", label: "Actions", icon: Zap },
   { href: "/combat", label: "Combat", icon: Sword },
   { href: "/inventory", label: "Inventory", icon: Backpack },
   { href: "/crafting", label: "Crafting", icon: Hammer },
-  { href: "/factions", label: "Factions", icon: Shield },
-  { href: "/settlement", label: "Settlement", icon: Building2 },
+  { href: "/clans", label: "Clans", icon: Shield },
+  { href: "/shrine", label: "Shrine", icon: Sparkles },
+  { href: "/shops", label: "Shops", icon: Store },
   { href: "/marketplace", label: "Market", icon: Coins },
+  { href: "/auction", label: "Auctions", icon: Gavel },
+  { href: "/rewards", label: "Rewards", icon: Gift },
 ];
 
 export function Navigation() {
@@ -41,53 +46,57 @@ export function Navigation() {
 
   if (!user) return null;
 
+  const highestTier = character?.skills?.reduce((max, s) => Math.max(max, s.tier), 1) ?? 1;
+
   return (
     <>
       <button
-        className="md:hidden fixed bottom-5 left-5 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-tribal-700 text-tribal-100 shadow-lg shadow-black/30 border border-tribal-600/50 active:scale-95 transition-transform"
+        className="md:hidden fixed bottom-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-sm bg-[#c04e20] text-[#f5f0ea] shadow-md active:scale-95 transition-transform"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-56 bg-tribal-950 border-r border-tribal-800/60 flex flex-col transition-transform duration-200 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-52 bg-[#0e0c10] border-r border-[#262328] flex flex-col transition-transform duration-200 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 p-2.5 space-y-px overflow-y-auto pt-3">
           {navItems.map((item) => {
             const active = pathname === item.href;
             const Icon = item.icon;
             return (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-2.5 px-3 py-2 text-[0.82rem] font-medium transition-colors duration-100 ${
                   active
-                    ? "bg-tribal-800 text-tribal-100 border border-tribal-700/50"
-                    : "text-tribal-400 hover:bg-tribal-900 hover:text-tribal-200 border border-transparent"
+                    ? "text-[#d45a28] bg-[#c04e20]/[0.07]"
+                    : "text-[#6e656c] hover:text-[#b39b7c] hover:bg-[#1a181e]"
                 }`}
                 onClick={() => setIsOpen(false)}
               >
-                <Icon size={18} />
+                <Icon size={16} className={active ? "text-[#c04e20]" : "text-[#4d3a27]"} />
                 <span>{item.label}</span>
-              </a>
+                {active && <div className="ml-auto w-1 h-1 rounded-full bg-[#c04e20]" />}
+              </Link>
             );
           })}
         </nav>
 
         {character && (
-          <div className="p-3 border-t border-tribal-800/60">
-            <a href="/character" className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-tribal-900 transition-colors">
-              <div className="w-9 h-9 rounded-full bg-tribal-800 border border-tribal-700/50 flex items-center justify-center text-sm font-bold text-tribal-300">
+          <div className="p-2.5 border-t border-[#262328]">
+            <Link href="/character" className="flex items-center gap-2.5 p-2 hover:bg-[#1a181e] transition-colors rounded-sm">
+              <div className="w-9 h-9 bg-[#36291c] flex items-center justify-center text-xs font-bold text-[#b39b7c] rounded-sm border border-[#4d3a27]/50">
                 {character.name?.[0] || "?"}
               </div>
               <div className="min-w-0">
-                <div className="text-tribal-200 text-sm font-semibold truncate">{character.name}</div>
-                <div className="text-tribal-500 text-xs">Tier {character.skills?.[0]?.tier || 1}</div>
+                <div className="text-[#cfc1ae] text-sm font-semibold truncate">{character.name}</div>
+                <div className="text-[#6e656c] text-xs">Tier {highestTier}</div>
               </div>
-            </a>
+            </Link>
           </div>
         )}
       </aside>

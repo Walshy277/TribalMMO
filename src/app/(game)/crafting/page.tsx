@@ -1,37 +1,131 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
 import { useGame } from "@/lib/game";
-import { useState } from "react";
+import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { Hammer, Swords, Shield, FlaskConical, Lock, Clock } from "lucide-react";
+import { Hammer, Swords, Shield, FlaskConical, Lock, Clock, Check, AlertTriangle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const recipes = [
-  { name: "Stone Axe", type: "weapon", tier: 1, materials: "3 Wood, 2 Stone", desc: "A basic axe for chopping" },
-  { name: "Wooden Spear", type: "weapon", tier: 1, materials: "4 Wood, 1 Stone", desc: "A simple throwing spear" },
-  { name: "Hide Armor", type: "armor", tier: 1, materials: "5 Hides, 2 Wood", desc: "Basic protection from attacks" },
-  { name: "Bone Knife", type: "weapon", tier: 1, materials: "3 Bone, 1 Wood", desc: "A sharp knife for cutting" },
-  { name: "Herb Poultice", type: "consumable", tier: 1, materials: "3 Herbs", desc: "Restores stamina" },
-  { name: "Stone Hammer", type: "tool", tier: 2, materials: "5 Stone, 3 Wood", desc: "A heavy crafting tool" },
-  { name: "Reinforced Armor", type: "armor", tier: 2, materials: "8 Hides, 4 Stone, 2 Wood", desc: "Sturdy protection" },
-  { name: "Bow", type: "weapon", tier: 2, materials: "6 Wood, 2 Hides", desc: "A ranged weapon" },
+interface Material {
+  name: string;
+  quantity: number;
+}
+
+interface Recipe {
+  name: string;
+  type: string;
+  tier: number;
+  materials: Material[];
+  desc: string;
+  duration: number;
+  resultStats: Record<string, number>;
+}
+
+const recipes: Recipe[] = [
+  { name: "Stone Axe", type: "weapon", tier: 1, materials: [{ name: "Wood", quantity: 3 }, { name: "Stone", quantity: 2 }], desc: "A basic axe for chopping", duration: 600, resultStats: { attack: 3 } },
+  { name: "Wooden Spear", type: "weapon", tier: 1, materials: [{ name: "Wood", quantity: 4 }, { name: "Stone", quantity: 1 }], desc: "A simple throwing spear", duration: 600, resultStats: { attack: 4 } },
+  { name: "Hide Armor", type: "armor", tier: 1, materials: [{ name: "Hides", quantity: 5 }, { name: "Wood", quantity: 2 }], desc: "Basic protection from attacks", duration: 900, resultStats: { defense: 3 } },
+  { name: "Bone Knife", type: "weapon", tier: 1, materials: [{ name: "Bone", quantity: 3 }, { name: "Wood", quantity: 1 }], desc: "A sharp knife for cutting", duration: 600, resultStats: { attack: 2 } },
+  { name: "Herb Poultice", type: "consumable", tier: 1, materials: [{ name: "Herbs", quantity: 3 }], desc: "Restores 30 stamina when used", duration: 300, resultStats: { heal: 30 } },
+  { name: "Stone Hammer", type: "tool", tier: 2, materials: [{ name: "Stone", quantity: 5 }, { name: "Wood", quantity: 3 }], desc: "A heavy crafting tool (+2 crafting speed)", duration: 900, resultStats: { crafting_speed: 2 } },
+  { name: "Reinforced Armor", type: "armor", tier: 2, materials: [{ name: "Hides", quantity: 8 }, { name: "Stone", quantity: 4 }, { name: "Wood", quantity: 2 }], desc: "Sturdy protection", duration: 1800, resultStats: { defense: 7 } },
+  { name: "Bow", type: "weapon", tier: 2, materials: [{ name: "Wood", quantity: 6 }, { name: "Hides", quantity: 2 }], desc: "A ranged weapon", duration: 1200, resultStats: { attack: 6 } },
 ];
 
 const typeIcons: Record<string, LucideIcon> = { weapon: Swords, armor: Shield, consumable: FlaskConical, tool: Hammer };
 
 export default function CraftingPage() {
-  const { character } = useGame();
+  const { character, refreshCharacter } = useGame();
   const [selectedRecipe, setSelectedRecipe] = useState<number | null>(null);
+  const [crafting, setCrafting] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    document.title = "Crafting — TribalMMO";
+  }, []);
+
+  const buildInventoryMap = useCallback(() => {
+    if (!character?.inventory) return new Map<string, number>();
+    const map = new Map<string, number>();
+    for (const inv of character.inventory) {
+      if (inv.item) {
+        const current = map.get(inv.item.name) || 0;
+        map.set(inv.item.name, current + inv.quantity);
+      }
+    }
+    return map;
+  }, [character?.inventory]);
+
+  useEffect(() => {
+    setInventoryItems(buildInventoryMap());
+  }, [buildInventoryMap]);
 
   if (!character) {
     return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
   }
 
-  const craftingSkill = character.skills?.find((s: any) => s.name === "Crafting");
+  const craftingSkill = character.skills?.find((s) => s.name === "Crafting");
   const currentTier = craftingSkill?.tier || 1;
   const xp = craftingSkill?.experience || 0;
   const availableRecipes = recipes.filter((r) => r.tier <= currentTier);
   const lockedRecipes = recipes.filter((r) => r.tier > currentTier);
+
+  const hasMaterials = (recipe: Recipe): boolean => {
+    return recipe.materials.every((mat) => (inventoryItems.get(mat.name) || 0) >= mat.quantity);
+  };
+
+  const getMaterialStatus = (recipe: Recipe) => {
+    return recipe.materials.map((mat) => ({
+      ...mat,
+      available: inventoryItems.get(mat.name) || 0,
+      sufficient: (inventoryItems.get(mat.name) || 0) >= mat.quantity,
+    }));
+  };
+
+  const craftItem = async (recipe: Recipe) => {
+    if (!craftingSkill || crafting) return;
+    if (!hasMaterials(recipe)) return;
+
+    setCrafting(true);
+
+    for (const mat of recipe.materials) {
+      const item = character.inventory.find((inv) => inv.item?.name === mat.name);
+      if (!item) continue;
+
+      const newQty = item.quantity - mat.quantity;
+      if (newQty <= 0) {
+        await supabase.from("inventory").delete().eq("id", item.id);
+      } else {
+        await supabase.from("inventory").update({ quantity: newQty }).eq("id", item.id);
+      }
+    }
+
+    const completesAt = new Date(Date.now() + recipe.duration * 1000).toISOString();
+    await supabase.from("actions").insert({
+      character_id: character.id,
+      type: "crafting",
+      duration: recipe.duration,
+      completes_at: completesAt,
+      result: { item_name: recipe.name, item_type: recipe.type, stats: recipe.resultStats, tier: recipe.tier },
+    });
+
+    const xpGain = Math.floor(recipe.duration / 30);
+    const newXp = craftingSkill.experience + xpGain;
+    const maxXP = craftingSkill.tier * 100;
+    const newTier = newXp >= maxXP && craftingSkill.tier < 5 ? craftingSkill.tier + 1 : craftingSkill.tier;
+
+    await supabase
+      .from("skills")
+      .update({ experience: newXp, tier: newTier })
+      .eq("id", craftingSkill.id);
+
+    await refreshCharacter();
+    setCrafting(false);
+    setSelectedRecipe(null);
+  };
+
+  const currentAction = character.skills?.find(() => true);
 
   return (
     <div className="space-y-5 animate-fade-in max-w-3xl">
@@ -40,57 +134,89 @@ export default function CraftingPage() {
         <p className="text-tribal-500 text-sm mt-0.5">Create tools, weapons, and more</p>
       </div>
 
-      {/* Skill */}
       <div className="card">
-        <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-3">Crafting Skill</h2>
-        <div className="flex items-center justify-between mb-2">
+        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Crafting Skill</h2>
+        <div className="flex items-center justify-between">
           <span className="text-tribal-100 font-bold text-xl">Tier {currentTier}</span>
-          <span className="text-tribal-300 text-sm">{xp} XP</span>
-        </div>
-        <div className="w-full bg-tribal-800 rounded-full h-2">
-          <div
-            className="bg-tribal-500 h-2 rounded-full"
-            style={{ width: `${Math.min(100, (xp / (currentTier * 100)) * 100)}%` }}
-          />
+          <span className="text-tribal-500 text-sm">Crafting</span>
         </div>
         <p className="text-tribal-600 text-xs mt-2">
-          {currentTier < 2 ? `Next tier at ${currentTier === 1 ? "100" : "500"} XP` : "Max tier reached (MVP)"}
+          {currentTier < 5 ? "Complete actions to improve your skill" : "Max tier reached"}
         </p>
       </div>
 
-      {/* Available Recipes */}
       <div className="card">
-        <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Available Recipes</h2>
+        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Available Recipes</h2>
         {availableRecipes.length === 0 ? (
-          <p className="text-tribal-500">No recipes available.</p>
+          <p className="text-tribal-600">No recipes available.</p>
         ) : (
           <div className="space-y-2">
             {availableRecipes.map((recipe, i) => {
               const Icon = typeIcons[recipe.type] || Hammer;
+              const isSelected = selectedRecipe === i;
+              const canCraft = hasMaterials(recipe);
+              const matStatus = getMaterialStatus(recipe);
+
               return (
                 <div
                   key={i}
                   className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                    selectedRecipe === i
-                      ? "bg-tribal-800 border-tribal-600/50"
-                      : "bg-tribal-900/50 border-tribal-800/50 hover:border-tribal-700/50"
+                    isSelected
+                      ? "bg-tribal-800/40 border-tribal-600/30"
+                      : "bg-tribal-900/30 border-tribal-800/20 hover:border-tribal-700/30"
                   }`}
-                  onClick={() => setSelectedRecipe(selectedRecipe === i ? null : i)}
+                  onClick={() => setSelectedRecipe(isSelected ? null : i)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Icon size={18} className="text-tribal-400 shrink-0" />
+                      <Icon size={18} className={canCraft ? "text-tribal-500" : "text-tribal-700"} />
                       <div>
                         <span className="text-tribal-200 font-semibold text-sm">{recipe.name}</span>
-                        <p className="text-tribal-500 text-xs">{recipe.desc}</p>
+                        <p className="text-tribal-600 text-xs">{recipe.desc}</p>
                       </div>
                     </div>
-                    <span className="text-tribal-600 text-xs bg-tribal-800 px-2 py-1 rounded">Tier {recipe.tier}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-tribal-700 text-xs flex items-center gap-1 tabular-nums">
+                        <Clock size={10} /> {recipe.duration >= 3600 ? `${recipe.duration / 3600}h` : `${recipe.duration / 60}m`}
+                      </span>
+                      <span className="text-tribal-700 text-xs bg-tribal-900/60 px-2 py-1 rounded border border-tribal-800/20">Tier {recipe.tier}</span>
+                      {!canCraft && (
+                        <AlertTriangle size={14} className="text-tribal-400/70" />
+                      )}
+                    </div>
                   </div>
-                  {selectedRecipe === i && (
-                    <div className="mt-3 pt-3 border-t border-tribal-700/30 animate-fade-in">
-                      <p className="text-tribal-400 text-sm mb-2">Materials: {recipe.materials}</p>
-                      <Button variant="primary" size="sm" icon={<Hammer size={14} />}>Craft (Start Action)</Button>
+                  {isSelected && (
+                    <div className="mt-3 pt-3 border-t border-tribal-800/20 animate-fade-in">
+                      <div className="space-y-1.5 mb-4">
+                        <p className="text-xs font-bold text-tribal-400 uppercase tracking-wider">Materials Required</p>
+                        {matStatus.map((mat, mi) => (
+                          <div key={mi} className="flex items-center justify-between text-sm">
+                            <span className="text-tribal-300">{mat.name}</span>
+                            <span className={`font-mono tabular-nums ${mat.sufficient ? "text-[#4a9e6a]" : "text-[#b83a3a]"}`}>
+                              {mat.available} / {mat.quantity}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-1.5 mb-4">
+                        <p className="text-xs font-bold text-tribal-400 uppercase tracking-wider">Result Stats</p>
+                        {Object.entries(recipe.resultStats).map(([key, val]) => (
+                          <div key={key} className="flex items-center justify-between text-sm">
+                            <span className="text-tribal-300 capitalize">{key.replace(/_/g, " ")}</span>
+                            <span className="text-tribal-100 font-semibold">+{val}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        variant={canCraft ? "primary" : "secondary"}
+                        size="sm"
+                        icon={<Hammer size={14} />}
+                        onClick={(e) => { e.stopPropagation(); craftItem(recipe); }}
+                        loading={crafting}
+                        disabled={!canCraft}
+                      >
+                        {canCraft ? "Craft Item" : "Missing Materials"}
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -100,24 +226,23 @@ export default function CraftingPage() {
         )}
       </div>
 
-      {/* Locked Recipes */}
       {lockedRecipes.length > 0 && (
         <div className="card">
-          <h2 className="text-sm font-semibold text-tribal-400 uppercase tracking-wider mb-4">Locked Recipes</h2>
+          <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Locked Recipes</h2>
           <div className="space-y-2">
             {lockedRecipes.map((recipe, i) => {
               const Icon = typeIcons[recipe.type] || Hammer;
               return (
-                <div key={i} className="bg-tribal-900/30 p-4 rounded-lg border border-tribal-800/30 opacity-50">
+                <div key={i} className="bg-tribal-900/20 p-4 rounded-lg border border-tribal-800/10 opacity-50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Icon size={18} className="text-tribal-600 shrink-0" />
+                      <Icon size={18} className="text-tribal-700 shrink-0" />
                       <div>
-                        <span className="text-tribal-300 font-semibold text-sm">{recipe.name}</span>
-                        <p className="text-tribal-600 text-xs">{recipe.desc}</p>
+                        <span className="text-tribal-400 font-semibold text-sm">{recipe.name}</span>
+                        <p className="text-tribal-700 text-xs">{recipe.desc}</p>
                       </div>
                     </div>
-                    <span className="text-tribal-600 text-xs bg-tribal-900 px-2 py-1 rounded flex items-center gap-1">
+                    <span className="text-tribal-700 text-xs bg-tribal-900/40 px-2 py-1 rounded flex items-center gap-1 border border-tribal-800/10">
                       <Lock size={10} /> Tier {recipe.tier}
                     </span>
                   </div>

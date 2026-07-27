@@ -23,6 +23,8 @@ export interface Database {
           cunning: number
           stamina: number
           max_stamina: number
+          coins: number
+          stamina_updated_at: string
           created_at: string
         }
         Insert: {
@@ -38,6 +40,8 @@ export interface Database {
           cunning?: number
           stamina?: number
           max_stamina?: number
+          coins?: number
+          stamina_updated_at?: string
           created_at?: string
         }
         Update: {
@@ -53,6 +57,8 @@ export interface Database {
           cunning?: number
           stamina?: number
           max_stamina?: number
+          coins?: number
+          stamina_updated_at?: string
           created_at?: string
         }
         Relationships: []
@@ -156,7 +162,7 @@ export interface Database {
         }
         Relationships: []
       }
-      factions: {
+      clans: {
         Row: {
           id: string
           name: string
@@ -183,105 +189,27 @@ export interface Database {
         }
         Relationships: []
       }
-      faction_members: {
+      clan_members: {
         Row: {
           id: string
-          faction_id: string
+          clan_id: string
           character_id: string
           role: string
           joined_at: string
         }
         Insert: {
           id?: string
-          faction_id: string
+          clan_id: string
           character_id: string
           role?: string
           joined_at?: string
         }
         Update: {
           id?: string
-          faction_id?: string
+          clan_id?: string
           character_id?: string
           role?: string
           joined_at?: string
-        }
-        Relationships: []
-      }
-      settlements: {
-        Row: {
-          id: string
-          faction_id: string
-          name: string
-          tier: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          faction_id: string
-          name: string
-          tier?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          faction_id?: string
-          name?: string
-          tier?: number
-          created_at?: string
-        }
-        Relationships: []
-      }
-      buildings: {
-        Row: {
-          id: string
-          settlement_id: string
-          name: string
-          tier: number
-          build_time: number
-          built_at: string | null
-        }
-        Insert: {
-          id?: string
-          settlement_id: string
-          name: string
-          tier?: number
-          build_time?: number
-          built_at?: string | null
-        }
-        Update: {
-          id?: string
-          settlement_id?: string
-          name?: string
-          tier?: number
-          build_time?: number
-          built_at?: string | null
-        }
-        Relationships: []
-      }
-      territories: {
-        Row: {
-          id: string
-          hex_x: number
-          hex_y: number
-          type: string
-          faction_id: string | null
-          claimed_at: string | null
-        }
-        Insert: {
-          id?: string
-          hex_x: number
-          hex_y: number
-          type: string
-          faction_id?: string | null
-          claimed_at?: string | null
-        }
-        Update: {
-          id?: string
-          hex_x?: number
-          hex_y?: number
-          type?: string
-          faction_id?: string | null
-          claimed_at?: string | null
         }
         Relationships: []
       }
@@ -342,6 +270,45 @@ export interface Database {
         }
         Relationships: []
       }
+      auction_house: {
+        Row: {
+          id: string
+          seller_id: string
+          item_id: string
+          quantity: number
+          starting_price: number
+          current_bid: number
+          current_bidder_id: string | null
+          ends_at: string
+          created_at: string
+          claimed: boolean
+        }
+        Insert: {
+          id?: string
+          seller_id: string
+          item_id: string
+          quantity?: number
+          starting_price: number
+          current_bid?: number
+          current_bidder_id?: string | null
+          ends_at: string
+          created_at?: string
+          claimed?: boolean
+        }
+        Update: {
+          id?: string
+          seller_id?: string
+          item_id?: string
+          quantity?: number
+          starting_price?: number
+          current_bid?: number
+          current_bidder_id?: string | null
+          ends_at?: string
+          created_at?: string
+          claimed?: boolean
+        }
+        Relationships: []
+      }
       pets: {
         Row: {
           id: string
@@ -363,12 +330,168 @@ export interface Database {
         }
         Relationships: []
       }
+      shrine_donations: {
+        Row: {
+          id: string
+          character_id: string
+          item_id: string
+          quantity: number
+          donated_at: string
+        }
+        Insert: {
+          id?: string
+          character_id: string
+          item_id: string
+          quantity?: number
+          donated_at?: string
+        }
+        Update: {
+          id?: string
+          character_id?: string
+          item_id?: string
+          quantity?: number
+          donated_at?: string
+        }
+        Relationships: []
+      }
+      shrine_prayers: {
+        Row: {
+          id: string
+          character_id: string
+          message: string
+          blessing: string | null
+          prayed_at: string
+        }
+        Insert: {
+          id?: string
+          character_id: string
+          message: string
+          blessing?: string | null
+          prayed_at?: string
+        }
+        Update: {
+          id?: string
+          character_id?: string
+          message?: string
+          blessing?: string | null
+          prayed_at?: string
+        }
+        Relationships: []
+      }
+      shop_items: {
+        Row: {
+          id: string
+          name: string
+          type: string
+          tier: number
+          description: string | null
+          buy_price: number
+          sell_price: number
+          stock: number
+          stats: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          type: string
+          tier?: number
+          description?: string | null
+          buy_price: number
+          sell_price: number
+          stock?: number
+          stats?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          type?: string
+          tier?: number
+          description?: string | null
+          buy_price?: number
+          sell_price?: number
+          stock?: number
+          stats?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
+      daily_rewards: {
+        Row: {
+          id: string
+          character_id: string
+          last_claimed_at: string
+          streak: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          character_id: string
+          last_claimed_at: string
+          streak?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          character_id?: string
+          last_claimed_at?: string
+          streak?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          id: string
+          character_id: string
+          type: string
+          amount: number
+          description: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          character_id: string
+          type: string
+          amount: number
+          description?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          character_id?: string
+          type?: string
+          amount?: number
+          description?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      purchase_listing: {
+        Args: { p_listing_id: string; p_buyer_id: string; p_seller_id: string; p_price: number }
+        Returns: void
+      }
+      refund_bidder: {
+        Args: { p_bidder_id: string; p_amount: number }
+        Returns: void
+      }
+      auction_payout: {
+        Args: { p_seller_id: string; p_total_bid: number }
+        Returns: void
+      }
+      shrine_bless: {
+        Args: { p_character_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
