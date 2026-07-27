@@ -48,8 +48,8 @@ export default function ShopsPage() {
     const qty = buyQuantities[item.id] || 1;
     const totalCost = item.buy_price * qty;
 
-    if (totalCost > character.coins) {
-      setError("Not enough coins.");
+    if (totalCost > character.gold) {
+      setError("Not enough gold.");
       return;
     }
 
@@ -57,9 +57,8 @@ export default function ShopsPage() {
     setError("");
     setSuccess("");
 
-    // Deduct coins
-    const { error: coinError } = await supabase.from("characters").update({ coins: character.coins - totalCost }).eq("id", character.id);
-    if (coinError) { setError("Failed to deduct coins. Please try again."); setLoading(false); return; }
+    const { error: coinError } = await supabase.from("characters").update({ gold: character.gold - totalCost }).eq("id", character.id);
+    if (coinError) { setError("Failed to deduct gold. Please try again."); setLoading(false); return; }
 
     // Add to inventory
     const existingInv = character.inventory.find((inv) => inv.item?.name === item.name);
@@ -92,7 +91,7 @@ export default function ShopsPage() {
       unit_price: item.buy_price,
     });
 
-    setSuccess(`Bought ${qty}x ${item.name} for ${totalCost} coins.`);
+    setSuccess(`Bought ${qty}x ${item.name} for ${totalCost} gold.`);
     setBuyQuantities((prev) => ({ ...prev, [item.id]: 1 }));
     setLoading(false);
     await refreshCharacter();
@@ -113,9 +112,8 @@ export default function ShopsPage() {
     setError("");
     setSuccess("");
 
-    // Add coins
-    const { error: coinError } = await supabase.from("characters").update({ coins: character.coins + totalValue }).eq("id", character.id);
-    if (coinError) { setError("Failed to add coins. Please try again."); setLoading(false); return; }
+    const { error: coinError } = await supabase.from("characters").update({ gold: character.gold + totalValue }).eq("id", character.id);
+    if (coinError) { setError("Failed to add gold. Please try again."); setLoading(false); return; }
 
     // Remove from inventory
     const newQty = invItem.quantity - qty;
@@ -131,7 +129,7 @@ export default function ShopsPage() {
       unit_price: shopItem.sell_price,
     });
 
-    setSuccess(`Sold ${qty}x ${invItem.item.name} for ${totalValue} coins.`);
+    setSuccess(`Sold ${qty}x ${invItem.item.name} for ${totalValue} gold.`);
     setSellQuantities((prev) => ({ ...prev, [invItem.item_id]: 1 }));
     setLoading(false);
     await refreshCharacter();
@@ -164,7 +162,7 @@ export default function ShopsPage() {
         </div>
         <div className="flex items-center gap-2 text-tribal-100 bg-tribal-900/60 px-4 py-2 rounded-lg border border-tribal-800/30">
           <Coins size={16} className="text-tribal-400" />
-          <span className="font-bold tabular-nums">{character.coins}</span>
+          <span className="font-bold tabular-nums">{character.gold}</span>
           <span className="text-tribal-500 text-sm">gold</span>
         </div>
       </div>
@@ -236,7 +234,7 @@ export default function ShopsPage() {
                 const Icon = typeIcons[item.type] || Package;
                 const qty = buyQuantities[item.id] || 1;
                 const totalCost = item.buy_price * qty;
-                const canAfford = character.coins >= totalCost;
+                const canAfford = character.gold >= totalCost;
 
                 return (
                   <div key={item.id} className="bg-tribal-900/40 p-4 rounded-lg border border-tribal-800/20 hover:border-tribal-700/30 transition-colors">

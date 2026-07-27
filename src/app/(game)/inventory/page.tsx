@@ -157,7 +157,7 @@ export default function InventoryPage() {
         </div>
         <div className="flex items-center gap-2 text-tribal-100 bg-tribal-900/60 px-4 py-2 rounded-lg border border-tribal-800/30">
           <Coins size={16} className="text-tribal-400" />
-          <span className="font-bold tabular-nums">{character.coins}</span>
+          <span className="font-bold tabular-nums">{character.gold}</span>
           <span className="text-tribal-500 text-sm">gold</span>
         </div>
       </div>

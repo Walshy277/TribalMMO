@@ -82,7 +82,7 @@ export default function AuctionHousePage() {
     }
 
     if (startingPrice < 1) {
-      setError("Starting price must be at least 1 coin.");
+      setError("Starting price must be at least 1 gold.");
       setLoading(false);
       return;
     }
@@ -126,8 +126,8 @@ export default function AuctionHousePage() {
       return;
     }
 
-    if (bidAmount > character.coins) {
-      setError("You don't have enough coins.");
+    if (bidAmount > character.gold) {
+      setError("You don't have enough gold.");
       return;
     }
 
@@ -144,8 +144,8 @@ export default function AuctionHousePage() {
       if (refundError) { setError("Failed to refund previous bidder. Please try again."); setLoading(false); return; }
     }
 
-    const { error: bidError } = await supabase.from("characters").update({ coins: character.coins - bidAmount }).eq("id", character.id);
-    if (bidError) { setError("Failed to deduct coins. Please try again."); setLoading(false); return; }
+    const { error: bidError } = await supabase.from("characters").update({ gold: character.gold - bidAmount }).eq("id", character.id);
+    if (bidError) { setError("Failed to deduct gold. Please try again."); setLoading(false); return; }
 
     const { error: updateError } = await supabase.from("auction_house").update({
       current_bid: bidAmount,
@@ -203,7 +203,7 @@ export default function AuctionHousePage() {
         });
       } else if (auction.seller_id === character.id) {
         const refund = auction.current_bid;
-        const { error: refundError } = await supabase.from("characters").update({ coins: character.coins + refund }).eq("id", character.id);
+        const { error: refundError } = await supabase.from("characters").update({ gold: character.gold + refund }).eq("id", character.id);
         if (refundError) console.error("Failed to refund seller:", refundError);
         await logTransaction(character.id, "auction_sale", refund, `Auction sold: ${auction.item?.name || "item"}`, {
           item_name: auction.item?.name,
@@ -241,7 +241,7 @@ export default function AuctionHousePage() {
       }
 
       if (auction.current_bidder_id) {
-        const { error: refundError } = await supabase.from("characters").update({ coins: character.coins + auction.current_bid }).eq("id", auction.current_bidder_id);
+        const { error: refundError } = await supabase.from("characters").update({ gold: character.gold + auction.current_bid }).eq("id", auction.current_bidder_id);
         if (refundError) console.error("Failed to refund bidder:", refundError);
       }
     }
@@ -291,7 +291,7 @@ export default function AuctionHousePage() {
         </div>
         <div className="flex items-center gap-2 text-tribal-100 bg-tribal-900/60 px-4 py-2 rounded-lg border border-tribal-800/30">
           <Coins size={16} className="text-tribal-400" />
-          <span className="font-bold tabular-nums">{character.coins}</span>
+          <span className="font-bold tabular-nums">{character.gold}</span>
           <span className="text-tribal-500 text-sm">gold</span>
         </div>
       </div>
@@ -499,9 +499,9 @@ export default function AuctionHousePage() {
                             size="sm"
                             icon={<Gavel size={14} />}
                             onClick={() => { setConfirmBid(auction.id); setBidAmounts((prev) => ({ ...prev, [auction.id]: minBid })); }}
-                            disabled={character.coins < minBid}
+                            disabled={character.gold < minBid}
                           >
-                            {character.coins < minBid ? "Can't afford" : `Bid (${minBid}+)`}
+                            {character.gold < minBid ? "Can't afford" : `Bid (${minBid}+)`}
                           </Button>
                         )
                       ) : !timer.ended && isOwn ? (

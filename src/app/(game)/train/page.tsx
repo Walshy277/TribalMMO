@@ -137,7 +137,7 @@ export default function TrainPage() {
             {lastResult.coin_reward > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.15)" }}>
                 <Coins size={14} className="text-[#c9a84c]" />
-                <span className="text-[#c9a84c] text-sm font-semibold">+{lastResult.coin_reward} coins</span>
+                <span className="text-[#c9a84c] text-sm font-semibold">+{lastResult.coin_reward} gold</span>
               </div>
             )}
             {lastResult.item_name && (

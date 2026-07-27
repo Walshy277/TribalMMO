@@ -24,7 +24,7 @@ export function Header() {
         {user && character && (
           <div className="flex items-center gap-1.5 text-[#b39b7c]">
             <Coins size={14} className="text-[#c04e20]" />
-            <span className="text-sm font-bold tabular-nums">{character.coins}</span>
+            <span className="text-sm font-bold tabular-nums">{character.gold}</span>
           </div>
         )}
         {user && (

@@ -26,7 +26,7 @@ export interface Database {
           cunning: number
           stamina: number
           max_stamina: number
-          coins: number
+          gold: number
           stamina_updated_at: string
           created_at: string
         }
@@ -46,7 +46,7 @@ export interface Database {
           cunning?: number
           stamina?: number
           max_stamina?: number
-          coins?: number
+          gold?: number
           stamina_updated_at?: string
           created_at?: string
         }
@@ -66,7 +66,7 @@ export interface Database {
           cunning?: number
           stamina?: number
           max_stamina?: number
-          coins?: number
+          gold?: number
           stamina_updated_at?: string
           created_at?: string
         }

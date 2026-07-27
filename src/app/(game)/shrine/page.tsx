@@ -103,14 +103,14 @@ export default function ShrinePage() {
     });
     if (insertErr) { setError("Failed to record donation. Please try again."); setLoading(false); return; }
 
-    // Grant bonus coins based on quantity
+    // Grant bonus gold based on quantity
     const coinReward = donateQty * 5;
-    const { error: coinErr } = await supabase.from("characters").update({ coins: character.coins + coinReward }).eq("id", character.id);
-    if (coinErr) { setError("Donation recorded but coin reward failed."); setLoading(false); return; }
+    const { error: coinErr } = await supabase.from("characters").update({ gold: character.gold + coinReward }).eq("id", character.id);
+    if (coinErr) { setError("Donation recorded but gold reward failed."); setLoading(false); return; }
 
     await logTransaction(character.id, "shrine_donate", coinReward, `Donated ${donateQty}x ${selectedItem} to the shrine`);
 
-    setSuccess(`The spirits accept your offering of ${donateQty}x ${selectedItem}. +${coinReward} coins bestowed.`);
+    setSuccess(`The spirits accept your offering of ${donateQty}x ${selectedItem}. +${coinReward} gold bestowed.`);
     setSelectedItem("");
     setDonateQty(1);
     setLoading(false);
@@ -124,14 +124,14 @@ export default function ShrinePage() {
     setError("");
     setSuccess("");
 
-    // Deduct 5 coins for praying
-    if (character.coins < 5) {
-      setError("Praying at the shrine costs 5 coins.");
+    // Deduct 5 gold for praying
+    if (character.gold < 5) {
+      setError("Praying at the shrine costs 5 gold.");
       setLoading(false);
       return;
     }
 
-    const { error: coinErr } = await supabase.from("characters").update({ coins: character.coins - 5 }).eq("id", character.id);
+    const { error: coinErr } = await supabase.from("characters").update({ gold: character.gold - 5 }).eq("id", character.id);
     if (coinErr) { setError("Failed to deduct offering. Please try again."); setLoading(false); return; }
 
     // Roll for blessing (40% chance)
@@ -239,9 +239,9 @@ export default function ShrinePage() {
               <Sparkles size={36} className="text-[#6a5a8a] mx-auto mb-2" />
               <h2 className="text-lg font-bold text-tribal-100">Offer Items to the Shrine</h2>
               <p className="text-tribal-500 text-sm mt-1">
-                The spirits accept material offerings. In return, they bestow coins upon the devoted.
+                The spirits accept material offerings. In return, they bestow gold upon the devoted.
               </p>
-              <p className="text-tribal-600 text-xs mt-2">+5 coins per item donated</p>
+              <p className="text-tribal-600 text-xs mt-2">+5 gold per item donated</p>
             </div>
 
             {donateableItems.length === 0 ? (
@@ -279,7 +279,7 @@ export default function ShrinePage() {
                       max={donateableItems.find((inv) => inv.item?.name === selectedItem)?.quantity || 1}
                     />
                     <p className="text-tribal-600 text-xs mt-1">
-                      You will receive {donateQty * 5} coins
+                      You will receive {donateQty * 5} gold
                     </p>
                   </div>
                 )}
@@ -307,7 +307,7 @@ export default function ShrinePage() {
               <Heart size={36} className="text-[#b83a3a] mx-auto mb-2" />
               <h2 className="text-lg font-bold text-tribal-100">Pray at the Shrine</h2>
               <p className="text-tribal-500 text-sm mt-1">
-                Speak to the spirits. With devotion and a small offering of 5 coins, they may grant you a blessing.
+                Speak to the spirits. With devotion and a small offering of 5 gold, they may grant you a blessing.
               </p>
               <p className="text-tribal-600 text-xs mt-2">40% chance of receiving a stat blessing</p>
             </div>
@@ -324,7 +324,7 @@ export default function ShrinePage() {
                   maxLength={200}
                 />
               </div>
-              <p className="text-tribal-600 text-xs">Cost: 5 coins</p>
+              <p className="text-tribal-600 text-xs">Cost: 5 gold</p>
               <Button
                 variant="primary"
                 className="w-full"
@@ -332,9 +332,9 @@ export default function ShrinePage() {
                 icon={<Send size={18} />}
                 onClick={prayAtShrine}
                 loading={loading}
-                disabled={!prayerMessage.trim() || character.coins < 5}
+                disabled={!prayerMessage.trim() || character.gold < 5}
               >
-                {character.coins < 5 ? "Not enough coins (need 5)" : "Send Prayer"}
+                {character.gold < 5 ? "Not enough gold (need 5)" : "Send Prayer"}
               </Button>
             </div>
           </div>

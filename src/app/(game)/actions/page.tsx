@@ -166,8 +166,8 @@ export default function ActionsPage() {
       }
 
       const coinReward = Math.floor(Math.random() * 5) + 1;
-      const { error: coinError } = await supabase.from("characters").update({ coins: character.coins + coinReward }).eq("id", character.id);
-      if (coinError) console.error("Failed to award coins:", coinError);
+      const { error: coinError } = await supabase.from("characters").update({ gold: character.gold + coinReward }).eq("id", character.id);
+      if (coinError) console.error("Failed to award gold:", coinError);
       await logTransaction(character.id, "action_reward", coinReward, `Gathering completion reward`);
       rewards.push({ itemName: "Coins", quantity: coinReward });
     } else if (action.type === "crafting") {

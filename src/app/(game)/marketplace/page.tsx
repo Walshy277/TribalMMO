@@ -63,7 +63,7 @@ export default function MarketplacePage() {
     }
 
     if (price < 1) {
-      setError("Price must be at least 1 coin.");
+      setError("Price must be at least 1 gold.");
       setLoading(false);
       return;
     }
@@ -124,8 +124,8 @@ export default function MarketplacePage() {
 
   const buyListing = async (listing: Listing) => {
     if (!character || listing.seller_id === character.id) return;
-    if (listing.price > character.coins) {
-      setError("You don't have enough coins.");
+    if (listing.price > character.gold) {
+      setError("You don't have enough gold.");
       return;
     }
 
@@ -196,7 +196,7 @@ export default function MarketplacePage() {
         </div>
         <div className="flex items-center gap-2 text-tribal-100 bg-tribal-900/60 px-4 py-2 rounded-lg border border-tribal-800/30">
           <Coins size={16} className="text-tribal-400" />
-          <span className="font-bold tabular-nums">{character.coins}</span>
+          <span className="font-bold tabular-nums">{character.gold}</span>
           <span className="text-tribal-500 text-sm">gold</span>
         </div>
       </div>
@@ -237,7 +237,7 @@ export default function MarketplacePage() {
                 <input type="number" value={price} onChange={(e) => setPrice(Math.max(1, Number(e.target.value)))} className="input" min={1} required />
               </div>
             </div>
-            <p className="text-tribal-700 text-xs">5% tax on sale. You receive {Math.ceil(price * (1 - TAX_RATE))} coins per item.</p>
+            <p className="text-tribal-700 text-xs">5% tax on sale. You receive {Math.ceil(price * (1 - TAX_RATE))} gold per item.</p>
             {error && (
               <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
             )}
@@ -288,7 +288,7 @@ export default function MarketplacePage() {
           <div className="space-y-2">
             {filteredListings.map((listing) => {
               const isOwn = listing.seller_id === character.id;
-              const canAfford = character.coins >= listing.price;
+              const canAfford = character.gold >= listing.price;
               const isConfirming = confirmBuy === listing.id;
 
               return (

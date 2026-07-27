@@ -9,7 +9,7 @@ import { Gift, Coins, Clock, CheckCircle, Star, Flame, Package, Shield, Zap } fr
 
 interface DailyReward {
   day: number;
-  coins: number;
+  gold: number;
   bonusItem?: string;
   bonusQuantity?: number;
   icon: typeof Coins;
@@ -17,13 +17,13 @@ interface DailyReward {
 }
 
 const dailyRewards: DailyReward[] = [
-  { day: 1, coins: 10, icon: Coins, color: "text-tribal-300" },
-  { day: 2, coins: 15, icon: Coins, color: "text-tribal-300" },
-  { day: 3, coins: 25, icon: Coins, color: "text-tribal-300" },
-  { day: 4, coins: 30, bonusItem: "Herbs", bonusQuantity: 5, icon: Package, color: "text-[#4a9e6a]" },
-  { day: 5, coins: 40, bonusItem: "Hides", bonusQuantity: 3, icon: Shield, color: "text-[#6a90a8]" },
-  { day: 6, coins: 60, icon: Coins, color: "text-tribal-300" },
-  { day: 7, coins: 100, bonusItem: "Stamina Potion", bonusQuantity: 2, icon: Star, color: "text-[#8a6aaa]" },
+  { day: 1, gold: 10, icon: Coins, color: "text-tribal-300" },
+  { day: 2, gold: 15, icon: Coins, color: "text-tribal-300" },
+  { day: 3, gold: 25, icon: Coins, color: "text-tribal-300" },
+  { day: 4, gold: 30, bonusItem: "Herbs", bonusQuantity: 5, icon: Package, color: "text-[#4a9e6a]" },
+  { day: 5, gold: 40, bonusItem: "Hides", bonusQuantity: 3, icon: Shield, color: "text-[#6a90a8]" },
+  { day: 6, gold: 60, icon: Coins, color: "text-tribal-300" },
+  { day: 7, gold: 100, bonusItem: "Stamina Potion", bonusQuantity: 2, icon: Star, color: "text-[#8a6aaa]" },
 ];
 
 export default function RewardsPage() {
@@ -86,10 +86,10 @@ export default function RewardsPage() {
     const nextDay = ((streak) % 7) + 1;
     const reward = dailyRewards.find((r) => r.day === nextDay) || dailyRewards[0];
 
-    // Give coins
-    const newCoins = character.coins + reward.coins;
-    await supabase.from("characters").update({ coins: newCoins }).eq("id", character.id);
-    await logTransaction(character.id, "daily_reward", reward.coins, `Day ${nextDay} daily reward`);
+    // Give gold
+    const newGold = character.gold + reward.gold;
+    await supabase.from("characters").update({ gold: newGold }).eq("id", character.id);
+    await logTransaction(character.id, "daily_reward", reward.gold, `Day ${nextDay} daily reward`);
 
     // Give bonus item if applicable
     if (reward.bonusItem && reward.bonusQuantity) {
@@ -133,7 +133,7 @@ export default function RewardsPage() {
     setStreak(newStreak);
     setClaimedToday(true);
     setNextClaimAt(new Date(Date.now() + 24 * 60 * 60 * 1000));
-    setSuccess(`Claimed Day ${nextDay}: ${reward.coins} coins${reward.bonusItem ? ` + ${reward.bonusQuantity}x ${reward.bonusItem}` : ""}!`);
+    setSuccess(`Claimed Day ${nextDay}: ${reward.gold} gold${reward.bonusItem ? ` + ${reward.bonusQuantity}x ${reward.bonusItem}` : ""}!`);
 
     setLoading(false);
     await refreshCharacter();
@@ -169,7 +169,7 @@ export default function RewardsPage() {
       {migrationMissing && (
         <div className="bg-tribal-900/40 border border-tribal-700/40 rounded-lg p-4 text-tribal-300 text-sm">
           <p className="font-semibold mb-1">Daily rewards require migration 004</p>
-          <p className="text-tribal-300/70 text-xs">Run <code>004_economy_system.sql</code> in the Supabase SQL editor to enable streak tracking. Coins are still awarded.</p>
+          <p className="text-tribal-300/70 text-xs">Run <code>004_economy_system.sql</code> in the Supabase SQL editor to enable streak tracking. Gold is still awarded.</p>
         </div>
       )}
 
@@ -179,7 +179,7 @@ export default function RewardsPage() {
           <h2 className="text-lg font-bold text-tribal-100">Day {currentDay} Reward</h2>
           {nextReward && (
             <div className="mt-2 space-y-1">
-              <p className="text-tribal-300 font-semibold">{nextReward.coins} Coins</p>
+              <p className="text-tribal-300 font-semibold">{nextReward.gold} Gold</p>
               {nextReward.bonusItem && (
                 <p className="text-[#4a9e6a] text-sm">+ {nextReward.bonusQuantity}x {nextReward.bonusItem}</p>
               )}
@@ -236,7 +236,7 @@ export default function RewardsPage() {
                 </div>
                 <Icon size={18} className={`mx-auto my-1.5 ${reward.color} ${isPast ? "opacity-40" : ""}`} />
                 <div className={`text-xs font-bold tabular-nums ${isPast ? "text-tribal-700" : "text-tribal-200"}`}>
-                  {reward.coins}c
+                  {reward.gold}g
                 </div>
                 {reward.bonusItem && (
                   <div className="text-[10px] text-[#4a9e6a] mt-0.5">
