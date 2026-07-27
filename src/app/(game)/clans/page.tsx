@@ -8,6 +8,9 @@ import { Alert } from "@/components/ui/Alert";
 import { Shield, Swords, Globe, Compass, Users, Plus, Crown, UserMinus, ArrowUp, ArrowDown, AlertTriangle, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+const CLAN_COST_GOLD = 1; // 5,000 gold full price, 1 gold during beta (100 coins = 1 gold)
+const CLAN_COST_COINS = CLAN_COST_GOLD * 100;
+
 const philosophies: { id: string; name: string; bonuses: string[]; icon: LucideIcon; desc: string; playstyle: string }[] = [
   { 
     id: "warborn", 
@@ -84,14 +87,19 @@ export default function ClansPage() {
     e.preventDefault();
     if (!character) return;
 
-    const craftingSkill = character.skills?.find((s) => s.name === "Crafting");
-    if (!craftingSkill || craftingSkill.tier < 2) {
-      setError("You need Crafting Tier II to found a clan.");
+    if (character.coins < CLAN_COST_COINS) {
+      setError(`You need ${CLAN_COST_GOLD} gold (${CLAN_COST_COINS} coins) to found a clan.`);
       return;
     }
 
     setCreating(true);
     setError("");
+
+    const { error: coinErr } = await supabase
+      .from("characters")
+      .update({ coins: character.coins - CLAN_COST_COINS })
+      .eq("id", character.id);
+    if (coinErr) { setError("Failed to deduct gold. Please try again."); setCreating(false); return; }
 
     const { data: clan, error: clanError } = await supabase
       .from("clans")
@@ -322,7 +330,7 @@ export default function ClansPage() {
           <div className="text-center mb-5">
             <Shield size={36} className="text-tribal-400 mx-auto mb-2" />
             <h2 className="text-xl font-bold text-tribal-100">Found a Clan</h2>
-            <p className="text-tribal-600 text-sm mt-1">Requires Crafting Tier II</p>
+            <p className="text-tribal-600 text-sm mt-1">Cost: {CLAN_COST_GOLD} gold ({CLAN_COST_COINS} coins)</p>
           </div>
           <form onSubmit={createClan} className="space-y-4">
             <div>
@@ -356,14 +364,14 @@ export default function ClansPage() {
                 })}
               </div>
             </div>
-            {craftingSkillCheck(character) ? null : (
+            {character.coins >= CLAN_COST_COINS ? null : (
               <div className="bg-tribal-900/30 border border-tribal-700/30 rounded-lg p-3 text-tribal-300 text-sm flex items-center gap-2">
-                <AlertTriangle size={14} /> You need Crafting Tier II to found a clan.
+                <AlertTriangle size={14} /> You need {CLAN_COST_GOLD} gold ({CLAN_COST_COINS} coins) to found a clan. You have {character.coins} coins.
               </div>
             )}
             <div className="flex gap-3">
               <Button type="submit" variant="primary" className="flex-1" size="lg" loading={creating}
-                disabled={!craftingSkillCheck(character)}>
+                disabled={character.coins < CLAN_COST_COINS}>
                 Create Clan
               </Button>
               <Button type="button" variant="secondary" size="lg" onClick={() => setShowCreate(false)}>
@@ -467,9 +475,4 @@ export default function ClansPage() {
       </div>
     </div>
   );
-}
-
-function craftingSkillCheck(character: { skills?: { name: string; tier: number }[] }): boolean {
-  const craftingSkill = character.skills?.find((s) => s.name === "Crafting");
-  return !!craftingSkill && craftingSkill.tier >= 2;
 }
