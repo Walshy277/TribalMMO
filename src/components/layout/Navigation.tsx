@@ -21,6 +21,7 @@ import {
   X,
   Sparkles,
   TreePine,
+  Mountain,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -37,7 +38,8 @@ const navGroups = [
     label: "World",
     items: [
       { href: "/exploration", label: "Explore", icon: Map },
-      { href: "/gathering", label: "Gather", icon: TreePine },
+      { href: "/woodcutting", label: "Woodcutting", icon: TreePine },
+      { href: "/mining", label: "Mining", icon: Mountain },
       { href: "/train", label: "Train", icon: Zap },
       { href: "/combat", label: "Combat", icon: Sword },
       { href: "/crafting", label: "Crafting", icon: Hammer },

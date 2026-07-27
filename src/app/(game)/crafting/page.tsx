@@ -31,6 +31,13 @@ const recipes: Recipe[] = [
   { name: "Stone Hammer", type: "tool", tier: 2, materials: [{ name: "Stone", quantity: 5 }, { name: "Wood", quantity: 3 }], desc: "A heavy crafting tool (+2 crafting speed)", duration: 900, resultStats: { crafting_speed: 2 } },
   { name: "Reinforced Armor", type: "armor", tier: 2, materials: [{ name: "Hides", quantity: 8 }, { name: "Stone", quantity: 4 }, { name: "Wood", quantity: 2 }], desc: "Sturdy protection", duration: 1800, resultStats: { defense: 7 } },
   { name: "Bow", type: "weapon", tier: 2, materials: [{ name: "Wood", quantity: 6 }, { name: "Hides", quantity: 2 }], desc: "A ranged weapon", duration: 1200, resultStats: { attack: 6 } },
+  { name: "Copper Pickaxe", type: "tool", tier: 2, materials: [{ name: "Copper Ore", quantity: 5 }, { name: "Wood", quantity: 3 }], desc: "A sturdy pickaxe for mining (+3 mining speed)", duration: 1200, resultStats: { mining_speed: 3 } },
+  { name: "Iron Sword", type: "weapon", tier: 3, materials: [{ name: "Iron Ore", quantity: 8 }, { name: "Coal", quantity: 3 }, { name: "Wood", quantity: 2 }], desc: "A sharp iron blade", duration: 1800, resultStats: { attack: 10 } },
+  { name: "Iron Shield", type: "armor", tier: 3, materials: [{ name: "Iron Ore", quantity: 10 }, { name: "Coal", quantity: 4 }, { name: "Wood", quantity: 1 }], desc: "Heavy iron protection", duration: 2400, resultStats: { defense: 12 } },
+  { name: "Silver Amulet", type: "accessory", tier: 3, materials: [{ name: "Silver Ore", quantity: 6 }, { name: "Gemstone", quantity: 1 }], desc: "A mystical silver amulet", duration: 2000, resultStats: { focus: 8, cunning: 4 } },
+  { name: "Steel Platebody", type: "armor", tier: 4, materials: [{ name: "Iron Ore", quantity: 15 }, { name: "Coal", quantity: 8 }, { name: "Silver Ore", quantity: 3 }], desc: "Masterwork steel armor", duration: 3600, resultStats: { defense: 18, endurance: 6 } },
+  { name: "Gold Ring", type: "accessory", tier: 4, materials: [{ name: "Gold Ore", quantity: 5 }, { name: "Silver Ore", quantity: 3 }, { name: "Gemstone", quantity: 2 }], desc: "A ring of pure gold", duration: 3000, resultStats: { cunning: 10, focus: 5 } },
+  { name: "Diamond Dagger", type: "weapon", tier: 5, materials: [{ name: "Iron Ore", quantity: 10 }, { name: "Diamond", quantity: 1 }, { name: "Gold Ore", quantity: 3 }], desc: "A legendary diamond-tipped blade", duration: 4800, resultStats: { attack: 25, cunning: 8 } },
 ];
 
 export default function CraftingPage() {

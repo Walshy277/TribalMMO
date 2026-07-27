@@ -108,8 +108,9 @@ export default function CharacterPage() {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-tribal-600 text-[10px] font-bold uppercase tracking-wider">Tier</div>
-          <div className="text-tribal-200 text-xl font-bold">{highestTier}</div>
+          <div className="text-tribal-600 text-[10px] font-bold uppercase tracking-wider">Level</div>
+          <div className="text-tribal-200 text-xl font-bold">{character.level || 1}</div>
+          <div className="text-tribal-600 text-[10px]">Highest Tier: {highestTier}</div>
         </div>
       </div>
 

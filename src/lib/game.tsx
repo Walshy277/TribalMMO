@@ -33,6 +33,7 @@ export interface CharacterWithSkills extends Character {
   pets: Pet[];
   computed_stamina: number;
   next_stamina_at: string | null;
+  level: number;
 }
 
 interface GameContextType {

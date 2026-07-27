@@ -27,6 +27,7 @@ export interface Database {
           stamina: number
           max_stamina: number
           gold: number
+          level: number
           stamina_updated_at: string
           created_at: string
         }
@@ -47,6 +48,7 @@ export interface Database {
           stamina?: number
           max_stamina?: number
           gold?: number
+          level?: number
           stamina_updated_at?: string
           created_at?: string
         }
@@ -67,6 +69,7 @@ export interface Database {
           stamina?: number
           max_stamina?: number
           gold?: number
+          level?: number
           stamina_updated_at?: string
           created_at?: string
         }
