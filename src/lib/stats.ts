@@ -27,14 +27,14 @@ export function computeEffectiveStats(
   let foc = character.focus;
   let cun = character.cunning;
 
-  // Goat pet: x2 base stats (legendary, 1 in 1B)
+  // Goat pet: x1.5 base stats (legendary, 1 in 1B)
   const hasEquippedGoat = pets?.some((p) => p.equipped && p.type === "goat");
   if (hasEquippedGoat) {
-    str *= 2;
-    agi *= 2;
-    end *= 2;
-    foc *= 2;
-    cun *= 2;
+    str = Math.floor(str * 1.5);
+    agi = Math.floor(agi * 1.5);
+    end = Math.floor(end * 1.5);
+    foc = Math.floor(foc * 1.5);
+    cun = Math.floor(cun * 1.5);
   }
 
   let atkBonus = 0;
@@ -66,6 +66,36 @@ export function computeEffectiveStats(
     defBonus += 1;
   }
 
+  // Hawk pet: +2 agility, +1 cunning (rare)
+  const hasEquippedHawk = pets?.some((p) => p.equipped && p.type === "hawk");
+  if (hasEquippedHawk) {
+    agiBonus += 2;
+    cunBonus += 1;
+  }
+
+  // Snake pet: +2 cunning, +1 attack (rare)
+  const hasEquippedSnake = pets?.some((p) => p.equipped && p.type === "snake");
+  if (hasEquippedSnake) {
+    cunBonus += 2;
+    atkBonus += 1;
+  }
+
+  // Cat pet: +1 agility, +1 focus, +1 cunning (uncommon)
+  const hasEquippedCat = pets?.some((p) => p.equipped && p.type === "cat");
+  if (hasEquippedCat) {
+    agiBonus += 1;
+    focBonus += 1;
+    cunBonus += 1;
+  }
+
+  // Dog pet: +1 strength, +1 endurance, +1 attack (uncommon)
+  const hasEquippedDog = pets?.some((p) => p.equipped && p.type === "dog");
+  if (hasEquippedDog) {
+    strBonus += 1;
+    endBonus += 1;
+    atkBonus += 1;
+  }
+
   // Sum equipped item stat bonuses
   const equipped = inventory.filter((inv) => inv.equipped && inv.item);
   for (const inv of equipped) {
@@ -82,11 +112,14 @@ export function computeEffectiveStats(
 
   // Apply clan philosophy passive bonuses to members
   if (clanBonuses?.philosophy === "warborn") {
-    atkBonus += 1;
+    atkBonus += 2;
+    strBonus += 1;
   } else if (clanBonuses?.philosophy === "earthkeepers") {
-    endBonus += 1;
+    endBonus += 2;
+    defBonus += 1;
   } else if (clanBonuses?.philosophy === "pathfinders") {
-    agiBonus += 1;
+    agiBonus += 2;
+    cunBonus += 1;
   }
 
   return {

@@ -76,7 +76,7 @@ export default function ExplorationPage() {
     const newStamina = Math.max(0, character.computed_stamina - 5);
     const { error } = await supabase
       .from("characters")
-      .update({ stamina: newStamina })
+      .update({ stamina: newStamina, stamina_updated_at: new Date().toISOString() })
       .eq("id", character.id);
     if (error) console.error("Failed to update stamina:", error);
 
@@ -93,13 +93,15 @@ export default function ExplorationPage() {
 
   const rest = async () => {
     if (!character) return;
-    const newStamina = Math.min(character.max_stamina, character.computed_stamina + 20);
+    const cost = 10;
+    if (character.computed_stamina < cost) return;
+    const newStamina = Math.min(character.max_stamina, character.computed_stamina - cost + 20);
     const { error } = await supabase
       .from("characters")
-      .update({ stamina: newStamina })
+      .update({ stamina: newStamina, stamina_updated_at: new Date().toISOString() })
       .eq("id", character.id);
     if (error) console.error("Failed to update stamina:", error);
-    addLog({ text: "You rest by a tree and recover stamina.", icon: BedDouble, color: "text-[#4a9e6a]" });
+    addLog({ text: "You rest by a tree and recover stamina. (-10, +20)", icon: BedDouble, color: "text-[#4a9e6a]" });
     await refreshCharacter();
   };
 
@@ -130,7 +132,7 @@ export default function ExplorationPage() {
       const newStamina = Math.max(0, character.computed_stamina - dmg);
       const { error } = await supabase
         .from("characters")
-        .update({ stamina: newStamina })
+        .update({ stamina: newStamina, stamina_updated_at: new Date().toISOString() })
         .eq("id", character.id);
       if (error) console.error("Failed to update stamina:", error);
       addLog({ text: `Defeat! You were driven back. -${dmg} Stamina`, icon: LogOut, color: "text-[#b83a3a]" });

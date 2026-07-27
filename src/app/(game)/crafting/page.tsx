@@ -70,7 +70,8 @@ export default function CraftingPage() {
   const lockedRecipes = recipes.filter((r) => r.tier > currentTier);
 
   const hasMaterials = (recipe: Recipe): boolean => {
-    return recipe.materials.every((mat) => (inventoryItems.get(mat.name) || 0) >= mat.quantity);
+    const staminaCost = 10 + recipe.tier * 5;
+    return recipe.materials.every((mat) => (inventoryItems.get(mat.name) || 0) >= mat.quantity) && character.computed_stamina >= staminaCost;
   };
 
   const getMaterialStatus = (recipe: Recipe) => {
@@ -85,7 +86,16 @@ export default function CraftingPage() {
     if (!craftingSkill || crafting) return;
     if (!hasMaterials(recipe)) return;
 
+    const staminaCost = 10 + recipe.tier * 5;
+    if (character.computed_stamina < staminaCost) return;
+
     setCrafting(true);
+
+    const { error: staminaError } = await supabase
+      .from("characters")
+      .update({ stamina: Math.max(0, character.computed_stamina - staminaCost), stamina_updated_at: new Date().toISOString() })
+      .eq("id", character.id);
+    if (staminaError) { setCrafting(false); return; }
 
     for (const mat of recipe.materials) {
       const item = character.inventory.find((inv) => inv.item?.name === mat.name);
@@ -211,7 +221,7 @@ export default function CraftingPage() {
                         loading={crafting}
                         disabled={!canCraft}
                       >
-                        {canCraft ? "Craft Item" : "Missing Materials"}
+                        {canCraft ? `Craft (-${10 + recipe.tier * 5} stamina)` : character.computed_stamina < 10 + recipe.tier * 5 ? "Not enough stamina" : "Missing Materials"}
                       </Button>
                     </div>
                   )}

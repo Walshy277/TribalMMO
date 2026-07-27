@@ -104,7 +104,7 @@ export default function ShrinePage() {
     if (insertErr) { setError("Failed to record donation. Please try again."); setLoading(false); return; }
 
     // Grant bonus coins based on quantity
-    const coinReward = donateQty * 3;
+    const coinReward = donateQty * 5;
     const { error: coinErr } = await supabase.from("characters").update({ coins: character.coins + coinReward }).eq("id", character.id);
     if (coinErr) { setError("Donation recorded but coin reward failed."); setLoading(false); return; }
 
@@ -241,7 +241,7 @@ export default function ShrinePage() {
               <p className="text-tribal-500 text-sm mt-1">
                 The spirits accept material offerings. In return, they bestow coins upon the devoted.
               </p>
-              <p className="text-tribal-600 text-xs mt-2">+3 coins per item donated</p>
+              <p className="text-tribal-600 text-xs mt-2">+5 coins per item donated</p>
             </div>
 
             {donateableItems.length === 0 ? (
@@ -279,7 +279,7 @@ export default function ShrinePage() {
                       max={donateableItems.find((inv) => inv.item?.name === selectedItem)?.quantity || 1}
                     />
                     <p className="text-tribal-600 text-xs mt-1">
-                      You will receive {donateQty * 3} coins
+                      You will receive {donateQty * 5} coins
                     </p>
                   </div>
                 )}

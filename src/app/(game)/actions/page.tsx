@@ -10,7 +10,6 @@ import { Zap, Swords, Axe, Hammer, Check, Clock, Coins, Package, AlertTriangle }
 import type { LucideIcon } from "lucide-react";
 
 const actionTypes = [
-  { type: "training", label: "Train", description: "Hone your combat skills", duration: 300, skill: "Combat", icon: Swords, staminaCost: 5 },
   { type: "gathering", label: "Gather Resources", description: "Collect wood, stone, and herbs", duration: 300, skill: "Gathering", icon: Axe, staminaCost: 10 },
   { type: "crafting", label: "Craft Item", description: "Create tools and equipment", duration: 600, skill: "Crafting", icon: Hammer, staminaCost: 15 },
 ];
@@ -195,12 +194,6 @@ export default function ActionsPage() {
           rewards.push({ itemName: result.item_name, quantity: 1 });
         }
       }
-    } else if (action.type === "training") {
-      const coinReward = Math.floor(Math.random() * 8) + 2;
-      const { error: coinError } = await supabase.from("characters").update({ coins: character.coins + coinReward }).eq("id", character.id);
-      if (coinError) console.error("Failed to award coins:", coinError);
-      await logTransaction(character.id, "action_reward", coinReward, `Training completion reward`);
-      rewards.push({ itemName: "Coins", quantity: coinReward });
     }
 
     await supabase.from("actions").delete().eq("id", actionId);

@@ -66,7 +66,16 @@ export default function CombatPage() {
 
   const effectiveStats = computeEffectiveStats(character, character.inventory, character.clan?.clan, character.pets);
 
-  const startCombat = () => {
+  const startCombat = async () => {
+    const staminaCost = 10;
+    if (character.computed_stamina < staminaCost) return;
+    const newStamina = Math.max(0, character.computed_stamina - staminaCost);
+    const { error } = await supabase
+      .from("characters")
+      .update({ stamina: newStamina, stamina_updated_at: new Date().toISOString() })
+      .eq("id", character.id);
+    if (error) return;
+    await refreshCharacter();
     const enemy = enemies[Math.floor(Math.random() * enemies.length)];
     const playerHp = 20 + effectiveStats.endurance * 3;
     setCombat({
@@ -75,7 +84,7 @@ export default function CombatPage() {
       enemyHp: enemy.hp,
       playerHp,
       maxPlayerHp: playerHp,
-      log: [{ text: `${enemy.name} appears! ${enemy.flavor}`, type: "system" }],
+      log: [{ text: `${enemy.name} appears! ${enemy.flavor} (-${staminaCost} stamina)`, type: "system" }],
       result: null,
     });
   };
@@ -125,20 +134,22 @@ export default function CombatPage() {
     if (!combat) return;
 
     if (combat.result === "won") {
-      const skill = character.skills?.find((s) => s.name === "Combat");
-      if (skill) {
-        const { error } = await supabase
-          .from("skills")
-          .update({ experience: skill.experience + combat.enemy.xp })
-          .eq("id", skill.id);
-        if (error) console.error("Failed to update skill:", error);
+      const { error } = await supabase.rpc("resolve_combat_win", {
+        p_character_id: character.id,
+        p_xp_reward: combat.enemy.xp,
+      });
+      if (error) {
+        const skill = character.skills?.find((s) => s.name === "Combat");
+        if (skill) {
+          await supabase.from("skills").update({ experience: skill.experience + combat.enemy.xp }).eq("id", skill.id);
+        }
       }
       await refreshCharacter();
     } else if (combat.result === "lost") {
       const newStamina = Math.max(0, character.computed_stamina - 15);
       const { error } = await supabase
         .from("characters")
-        .update({ stamina: newStamina })
+        .update({ stamina: newStamina, stamina_updated_at: new Date().toISOString() })
         .eq("id", character.id);
       if (error) console.error("Failed to update stamina:", error);
       await refreshCharacter();
@@ -274,8 +285,14 @@ export default function CombatPage() {
           <div className="card text-center py-8">
             <Swords size={36} className="text-tribal-800 mx-auto mb-3" />
             <p className="text-tribal-500 mb-5">Seek out enemies in the wilderness to test your strength.</p>
-            <Button variant="primary" size="lg" icon={<Swords size={18} />} onClick={startCombat}>
-              Search for Enemies
+            <Button
+              variant="primary"
+              size="lg"
+              icon={<Swords size={18} />}
+              onClick={startCombat}
+              disabled={character.computed_stamina < 10}
+            >
+              {character.computed_stamina < 10 ? "Not enough stamina (10)" : "Search for Enemies (-10 stamina)"}
             </Button>
           </div>
 

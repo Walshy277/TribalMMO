@@ -182,10 +182,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const createCharacter = async (name: string, background: string) => {
     if (!user) return { error: "Not authenticated" };
 
+    // Apply background stat bonuses
+    const bgBonuses: Record<string, Record<string, number>> = {
+      Hunter: { strength: 2, endurance: 1 },
+      Gatherer: { agility: 2, focus: 1 },
+      "Shelter Builder": { endurance: 2, strength: 1 },
+      Herbalist: { focus: 2, cunning: 1 },
+      Storyteller: { cunning: 2, agility: 1 },
+    };
+    const bonuses = bgBonuses[background] || {};
+
     const { error: insertError } = await supabase.from("characters").insert({
       user_id: user.id,
       name,
       background,
+      strength: bonuses.strength || 1,
+      agility: bonuses.agility || 1,
+      endurance: bonuses.endurance || 1,
+      focus: bonuses.focus || 1,
+      cunning: bonuses.cunning || 1,
     });
 
     if (insertError) return { error: insertError.message };

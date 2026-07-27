@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 interface TrainResult {
+  skill: string;
   skill_name: string;
   xp_gained: number;
   tier: number;
@@ -131,7 +132,7 @@ export default function TrainPage() {
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.15)" }}>
               <Zap size={14} className="text-[#c9a84c]" />
-              <span className="text-[#c9a84c] text-sm font-semibold">+{lastResult.xp_gained} {lastResult.skill_name} XP</span>
+              <span className="text-[#c9a84c] text-sm font-semibold">+{lastResult.xp_gained} {(lastResult.skill || lastResult.skill_name)} XP</span>
             </div>
             {lastResult.coin_reward > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.15)" }}>

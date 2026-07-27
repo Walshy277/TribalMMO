@@ -9,11 +9,11 @@ import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { Flame, User, Sword, Leaf, Hammer, Wheat, BookOpen } from "lucide-react";
 
 const backgrounds = [
-  { id: "hunter", name: "Hunter", desc: "Skilled in tracking and survival", icon: Sword },
-  { id: "gatherer", name: "Gatherer", desc: "Adept at finding resources", icon: Leaf },
-  { id: "builder", name: "Shelter Builder", desc: "Expert in construction", icon: Hammer },
-  { id: "herbalist", name: "Herbalist", desc: "Knowledge of plants and remedies", icon: Wheat },
-  { id: "storyteller", name: "Storyteller", desc: "Gifted in communication and lore", icon: BookOpen },
+  { id: "hunter", name: "Hunter", desc: "Skilled in tracking and survival", bonus: "+2 Strength, +1 Endurance", icon: Sword },
+  { id: "gatherer", name: "Gatherer", desc: "Adept at finding resources", bonus: "+2 Agility, +1 Focus", icon: Leaf },
+  { id: "builder", name: "Shelter Builder", desc: "Expert in construction", bonus: "+2 Endurance, +1 Strength", icon: Hammer },
+  { id: "herbalist", name: "Herbalist", desc: "Knowledge of plants and remedies", bonus: "+2 Focus, +1 Cunning", icon: Wheat },
+  { id: "storyteller", name: "Storyteller", desc: "Gifted in communication and lore", bonus: "+2 Cunning, +1 Agility", icon: BookOpen },
 ];
 
 export default function Dashboard() {
@@ -123,6 +123,7 @@ export default function Dashboard() {
                     <div>
                       <div className="font-semibold">{bg.name}</div>
                       <div className="text-sm opacity-70">{bg.desc}</div>
+                      <div className="text-xs opacity-50 mt-1">{bg.bonus}</div>
                     </div>
                   </label>
                 );
