@@ -10,7 +10,7 @@ export function LoadingSkeleton({ className = "" }: LoadingSkeletonProps) {
         <div className="w-1.5 h-4 bg-[#a8441c] animate-bounce [animation-delay:-0.15s]" />
         <div className="w-1.5 h-4 bg-[#8c3818] animate-bounce" />
       </div>
-      <span className="text-[#6e656c] text-xs uppercase tracking-widest font-medium" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>
+      <span className="text-[#6e656c] text-xs uppercase tracking-widest font-medium">
         Loading...
       </span>
     </div>

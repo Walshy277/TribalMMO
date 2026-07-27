@@ -44,8 +44,8 @@ export default function AdminMarketplacePage() {
         <p className="text-tribal-400 text-sm mt-0.5">{listings.length} active listings</p>
       </div>
 
-      <div className="bg-[#1a181e] border border-[#262328] rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-[#1a181e] border border-[#262328] rounded-xl overflow-x-auto">
+        <table className="w-full text-sm min-w-[600px]">
           <thead>
             <tr className="border-b border-[#262328]">
               <th className="text-left text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Item</th>

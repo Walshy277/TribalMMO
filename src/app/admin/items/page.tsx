@@ -112,8 +112,8 @@ export default function AdminItemsPage() {
         </div>
       )}
 
-      <div className="bg-[#1a181e] border border-[#262328] rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-[#1a181e] border border-[#262328] rounded-xl overflow-x-auto">
+        <table className="w-full text-sm min-w-[500px]">
           <thead>
             <tr className="border-b border-[#262328]">
               <th className="text-left text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Name</th>

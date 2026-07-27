@@ -3,6 +3,7 @@ import type { Database } from "@/types/database";
 type Character = Database["public"]["Tables"]["characters"]["Row"];
 type Item = Database["public"]["Tables"]["items"]["Row"];
 type InventoryRow = Database["public"]["Tables"]["inventory"]["Row"];
+type Pet = Database["public"]["Tables"]["pets"]["Row"];
 
 export interface EffectiveStats {
   strength: number;
@@ -17,15 +18,53 @@ export interface EffectiveStats {
 export function computeEffectiveStats(
   character: Character,
   inventory: (InventoryRow & { item: Item | null })[],
-  clanBonuses?: { philosophy?: string }
+  clanBonuses?: { philosophy?: string },
+  pets?: Pet[]
 ): EffectiveStats {
+  let str = character.strength;
+  let agi = character.agility;
+  let end = character.endurance;
+  let foc = character.focus;
+  let cun = character.cunning;
+
+  // Goat pet: x2 base stats (legendary, 1 in 1B)
+  const hasEquippedGoat = pets?.some((p) => p.equipped && p.type === "goat");
+  if (hasEquippedGoat) {
+    str *= 2;
+    agi *= 2;
+    end *= 2;
+    foc *= 2;
+    cun *= 2;
+  }
+
+  let atkBonus = 0;
+  let defBonus = 0;
   let strBonus = 0;
   let agiBonus = 0;
   let endBonus = 0;
   let focBonus = 0;
   let cunBonus = 0;
-  let atkBonus = 0;
-  let defBonus = 0;
+
+  // Dragon pet: +5 attack, +3 defense (mythical, 1 in 1M)
+  const hasEquippedDragon = pets?.some((p) => p.equipped && p.type === "dragon");
+  if (hasEquippedDragon) {
+    atkBonus += 5;
+    defBonus += 3;
+  }
+
+  // Wolf pet: +2 attack, +1 agility
+  const hasEquippedWolf = pets?.some((p) => p.equipped && p.type === "wolf");
+  if (hasEquippedWolf) {
+    atkBonus += 2;
+    agiBonus += 1;
+  }
+
+  // Boar pet: +3 endurance, +1 defense
+  const hasEquippedBoar = pets?.some((p) => p.equipped && p.type === "boar");
+  if (hasEquippedBoar) {
+    endBonus += 3;
+    defBonus += 1;
+  }
 
   // Sum equipped item stat bonuses
   const equipped = inventory.filter((inv) => inv.equipped && inv.item);
@@ -43,20 +82,20 @@ export function computeEffectiveStats(
 
   // Apply clan philosophy passive bonuses to members
   if (clanBonuses?.philosophy === "warborn") {
-    atkBonus += 1; // Warborn: innate +1 attack
+    atkBonus += 1;
   } else if (clanBonuses?.philosophy === "earthkeepers") {
-    endBonus += 1; // Earthkeepers: innate +1 endurance
+    endBonus += 1;
   } else if (clanBonuses?.philosophy === "pathfinders") {
-    agiBonus += 1; // Pathfinders: innate +1 agility
+    agiBonus += 1;
   }
 
   return {
-    strength: character.strength + strBonus,
-    agility: character.agility + agiBonus,
-    endurance: character.endurance + endBonus,
-    focus: character.focus + focBonus,
-    cunning: character.cunning + cunBonus,
-    attack: character.strength + character.agility + atkBonus,
-    defense: character.endurance + defBonus,
+    strength: str + strBonus,
+    agility: agi + agiBonus,
+    endurance: end + endBonus,
+    focus: foc + focBonus,
+    cunning: cun + cunBonus,
+    attack: str + agi + atkBonus,
+    defense: end + defBonus,
   };
 }

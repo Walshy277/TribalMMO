@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
 import { Flame, LogIn } from "lucide-react";
 
 export default function LoginPage() {
@@ -96,9 +97,9 @@ export default function LoginPage() {
             />
           </div>
           {error && (
-            <div className="bg-[#2a1414] border border-[#6e2424] rounded-lg p-3 text-[#d05050] text-sm">
+            <Alert variant="error" onDismiss={() => setError("")}>
               {error}
-            </div>
+            </Alert>
           )}
           <Button type="submit" variant="primary" size="lg" className="w-full" icon={<LogIn size={18} />} loading={loading}>
             Login

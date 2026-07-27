@@ -20,22 +20,39 @@ import {
   Menu,
   X,
   Sparkles,
+  TreePine,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const navItems: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/character", label: "Character", icon: User },
-  { href: "/exploration", label: "Explore", icon: Map },
-  { href: "/actions", label: "Actions", icon: Zap },
-  { href: "/combat", label: "Combat", icon: Sword },
-  { href: "/inventory", label: "Inventory", icon: Backpack },
-  { href: "/crafting", label: "Crafting", icon: Hammer },
-  { href: "/clans", label: "Clans", icon: Shield },
-  { href: "/shrine", label: "Shrine", icon: Sparkles },
-  { href: "/shops", label: "Shops", icon: Store },
-  { href: "/marketplace", label: "Market", icon: Coins },
-  { href: "/auction", label: "Auctions", icon: Gavel },
-  { href: "/rewards", label: "Rewards", icon: Gift },
+const navGroups = [
+  {
+    label: "You",
+    items: [
+      { href: "/character", label: "Character", icon: User },
+      { href: "/inventory", label: "Inventory", icon: Backpack },
+      { href: "/clans", label: "Clans", icon: Shield },
+    ],
+  },
+  {
+    label: "World",
+    items: [
+      { href: "/exploration", label: "Explore", icon: Map },
+      { href: "/gathering", label: "Gather", icon: TreePine },
+      { href: "/train", label: "Train", icon: Zap },
+      { href: "/combat", label: "Combat", icon: Sword },
+      { href: "/crafting", label: "Crafting", icon: Hammer },
+      { href: "/shrine", label: "Shrine", icon: Sparkles },
+    ],
+  },
+  {
+    label: "Trade",
+    items: [
+      { href: "/town-centre", label: "Town Centre", icon: Store },
+      { href: "/marketplace", label: "Market", icon: Coins },
+      { href: "/auction", label: "Auctions", icon: Gavel },
+      { href: "/rewards", label: "Rewards", icon: Gift },
+    ],
+  },
 ];
 
 export function Navigation() {
@@ -51,7 +68,7 @@ export function Navigation() {
   return (
     <>
       <button
-        className="md:hidden fixed bottom-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-sm bg-[#c04e20] text-[#f5f0ea] shadow-md active:scale-95 transition-transform"
+        className="md:hidden fixed bottom-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-[#c04e20] text-[#f5f0ea] shadow-lg shadow-[rgba(192,78,32,0.3)] active:scale-95 transition-transform"
         onClick={() => setIsOpen(!isOpen)}
         aria-label={isOpen ? "Close menu" : "Open menu"}
       >
@@ -59,37 +76,56 @@ export function Navigation() {
       </button>
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-52 bg-[#0e0c10] border-r border-[#262328] flex flex-col transition-transform duration-200 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-52 bg-[rgba(14,12,16,0.95)] border-r border-[rgba(38,35,40,0.4)] flex flex-col transition-transform duration-200 ease-in-out backdrop-blur-sm ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <nav className="flex-1 p-2.5 space-y-px overflow-y-auto pt-3">
-          {navItems.map((item) => {
-            const active = pathname === item.href;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2 text-[0.82rem] font-medium transition-colors duration-100 ${
-                  active
-                    ? "text-[#d45a28] bg-[#c04e20]/[0.07]"
-                    : "text-[#6e656c] hover:text-[#b39b7c] hover:bg-[#1a181e]"
-                }`}
-                onClick={() => setIsOpen(false)}
-              >
-                <Icon size={16} className={active ? "text-[#c04e20]" : "text-[#4d3a27]"} />
-                <span>{item.label}</span>
-                {active && <div className="ml-auto w-1 h-1 rounded-full bg-[#c04e20]" />}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-2.5 pt-4 pb-2 space-y-4 overflow-y-auto">
+          {navGroups.map((group) => (
+            <div key={group.label}>
+              <div className="px-3 mb-1.5">
+                <span className="text-[10px] font-bold text-[#4d3a27] uppercase tracking-[0.15em]">
+                  {group.label}
+                </span>
+              </div>
+              <div className="space-y-px">
+                {group.items.map((item) => {
+                  const active = pathname === item.href;
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-2.5 px-3 py-[0.4rem] text-[0.82rem] font-medium rounded-md transition-all duration-150 ${
+                        active
+                          ? "text-[#e6ddd2] bg-[rgba(192,78,32,0.1)]"
+                          : "text-[#6e656c] hover:text-[#b39b7c] hover:bg-[rgba(26,24,30,0.5)]"
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Icon
+                        size={15}
+                        className={active ? "text-[#c04e20]" : "text-[#3d2e1f]"}
+                      />
+                      <span>{item.label}</span>
+                      {active && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#c04e20] shadow-[0_0_6px_rgba(192,78,32,0.4)]" />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {character && (
-          <div className="p-2.5 border-t border-[#262328]">
-            <Link href="/character" className="flex items-center gap-2.5 p-2 hover:bg-[#1a181e] transition-colors rounded-sm">
-              <div className="w-9 h-9 bg-[#36291c] flex items-center justify-center text-xs font-bold text-[#b39b7c] rounded-sm border border-[#4d3a27]/50">
+          <div className="p-2.5 border-t border-[rgba(38,35,40,0.4)]">
+            <Link
+              href="/character"
+              className="flex items-center gap-2.5 p-2 hover:bg-[rgba(26,24,30,0.5)] transition-colors rounded-md"
+            >
+              <div className="w-9 h-9 bg-[#36291c] flex items-center justify-center text-xs font-bold text-[#b39b7c] rounded-md border border-[rgba(77,58,39,0.3)]">
                 {character.name?.[0] || "?"}
               </div>
               <div className="min-w-0">

@@ -14,8 +14,11 @@ export interface Database {
           id: string
           user_id: string
           name: string
-          appearance: Json
           background: string
+          title: string
+          bio: string
+          avatar_url: string
+          profile_color: string
           strength: number
           agility: number
           endurance: number
@@ -31,8 +34,11 @@ export interface Database {
           id?: string
           user_id: string
           name: string
-          appearance?: Json
           background?: string
+          title?: string
+          bio?: string
+          avatar_url?: string
+          profile_color?: string
           strength?: number
           agility?: number
           endurance?: number
@@ -48,8 +54,11 @@ export interface Database {
           id?: string
           user_id?: string
           name?: string
-          appearance?: Json
           background?: string
+          title?: string
+          bio?: string
+          avatar_url?: string
+          profile_color?: string
           strength?: number
           agility?: number
           endurance?: number
@@ -315,18 +324,21 @@ export interface Database {
           character_id: string
           type: string
           name: string
+          equipped: boolean
         }
         Insert: {
           id?: string
           character_id: string
           type: string
           name: string
+          equipped?: boolean
         }
         Update: {
           id?: string
           character_id?: string
           type?: string
           name?: string
+          equipped?: boolean
         }
         Relationships: []
       }
@@ -476,6 +488,10 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      gather_resource: {
+        Args: { p_character_id: string; p_action: string }
+        Returns: Json
+      }
       purchase_listing: {
         Args: { p_listing_id: string; p_buyer_id: string; p_seller_id: string; p_price: number }
         Returns: void
@@ -491,6 +507,102 @@ export interface Database {
       shrine_bless: {
         Args: { p_character_id: string }
         Returns: string
+      }
+      deduct_stamina: {
+        Args: { p_character_id: string; p_amount: number }
+        Returns: void
+      }
+      rest_character: {
+        Args: { p_character_id: string; p_amount: number }
+        Returns: void
+      }
+      resolve_combat_win: {
+        Args: { p_character_id: string; p_xp_reward: number }
+        Returns: void
+      }
+      resolve_combat_loss: {
+        Args: { p_character_id: string; p_stamina_cost: number }
+        Returns: void
+      }
+      explore_step: {
+        Args: { p_character_id: string }
+        Returns: Json
+      }
+      start_action: {
+        Args: { p_character_id: string; p_type: string; p_duration: number; p_skill_name: string; p_stamina_cost: number; p_result?: Json }
+        Returns: void
+      }
+      complete_action: {
+        Args: { p_character_id: string; p_action_id: string }
+        Returns: Json
+      }
+      craft_item: {
+        Args: { p_character_id: string; p_item_name: string; p_item_type: string; p_item_tier: number; p_item_stats: Json; p_duration: number; p_materials: Json }
+        Returns: void
+      }
+      shop_buy: {
+        Args: { p_character_id: string; p_item_name: string; p_item_type: string; p_item_tier: number; p_item_stats: Json; p_total_cost: number; p_quantity: number }
+        Returns: void
+      }
+      shop_sell: {
+        Args: { p_character_id: string; p_inventory_id: string; p_quantity: number; p_total_value: number; p_item_name: string }
+        Returns: void
+      }
+      create_listing: {
+        Args: { p_character_id: string; p_item_id: string; p_quantity: number; p_price: number }
+        Returns: void
+      }
+      cancel_listing: {
+        Args: { p_character_id: string; p_listing_id: string }
+        Returns: void
+      }
+      create_auction: {
+        Args: { p_character_id: string; p_item_id: string; p_quantity: number; p_starting_price: number; p_duration_seconds: number }
+        Returns: void
+      }
+      claim_auction: {
+        Args: { p_character_id: string; p_auction_id: string }
+        Returns: string
+      }
+      shrine_donate: {
+        Args: { p_character_id: string; p_inventory_id: string; p_quantity: number }
+        Returns: number
+      }
+      shrine_pray: {
+        Args: { p_character_id: string; p_message: string }
+        Returns: Json
+      }
+      claim_daily_reward: {
+        Args: { p_character_id: string }
+        Returns: Json
+      }
+      create_clan_rpc: {
+        Args: { p_character_id: string; p_name: string; p_philosophy: string }
+        Returns: void
+      }
+      use_consumable: {
+        Args: { p_character_id: string; p_inventory_id: string }
+        Returns: void
+      }
+      equip_pet: {
+        Args: { p_character_id: string; p_pet_id: string }
+        Returns: void
+      }
+      unequip_pet: {
+        Args: { p_character_id: string; p_pet_id: string }
+        Returns: void
+      }
+      buy_pet: {
+        Args: { p_character_id: string; p_pet_type: string; p_pet_name: string; p_cost: number }
+        Returns: Json
+      }
+      update_profile: {
+        Args: { p_character_id: string; p_title?: string; p_bio?: string; p_avatar_url?: string; p_profile_color?: string }
+        Returns: void
+      }
+      train: {
+        Args: { p_character_id: string; p_activity: string }
+        Returns: Json
       }
     }
     Enums: {

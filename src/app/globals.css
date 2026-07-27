@@ -27,29 +27,17 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZzm18OJE_VNWjcyBB.woff2) format('woff2');
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZzm18OJE_VNWogyBB.woff2) format('woff2');
 }
 
 html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: #0e0c10;
+  background: #0c0a0e;
   background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 100px,
-      rgba(212, 90, 40, 0.008) 100px,
-      rgba(212, 90, 40, 0.008) 101px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 100px,
-      rgba(212, 90, 40, 0.008) 100px,
-      rgba(212, 90, 40, 0.008) 101px
-    );
+    radial-gradient(ellipse at 20% 0%, rgba(192, 78, 32, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(99, 76, 50, 0.03) 0%, transparent 50%);
   color: #ddd5c8;
   font-family: "Crimson Pro", Georgia, "Times New Roman", serif;
   -webkit-font-smoothing: antialiased;
@@ -81,9 +69,9 @@ html, body {
   font-weight: 600;
   font-family: "Crimson Pro", Georgia, serif;
   letter-spacing: 0.03em;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: all 0.2s ease;
   line-height: 1.5;
   text-decoration: none;
   white-space: nowrap;
@@ -92,49 +80,54 @@ html, body {
 }
 
 .btn-primary {
-  background: #c04e20;
+  background: linear-gradient(135deg, #c04e20, #a8441c);
   color: #f5f0ea;
-  border: 1px solid #a0401a;
+  border: 1px solid rgba(192, 78, 32, 0.4);
+  box-shadow: 0 2px 8px rgba(192, 78, 32, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .btn-primary:hover {
-  background: #a8441c;
-  border-color: #8c3818;
+  background: linear-gradient(135deg, #d45a28, #c04e20);
+  border-color: rgba(212, 90, 40, 0.5);
+  box-shadow: 0 4px 16px rgba(192, 78, 32, 0.25), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 .btn-primary:active {
   background: #8c3818;
   transform: scale(0.98);
+  box-shadow: none;
 }
 
 .btn-secondary {
-  background: #1e1c22;
+  background: rgba(30, 28, 34, 0.7);
   color: #b39b7c;
-  border: 1px solid #36291c;
+  border: 1px solid rgba(54, 41, 28, 0.4);
 }
 .btn-secondary:hover {
-  background: #262328;
-  border-color: #4d3a27;
+  background: rgba(38, 35, 40, 0.8);
+  border-color: rgba(77, 58, 39, 0.5);
   color: #cfc1ae;
 }
 
 .btn-danger {
-  background: #8c2e2e;
+  background: linear-gradient(135deg, #8c2e2e, #742626);
   color: #f5e8e8;
-  border: 1px solid #6e2424;
+  border: 1px solid rgba(110, 36, 36, 0.5);
+  box-shadow: 0 2px 8px rgba(140, 46, 46, 0.15);
 }
 .btn-danger:hover {
-  background: #742626;
-  border-color: #5c1e1e;
+  background: linear-gradient(135deg, #a03434, #8c2e2e);
+  box-shadow: 0 4px 16px rgba(140, 46, 46, 0.25);
 }
 .btn-danger:active { transform: scale(0.98); }
 
 .btn-success {
-  background: #2d6e44;
+  background: linear-gradient(135deg, #2d6e44, #266040);
   color: #e8f5ec;
-  border: 1px solid #245a38;
+  border: 1px solid rgba(36, 90, 56, 0.5);
+  box-shadow: 0 2px 8px rgba(45, 110, 68, 0.15);
 }
 .btn-success:hover {
-  background: #266040;
-  border-color: #1e4e30;
+  background: linear-gradient(135deg, #35804e, #2d6e44);
+  box-shadow: 0 4px 16px rgba(45, 110, 68, 0.25);
 }
 .btn-success:active { transform: scale(0.98); }
 
@@ -144,8 +137,8 @@ html, body {
   border: 1px solid transparent;
 }
 .btn-ghost:hover {
-  background: rgba(30, 28, 34, 0.6);
-  border-color: #36291c;
+  background: rgba(30, 28, 34, 0.5);
+  border-color: rgba(54, 41, 28, 0.3);
   color: #b39b7c;
 }
 
@@ -162,42 +155,41 @@ html, body {
 /* ── Card ───────────────────────────────────────────── */
 
 .card {
-  background: #1a181e;
-  border-left: 3px solid #c04e20;
-  border-radius: 2px;
+  background: rgba(26, 24, 30, 0.65);
+  border: 1px solid rgba(38, 35, 40, 0.5);
+  border-radius: 6px;
   padding: 1.25rem;
-  border-top: 1px solid #262328;
-  border-right: 1px solid #262328;
-  border-bottom: 1px solid #262328;
-  transition: border-left-color 0.2s ease;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 .card:hover {
-  border-left-color: #d45a28;
+  background: rgba(26, 24, 30, 0.8);
+  border-color: rgba(54, 41, 28, 0.4);
 }
 
 /* ── Input ──────────────────────────────────────────── */
 
 .input {
   width: 100%;
-  background: #100f12;
-  border: 1px solid #2a272e;
-  border-radius: 3px;
+  background: rgba(16, 15, 18, 0.7);
+  border: 1px solid rgba(42, 39, 46, 0.6);
+  border-radius: 6px;
   padding: 0.55rem 0.75rem;
   color: #ddd5c8;
   font-size: 0.875rem;
   font-family: "Crimson Pro", Georgia, serif;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .input:focus {
-  border-color: #c04e20;
-  box-shadow: 0 0 0 2px rgba(192, 78, 32, 0.12);
+  border-color: rgba(192, 78, 32, 0.5);
+  box-shadow: 0 0 0 3px rgba(192, 78, 32, 0.08), 0 0 20px rgba(192, 78, 32, 0.05);
 }
 .input::placeholder {
-  color: rgba(110, 101, 108, 0.6);
+  color: rgba(110, 101, 108, 0.5);
 }
 .input:hover:not(:focus) {
-  border-color: #36291c;
+  border-color: rgba(54, 41, 28, 0.5);
 }
 
 select.input {
@@ -243,5 +235,24 @@ select.input {
 }
 
 .glow-border {
-  box-shadow: 0 0 0 1px rgba(192, 78, 32, 0.2);
+  box-shadow: 0 0 0 1px rgba(192, 78, 32, 0.15);
+}
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 76, 50, 0.25), transparent);
+  margin: 0.5rem 0;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(54, 41, 28, 0.3);
+  background: rgba(34, 26, 18, 0.5);
 }

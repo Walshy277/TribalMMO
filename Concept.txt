@@ -24,7 +24,7 @@ Spirit Phenomena: Rare events granting temporary buffs.
 
 Character Creation
 
-Players choose a name, appearance, and background (flavor only).
+Players choose a name and background (flavor only).
 
 Core Stats (Finite)
 

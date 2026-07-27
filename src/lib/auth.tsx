@@ -31,20 +31,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    withTimeout(supabase.auth.getSession(), 10000)
-      .then(({ data: { session } }) => {
+    const init = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!error) {
+            window.history.replaceState({}, "", window.location.pathname);
+          }
+        }
+
+        const { data: { session } } = await withTimeout(supabase.auth.getSession(), 10000);
         if (cancelled) return;
         setSession(session);
         setUser(session?.user ?? null);
-      })
-      .catch(() => {
+      } catch {
         if (cancelled) return;
         setSession(null);
         setUser(null);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    };
+
+    init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);

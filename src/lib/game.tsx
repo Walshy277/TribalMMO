@@ -12,7 +12,7 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> {
   ]);
 }
 
-const STAMINA_REGEN_INTERVAL_MS = 300000; // 5 minutes per 1 stamina
+const STAMINA_REGEN_INTERVAL_MS = 180000; // 3 minutes per 1 stamina
 const STAMINA_REGEN_TICK_MS = 1000; // UI tick every second
 
 type Character = Database["public"]["Tables"]["characters"]["Row"];
@@ -205,7 +205,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       .single();
 
     if (char) {
-      const skillNames = ["Gathering", "Crafting", "Combat", "Survival", "Diplomacy"];
+      const skillNames = ["Gathering", "Crafting", "Combat", "Survival", "Diplomacy", "Woodcutting", "Mining"];
       await supabase.from("skills").insert(
         skillNames.map((n) => ({ character_id: char.id, name: n }))
       );

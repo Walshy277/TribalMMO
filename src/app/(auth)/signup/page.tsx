@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
 import { Flame, UserPlus } from "lucide-react";
 
 export default function SignupPage() {
@@ -111,9 +112,9 @@ export default function SignupPage() {
             <p className="text-tribal-600 text-xs mt-1.5">Minimum 6 characters</p>
           </div>
           {error && (
-            <div className="bg-[#2a1414] border border-[#6e2424] rounded-lg p-3 text-[#d05050] text-sm">
+            <Alert variant="error" onDismiss={() => setError("")}>
               {error}
-            </div>
+            </Alert>
           )}
           <Button type="submit" variant="primary" size="lg" className="w-full" icon={<UserPlus size={18} />} loading={loading}>
             Create Account
