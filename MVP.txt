@@ -7,10 +7,10 @@ A lightweight, functional foundation of the game that includes core loops, basic
 1. Core MVP Goals
 
 - Deliver a playable tribal-era RPG with text-driven mechanics.
-- Enable player-run factions and basic settlement building.
-- Provide finite progression through skills and specializations.
-- Implement tap-forward exploration and timed actions.
-- Support territory control at a basic level.
+- Enable player-run clans and basic settlement building.
+- Provide infinite progression through 4 core stats (Level 1-100 skills).
+- Implement tap-forward exploration with random RNG events.
+- Support clan system with roles and founding.
 - Ensure the game is stable, scalable, and content-light.
 
 2. MVP Features Overview
@@ -18,90 +18,83 @@ A lightweight, functional foundation of the game that includes core loops, basic
 Included
 
 - Account creation and character creation
-- Exploration system
+- Exploration system with RNG events
 - Timed action system
 - Basic combat
-- Skills (Tier I-II only)
-- Specializations (Tier II only)
-- Faction creation and membership
+- 4 Core Stats: Strength, Defence, Speed, Vitality (infinitely scaling)
+- 5 Skills (Level 1-100): Gathering, Crafting, Combat, Woodcutting, Mining
+- Player Level (meta-level from total skill progression)
+- Clan creation and membership with roles
 - Basic settlement system (Tier I buildings)
-- Territory claiming (simple version)
 - Basic crafting and gathering
-- Pets (single-slot buff system)
+- Pets (passive stat bonuses)
 - Player marketplace (basic listings)
+- Auction house
 
 Not Included (Post-MVP)
 
-- Tier III skills
-- Advanced settlement tiers
-- Diplomacy systems
+- Advanced settlement tiers (II-III)
+- Diplomacy systems (alliances, wars)
 - Seasonal events
-- Spirit rituals
+- Spirit phenomena
 - Ruins and advanced zones
 - Complex crafting quality tiers
-- Clan wars
+- Clan wars and raids
+- Territory control
+- Mounts
 
 3. Player Systems
 
 3.1 Character Creation
 
 - Name
-- Appearance (simple presets)
 - Background (cosmetic only)
 
-3.2 Core Stats (Tier I-II)
+3.2 Core Stats (Infinitely Scaling)
 
-- Strength
-- Agility
-- Endurance
-- Focus
-- Cunning
+- Strength — physical power
+- Defence — resilience
+- Speed — agility
+- Vitality — health
 
-Stats increase only through skill tier unlocks and equipment.
+Stats grow through training but cost energy.
 
-3.3 Skills (Tier I-II)
+3.3 Skills (Level 1-100)
 
 - Gathering
 - Crafting
 - Combat
-- Survival
-- Diplomacy
+- Woodcutting
+- Mining
 
-Tier II unlocks specializations.
+3.4 Player Level
 
-3.4 Specializations (Tier II)
-
-- Smith
-- Bonecarver
-- Herbalist
-- Fletcher
-- Scout
-- Raider
-- Ritualist (placeholder, rituals not in MVP)
+Meta-level calculated from total skill progression. Used for matchmaking and unlocks.
 
 4. Exploration System (Core MVP Loop)
 
 4.1 Tap-Forward Exploration
 
-Players click or tap to move through zones:
-
+Players click "Take a Step" to move through zones:
 - Forest
 - Plains
 - Riverbank
 
-4.2 Random Events
+4.2 Random Events (Weighted RNG)
 
 Each step may trigger:
-
-- Resource find
-- Simple encounter
-- Weather effect
-- Flavor text
+- Resource finds (wood, herbs, stone)
+- Wildlife encounters (boar, wolf, bear)
+- Spirit phenomena (rare, gold rewards)
+- Random text events ("you tripped over a stone")
+- Gold finds (1-5 gold coins)
+- Random item finds (herbs, wood, stone)
 
 4.3 Stamina
 
 - 100 maximum
-- Regenerates over time
+- Regenerates over time (1 per 3 minutes)
+- Costs 5 stamina per exploration step
 
 5. Timed Action System
 
@@ -122,7 +115,7 @@ Each step may trigger:
 5.3 Action Slots
 
 - 1 slot at start
-- 2 slots unlocked at Tier II
+- 2 slots unlocked at higher skill levels
 
 6. Combat System
 
@@ -134,48 +127,58 @@ Each step may trigger:
 
 6.2 Combat Encounters
 
-- Wild animals
-- Rival faction scouts (non-player NPCs)
+- Wild animals (boar, wolf, bear, serpent)
+- Rival scouts
+- Stone golem (rare, high difficulty)
 
 6.3 Player Stats Used
 
-- Strength
-- Agility
-- Endurance
+- Strength (ATK)
+- Defence (DEF)
+- Speed (flee chance)
+- Vitality (HP)
 
 6.4 Equipment
 
-- Basic weapons
-- Basic armor
+- Basic weapons (attack bonus)
+- Basic armour (defence bonus)
 
-7. Factions (Player-Run)
+7. Clans (Player-Run)
 
 7.1 Founding Requirements
 
-- Tier II skill
-- 500 wood
-- 300 stone
-- 100 hides
+- 10 gold (beta price, will be 5,000 at launch)
+- Name and description
+- Philosophy selection
 
-7.2 Faction Features (MVP)
+7.2 Clan Features (MVP)
 
 - Name
-- Symbol (preset icons)
-- Philosophy (simple bonus)
-- Member list
-- Faction chat
+- Description
+- Philosophy (Warborn, Earthkeepers, Pathfinders)
+- Member list with roles
+- Clan chat
 
-7.3 Faction Philosophies
+7.3 Clan Roles
 
-- Warborn: +3% combat damage
-- Earthkeepers: +5% building speed
-- Pathfinders: +5% exploration yield
+- Chieftain (leader)
+- Elder (senior)
+- Hunter (combat specialist)
+- Gatherer (resource specialist)
+- Crafter (crafting specialist)
+- Member (standard)
+
+7.4 Clan Philosophies
+
+- Warborn: +2 STR, +1 ATK
+- Earthkeepers: +2 VIT, +1 DEF
+- Pathfinders: +2 SPD, +1 ATK
 
 8. Settlement System
 
 8.1 Settlement Buildings (Tier I Only)
 
-- Longhouse (faction HQ)
+- Longhouse (clan HQ)
 - Workshop (crafting speed +5%)
 - Garden (herb yield +5%)
 - Storage Pit (resource cap +500)
@@ -183,7 +186,6 @@ Each step may trigger:
 8.2 Building Requirements
 
 Each building requires:
-
 - Wood
 - Stone
 - Time (timed action)
@@ -191,137 +193,130 @@ Each building requires:
 
 8.3 Settlement Bonuses
 
-Applied to all faction members.
+Applied to all clan members.
 
-9. Territory System
+9. Crafting & Gathering
 
-9.1 Territory Map
+9.1 Resources
 
-- 25 hex tiles
-- Forest, plains, riverbank
+- Wood, Stone, Herbs, Hides
+- Bone, Clay, Copper, Tin
 
-9.2 Claiming Territory
+9.2 Crafting Recipes (MVP)
 
-- Faction must have a Longhouse
-- Requires 200 wood + 200 stone
+- Basic tools (Stone Axe, Wooden Spear)
+- Basic weapons (Bone Knife, Bow)
+- Basic armour (Hide Armor, Reinforced Armor)
+- Simple potions (Herb Poultice)
 
-9.3 Territory Bonuses
-
-- Forest: +5% wood gathering
-- Plains: +5% hunting yield
-- Riverbank: +5% fishing yield
-
-10. Crafting & Gathering
-
-10.1 Resources
-
-- Wood
-- Stone
-- Herbs
-- Hides
-
-10.2 Crafting Recipes (MVP)
-
-- Basic tools
-- Basic weapons
-- Basic armor
-- Simple potions
-
-10.3 Gathering Methods
+9.3 Gathering Methods
 
 - Exploration finds
-- Timed gathering actions
+- Dedicated woodcutting (Normal Tree, Oak Tree, etc.)
+- Dedicated mining (Copper Vein, Iron Vein, etc.)
 
-11. Pets (Optional Buffs)
+10. Pets (Optional Buffs)
 
-11.1 Pet Types
+10.1 Pet Types
 
-- Hawk: +2% scouting yield
-- Boar: +3% carrying capacity
-- Lizard: +1% crafting speed
+- Wolf: +2 STR, +1 SPD
+- Cat: +2 SPD, +1 VIT
+- Hawk: +3 SPD
+- Boar: +3 VIT, +1 DEF
+- Dog: +1 STR, +2 VIT
 
-11.2 Pet System
+10.2 Pet System
 
 - One pet slot
 - No leveling
 - No combat
+- Passive stat bonuses only
 
-12. Marketplace
+11. Marketplace
 
-12.1 Basic Features
+11.1 Basic Features
 
 - List items
 - Buy items
 - Simple tax (5%)
 
-12.2 Supported Items
+11.2 Auction House
 
-- Resources
-- Crafted items
-- Pets
+- Timed auctions
+- Bidding system
 
-13. UI/UX MVP Requirements
+12. UI/UX MVP Requirements
 
-13.1 Pages
+12.1 Pages
 
-- Dashboard
-- Character
+- Landing Page
+- Profile/Character
 - Exploration
-- Actions
+- Train
 - Combat
-- Inventory
+- Woodcutting
+- Mining
+- Gathering
 - Crafting
-- Factions
-- Settlement
+- Inventory
+- Clans
 - Marketplace
+- Auctions
+- Rewards
+- Admin Dashboard
 
-13.2 Visual Style
+12.2 Visual Style
 
 - Clean tribal aesthetic
 - Icon-based navigation
 - Text-focused content
 
-14. Technical MVP Requirements
+13. Technical MVP Requirements
 
-14.1 Backend
+13.1 Backend
 
-- User accounts
-- Faction system
+- User accounts (Supabase Auth)
+- Clan system
 - Settlement system
-- Exploration engine
+- Exploration engine with RNG
 - Timed action scheduler
 - Combat engine
-- Marketplace
+- Marketplace & Auction house
 
-14.2 Frontend
+13.2 Frontend
 
 - Responsive UI
 - Lightweight animations
 - Text-driven interactions
 
-14.3 Database
+13.3 Database
 
-- Users
-- Characters
-- Factions
-- Settlements
-- Territories
+- Users/Profiles
+- Characters (4 stats: strength, defence, speed, vitality)
+- Skills (5 skills, level 1-100)
+- Clans (with description, philosophy)
+- Clan Members (with roles)
 - Items
+- Inventory
 - Pets
 - Actions
+- Marketplace Listings
+- Auction House
+- Transactions
 
-15. Post-MVP Roadmap
+14. Post-MVP Roadmap
 
-- Tier III skills
-- Advanced settlements
-- Diplomacy system
-- Spirit rituals
+- Advanced settlement tiers (II-III)
+- Diplomacy system (alliances, wars)
+- Spirit phenomena
 - Ruins and advanced zones
 - Seasonal events
-- Clan wars
+- Clan wars and raids
+- Territory control
 - Mounts
-- Weather manipulation
+- Dynamic story arcs
+- Advanced RNG systems
 
-16. Summary
+15. Summary
 
-This MVP provides a fully functional tribal-era RPG with exploration, crafting, combat, factions, settlements, and territory control. It is intentionally minimal, stable, and expandable, forming the foundation for TribalMMO's long-term development.
+This MVP provides a fully functional tribal-era RPG with infinite stat progression, finite skill leveling, exploration with random events, clan-based social structure, and a player-driven economy. It is intentionally minimal, stable, and expandable, forming the foundation for TribalMMO's long-term development.

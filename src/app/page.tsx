@@ -6,21 +6,14 @@ import {
   Flame,
   TreePine,
   Mountain,
-  Sword,
   Hammer,
-  Sparkles,
-  Map,
   Users,
   ArrowRight,
   Swords,
-  Heart,
-  Zap,
-  Shield,
-  MessageCircle,
   TrendingUp,
-  Crown,
   Landmark,
   Handshake,
+  Package,
 } from "lucide-react";
 
 const socialFeatures = [
@@ -37,15 +30,9 @@ const socialFeatures = [
     color: "#6a90a8",
   },
   {
-    icon: Shield,
-    title: "Territory",
-    desc: "Claim hex tiles on the world map. Forests, plains, mountains — control land and gain resource advantages over rivals.",
-    color: "#b83a3a",
-  },
-  {
     icon: Handshake,
-    title: "Diplomacy",
-    desc: "Form alliances, declare wars, negotiate trade deals, and share territory. The political landscape is shaped entirely by players.",
+    title: "Exploration",
+    desc: "Venture into unknown territories. Discover hidden treasures, encounter wild creatures, and uncover the mysteries of the world.",
     color: "#c9a84c",
   },
   {
@@ -54,20 +41,21 @@ const socialFeatures = [
     desc: "A living marketplace where every item is player-crafted. Set your own prices, supply demand, and grow rich through trade.",
     color: "#4a9e6a",
   },
-  {
-    icon: MessageCircle,
-    title: "Community",
-    desc: "Faction chat, world announcements, settlement boards. The social layer runs through everything you do.",
-    color: "#c04e20",
-  },
 ];
 
 const skills = [
-  { icon: TreePine, label: "Gathering", color: "#4a9e6a" },
+  { icon: Package, label: "Gathering", color: "#4a9e6a" },
   { icon: Hammer, label: "Crafting", color: "#6a90a8" },
   { icon: Swords, label: "Combat", color: "#b83a3a" },
-  { icon: Map, label: "Exploration", color: "#c9a84c" },
-  { icon: Sparkles, label: "Survival", color: "#8a6aaa" },
+  { icon: TreePine, label: "Woodcutting", color: "#4a9e6a" },
+  { icon: Mountain, label: "Mining", color: "#8a7a6a" },
+];
+
+const coreStats = [
+  { label: "Strength", desc: "Physical power — infinitely scaling", color: "#b83a3a" },
+  { label: "Defence", desc: "Resilience against attacks", color: "#6a90a8" },
+  { label: "Speed", desc: "Agility and evasion", color: "#4a9e6a" },
+  { label: "Vitality", desc: "Health and endurance", color: "#c9a84c" },
 ];
 
 export default function LandingPage() {
@@ -89,7 +77,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             {!authLoading && !gameLoading && user && character ? (
-              <Link to="/character">
+              <Link to="/profile">
                 <Button variant="primary" size="sm">
                   Play
                 </Button>
@@ -119,10 +107,10 @@ export default function LandingPage() {
             <Flame size={40} className="text-[#f5f0ea]" />
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-[#e6ddd2] mb-6" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>
-            The Social RPG<br />That Lives in Your Browser
+            A World Shaped<br />By Its Players
           </h1>
           <p className="text-xl text-[#b39b7c] mb-4 max-w-2xl mx-auto leading-relaxed">
-            No download. No install. Just create a character, join a clan, and step into a world shaped by the people who play it.
+            No download. No install. A persistent tribal-era RPG where progression is infinite, choices are permanent, and the world evolves through player actions.
           </p>
           <div className="inline-flex items-center gap-2 bg-[rgba(201,168,76,0.08)] border border-[rgba(201,168,76,0.15)] rounded-full px-4 py-1.5 mb-10">
             <div className="w-2 h-2 rounded-full bg-[#c9a84c] animate-pulse" />
@@ -149,17 +137,17 @@ export default function LandingPage() {
               {
                 step: "1",
                 title: "Create Your Character",
-                desc: "Choose a name and background. Your journey starts in the Village Clearing — a small settlement surrounded by wilderness.",
+                desc: "Choose a name and begin training. Your four core stats — Strength, Defence, Speed, Vitality — scale infinitely.",
               },
               {
                 step: "2",
-                title: "Join a Faction",
+                title: "Join a Clan",
                 desc: "Find like-minded players, pool resources, and build a settlement together. Every clan has its own culture and goals.",
               },
               {
                 step: "3",
                 title: "Shape the World",
-                desc: "Claim territory, trade with other clans, form alliances, and leave your mark on the world of Nervella.",
+                desc: "Explore, craft, trade, and fight. The world of TribalMMO evolves entirely through its players.",
               },
             ].map((item) => (
               <div key={item.step} className="text-center">
@@ -174,34 +162,26 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Social Features */}
-      <section className="py-20 px-6 border-t border-[rgba(38,35,40,0.2)]">
-        <div className="max-w-5xl mx-auto">
+      {/* Core Stats */}
+      <section className="py-16 px-6 border-t border-[rgba(38,35,40,0.2)]">
+        <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-[#e6ddd2] text-center mb-3" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>
-            Built for Community
+            Four Core Stats
           </h2>
-          <p className="text-[#8a7a6a] text-center mb-12 max-w-xl mx-auto">
-            The best part of TribalMMO isn&apos;t the skills or the loot — it&apos;s the people.
+          <p className="text-[#8a7a6a] text-center mb-10 max-w-lg mx-auto">
+            Infinitely scaling — train to grow stronger forever. No cap, no endgame.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {socialFeatures.map((f) => {
-              const Icon = f.icon;
-              return (
-                <div
-                  key={f.title}
-                  className="p-5 rounded-xl bg-[rgba(26,24,30,0.5)] border border-[rgba(38,35,40,0.3)] hover:border-[rgba(38,35,40,0.5)] transition-all"
-                >
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
-                    style={{ background: f.color + "12" }}
-                  >
-                    <Icon size={20} style={{ color: f.color }} />
-                  </div>
-                  <h3 className="text-[#e6ddd2] font-semibold mb-1">{f.title}</h3>
-                  <p className="text-[#8a7a6a] text-sm leading-relaxed">{f.desc}</p>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {coreStats.map((stat) => (
+              <div
+                key={stat.label}
+                className="text-center bg-[rgba(26,24,30,0.5)] border border-[rgba(38,35,40,0.3)] rounded-xl p-5"
+              >
+                <div className="w-3 h-3 rounded-full mx-auto mb-3" style={{ background: stat.color }} />
+                <h3 className="text-[#e6ddd2] font-semibold mb-1">{stat.label}</h3>
+                <p className="text-[#8a7a6a] text-xs leading-relaxed">{stat.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -213,7 +193,7 @@ export default function LandingPage() {
             Skills & Progression
           </h2>
           <p className="text-[#8a7a6a] text-center mb-10 max-w-lg mx-auto">
-            Train five core skills, specialise at higher tiers, and contribute to your clan&apos;s success.
+            Five skills, each level 1–100. Master them to unlock recipes, efficiencies, and combat techniques.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             {skills.map((s) => {
@@ -237,6 +217,38 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Social Features */}
+      <section className="py-20 px-6 border-t border-[rgba(38,35,40,0.2)]">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl font-bold text-[#e6ddd2] text-center mb-3" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>
+            Built for Community
+          </h2>
+          <p className="text-[#8a7a6a] text-center mb-12 max-w-xl mx-auto">
+            The best part of TribalMMO isn&apos;t the skills or the loot — it&apos;s the people.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {socialFeatures.map((f) => {
+              const Icon = f.icon;
+              return (
+                <div
+                  key={f.title}
+                  className="p-5 rounded-xl bg-[rgba(26,24,30,0.5)] border border-[rgba(38,35,40,0.3)] hover:border-[rgba(38,35,40,0.5)] transition-all"
+                >
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+                    style={{ background: f.color + "12" }}
+                  >
+                    <Icon size={20} style={{ color: f.color }} />
+                  </div>
+                  <h3 className="text-[#e6ddd2] font-semibold mb-1">{f.title}</h3>
+                  <p className="text-[#8a7a6a] text-sm leading-relaxed">{f.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* About */}
       <section className="py-20 px-6 border-t border-[rgba(38,35,40,0.2)]">
         <div className="max-w-3xl mx-auto">
@@ -245,42 +257,21 @@ export default function LandingPage() {
           </h2>
           <div className="space-y-4 text-[#b39b7c] leading-relaxed">
             <p>
-              Nervella is a persistent fantasy continent of forests, plains, mountains, and ancient ruins.
-              You arrive as a settler in a small village clearing — no special status, no hand-holding.
+              TribalMMO is set in a persistent world inspired by early tribal civilizations.
+              You arrive as a settler with nothing — no special status, no hand-holding.
               Everything you build, trade, and conquer is earned through your actions and the people you align with.
             </p>
             <p>
-              The world is divided into zones, each with its own resources, enemies, and challenges.
-              Start in the <strong className="text-[#c9a84c]">Village Clearing</strong>,
-              venture into the <strong className="text-[#c9a84c]">Whispering Woods</strong>,
-              climb the <strong className="text-[#c9a84c]">Jagged Peaks</strong>,
-              and eventually face the terrors of the <strong className="text-[#c9a84c]">Dragon&apos;s Maw</strong>.
+              The world is static but persistent. Spirit phenomena create rare supernatural events
+              that temporarily empower players or settlements. These moments create spikes of opportunity
+              and encourage exploration and clan coordination.
             </p>
             <p>
-              Every action costs stamina, which regenerates over time. But the real progression
+              Every action costs energy, which regenerates over time. But the real progression
               isn&apos;t just your stats — it&apos;s the reputation you build, the alliances you form,
               and the legacy your clan leaves on the world.
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* Beta Notice */}
-      <section className="py-16 px-6 border-t border-[rgba(38,35,40,0.2)]">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-[rgba(201,168,76,0.06)] border border-[rgba(201,168,76,0.12)] rounded-xl px-6 py-4 mb-6">
-            <Zap size={18} className="text-[#c9a84c]" />
-            <span className="text-[#c9a84c] font-semibold text-sm">Currently in Beta</span>
-          </div>
-          <p className="text-[#8a7a6a] leading-relaxed mb-4">
-            TribalMMO is actively being developed and updated regularly. New features, skills, zones,
-            and balance changes are added frequently. Your feedback shapes the game — report bugs,
-            suggest features, and help build the world with us.
-          </p>
-          <p className="text-[#6a5a4a] text-sm">
-            Being a beta, progress may occasionally be reset as we rebalance the game.
-            We&apos;ll always announce resets in advance.
-          </p>
         </div>
       </section>
 
@@ -291,7 +282,7 @@ export default function LandingPage() {
             Ready to Begin?
           </h2>
           <p className="text-[#8a7a6a] mb-8">
-            Create your character, choose your background, and step into Nervella.
+            Create your character and step into the world.
             Your clan is waiting.
           </p>
           <Link to="/play">

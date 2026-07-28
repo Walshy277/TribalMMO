@@ -1,125 +1,81 @@
 TribalMMO
 
-Full Game Design Document
+Polished High-Level Concept
 
-1. High-Level Overview
+TribalMMO is a persistent, tribal-era online RPG where players shape a shared world through exploration, crafting, combat, and clan society. Progression is infinite, choices are permanent, and the game has no traditional endgame — the world evolves entirely through player actions.
 
-TribalMMO is a persistent online tribal-era RPG where players form player-run factions, build shared settlements, and shape the world through exploration, crafting, combat, diplomacy, and territory control. Progression is finite, choices are permanent, and the endgame is political and social, not numerical. Pets exist only as optional buff companions.
+1. World & Setting
 
-2. World & Setting
+A static but fully persistent world inspired by early tribal civilizations.
 
-Nervella
+Spirit Phenomena
 
-A prehistoric fantasy continent defined by forests, plains, mountains, riverlands, ancient ruins, and spirit sites. The world is static but persistent, shaped entirely by player actions.
+Rare supernatural events that temporarily empower players or settlements. These moments create spikes of opportunity and encourage exploration and clan coordination.
 
-Environmental Systems
+2. Player Character
 
-Weather: Rain, storms, and droughts affect exploration and gathering.
+Players create a named character with four infinitely scaling core stats:
 
-Seasons: Spring, summer, autumn, and winter affect resources and rituals.
+- Strength — physical power
+- Defence — resilience
+- Speed — agility
+- Vitality — health
 
-Spirit Phenomena: Rare events granting temporary buffs.
+Stats grow through training but costs energy. (energy system needs redesign)
 
-3. Player Character
+3. Skills & Progression
 
-Character Creation
-
-Players choose a name and background (flavor only).
-
-Core Stats (Finite)
-
-Stats cap at Tier III:
-
-- Strength
-- Agility
-- Endurance
-- Focus
-- Cunning
-
-Stats increase through skill tiers, equipment, rituals, and settlement bonuses.
-
-4. Skills & Progression (Finite)
+Skills provide finite progression (Level 1–100), unlocking efficiencies, recipes, and combat techniques.
 
 Skill Categories
-
-Each skill has three tiers:
 
 - Gathering
 - Crafting
 - Combat
-- Survival
-- Diplomacy
+- Woodcutting
+- Mining
 
-Tier Unlocks
+Player Level
 
-Tier I to Tier II: Basic recipes, basic zones, and the ability to join factions.
+A meta-level calculated from total skill progression. Used for matchmaking, unlocks, and more.
 
-Tier II to Tier III: Advanced recipes, access to ruins and spirit sites, the ability to found factions, and the ability to hold faction roles.
+4. Pet System
 
-Specializations (Permanent)
+Pets are loyal companions that offer passive core stat bonuses. They require no care, do not fight, and do not scale infinitely — they are identity and utility.
 
-Chosen at Tier II and Tier III:
+5. Player-Run Clans
 
-- Smith
-- Bonecarver
-- Herbalist
-- Fletcher
-- Scout
-- Raider
-- Ritualist
+Players can form clans to build settlements, coordinate raids, and shape regional politics.
 
-5. Pet System (Optional)
+Founding Requirements
 
-Pets provide minor passive buffs and require minimal care. They do not fight or level infinitely.
+- 5,000 Gold Coins (Temporarily 10 gold)
 
-Pet Types
+Clan Identity
 
-- Hawk: +3% scouting yield
-- Boar: +5% carrying capacity
-- Lizard: +2% crafting speed
-- Fox: +3% evasion
-- Beetle: +2% herb gathering
+- Name
+- Description
+- Optional banner/icon
 
-6. Player-Run Factions
+Clan Roles
 
-Founding a Faction
+Leaders assign structured roles such as Chieftain, Elder, Hunter, Gatherer, Crafter, and Member.
 
-Requirements:
+Clan Laws
 
-- Tier II skill
-- Founding Rite quest
-- Resource cost (wood, stone, hides)
+Chieftains define:
+- Tax rates
+- Resource distribution
+- Raid permissions
+- Membership rules
 
-Faction Identity
+Clans form the backbone of TribalMMO's social and political landscape.
 
-Founders choose a name, symbol, philosophy, and starting location.
+6. Settlement System
 
-Faction Philosophies
+Each clan controls one main settlement, which evolves through player contributions.
 
-Each philosophy provides balanced bonuses:
-
-- Warborn: +5% raid damage
-- Earthkeepers: +10% building speed
-- Pathfinders: +10% exploration yield
-- Spiritseekers: +5% ritual success
-
-Faction Roles
-
-- Chieftain
-- Warden
-- Artisan Master
-- Scout Captain
-- Ritual Keeper
-
-Faction Laws
-
-Chieftains set tax rates, resource distribution, raid policies, and membership rules.
-
-7. Settlement System
-
-Each faction controls one main settlement.
-
-Settlement Buildings (Tier I-III)
+Settlement Buildings (Tier I–III)
 
 - Longhouse
 - Barracks
@@ -129,125 +85,75 @@ Settlement Buildings (Tier I-III)
 - Spirit Circle
 - Watchtower
 
-Settlement Progression
+Upgrades require resources, time, and collective effort, reinforcing clan cooperation.
 
-Upgrades require resources, time, and player contributions.
-
-8. Territory Control
-
-The world map is divided into hex territories.
-
-Territory Types
-
-- Forest
-- Plains
-- Mountains
-- Riverlands
-- Ruins
-- Spirit Sites
-
-Territory Actions
-
-Factions can claim territory, build outposts, harvest resources, raid rivals, and defend territory.
-
-Territory Bonuses
-
-Resource yield, exploration access, spirit blessings, and defensive advantages.
-
-9. Gameplay Loops
+7. Core Gameplay Loops
 
 Exploration
 
-Tap-forward movement triggering resource finds, encounters, weather effects, ruin events, and spirit phenomena.
+Tap-forward movement (Take a step) reveals:
+- Resource nodes
+- Wildlife encounters
+- Ruins
+- Spirit phenomena
+- Random RNG events (chance of just random text like 'you tripped over a stone', chance of finding gold coin(s), chance of finding random item, etc)
 
-Actions
-
-Timed actions include:
-
-- Crafting
-- Training
-- Building
-- Scouting
-- Rituals
-- Diplomacy
-
-Durations range from 5 minutes to 8 hours.
+Exploration is deterministic but unpredictable in outcome.
 
 Combat
 
-Turn-based, text-driven, deterministic combat including wild encounters, ruin guardians, faction skirmishes, territory raids, and PvP.
+Turn-based, text-driven combat with deterministic resolution. Includes:
+- Wild encounters
+- Clan skirmishes
+- Settlement raids
+- PvP duels
 
-10. Spirit System
+Combat rewards resources, XP, and clan reputation.
 
-Spirits are environmental forces.
+8. Economy & Crafting
 
-Spirit Types
+Resources
 
-Fire, Water, Earth, Air, Shadow, and Light.
-
-Spirit Interactions
-
-Rituals, offerings, and seasonal events.
-
-Spirit Rewards
-
-Temporary buffs, crafting bonuses, combat modifiers, and weather manipulation.
-
-11. Economy & Crafting
-
-Resource Types
-
-Wood, stone, bone, clay, copper, tin, herbs, hides, and ritual components.
-
-Crafting Professions
-
-Smith, Bonecarver, Herbalist, Weaver, and Fletcher.
+Wood, stone, bone, clay, copper, tin, herbs, hides
 
 Crafting System
 
-Timers, skill checks, quality tiers, and settlement bonuses.
+Crafting uses timers, skill checks, quality tiers, and settlement bonuses. Higher skill and better facilities yield superior items.
 
 Player Market
 
-Auction house, faction marketplaces, and seasonal supply and demand.
+- Global auction house
+- Clan marketplaces with adjustable taxes
 
-12. Social Systems
+9. Social Systems
 
 Diplomacy
 
-Alliances, wars, trade, and shared territory.
+Clans can form alliances, declare wars, negotiate trade, or remain neutral.
 
 Communication
 
-Faction chat, alliance chat, world announcements, and settlement boards.
+- Clan chat
+- Private messages
+- Forums
+- World announcements
 
-Events
+10. Monetization
 
-Seasonal festivals, spirit phenomena, territory conflicts, and ruin expeditions.
+A hybrid model:
+- Subscription
+- Optional in-app purchases for in-game currency
+- No pay-to-win mechanics
 
-13. Monetization
+11. Long-Term Extensibility
 
-Cosmetic-focused:
-
-- Cosmetics
-- Settlement skins
-- Pet skins
-- Convenience boosts
-- Seasonal passes
-
-14. Long-Term Extensibility
-
-Future expansions:
-
-- New continents
+Future expansions may include:
 - Mounts
-- Weather manipulation
-- Spirit fusion rituals
-- Player-run towns
-- Clan wars
-- Procedural ruins
-- Seasonal story arcs
+- Clan war seasons
+- Dynamic story arcs
+- Advanced RNG systems
+- New skills, and settlement features
 
-15. Summary
+12. Summary
 
-TribalMMO is a social, political, tribal-era RPG with finite progression and player-driven worldbuilding. Its strength lies in faction dynamics, settlement building, and territory control.
+TribalMMO is a social, tribal-era RPG built around infinite progression, clan identity, and a world shaped entirely by its players. Its strength lies in cooperative settlement building, deterministic combat, and meaningful social dynamics.

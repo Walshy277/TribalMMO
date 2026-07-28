@@ -1,21 +1,21 @@
 # TribalMMO
 
-A persistent online tribal-era RPG where players form factions, build settlements, and shape the world through exploration, crafting, combat, diplomacy, and territory control.
+A persistent, tribal-era online RPG where players shape a shared world through exploration, crafting, combat, and clan society.
 
 ## Overview
 
-TribalMMO is a text-driven, social MMO set in a prehistoric fantasy continent called Nervella. Progression is finite, choices are permanent, and the endgame is political and social, not numerical.
+TribalMMO is a text-driven, social RPG where progression is infinite, choices are permanent, and the world evolves entirely through player actions. There is no traditional endgame — the game lives through its clans, settlements, and social dynamics.
 
 ### Key Features
 
-- **Player-Run Factions** — Found and govern your own tribe with customizable laws and philosophies
-- **Settlement Building** — Construct and upgrade buildings to enhance your faction's capabilities
-- **Territory Control** — Claim hex territories across the map for strategic advantages
-- **Exploration** — Tap-forward movement through forests, plains, mountains, and ancient ruins
-- **Crafting & Gathering** — Timed actions with multiple professions and specializations
-- **Turn-Based Combat** — Deterministic, text-driven encounters against wild creatures and rival factions
-- **Spirit System** — Interact with environmental forces through rituals and offerings
-- **Pets** — Optional companions providing passive buffs
+- **Infinite Core Stats** — Strength, Defence, Speed, and Vitality scale infinitely through training
+- **Finite Skills** — Five skills (Gathering, Crafting, Combat, Woodcutting, Mining) level 1–100
+- **Player-Run Clans** — Found and govern your own tribe with roles, laws, and settlements
+- **Settlement Building** — Construct and upgrade buildings (Tier I–III) with your clan
+- **Exploration** — Tap-forward movement with resource finds, wildlife encounters, ruins, and random RNG events
+- **Turn-Based Combat** — Deterministic, text-driven encounters with wild creatures and rival clans
+- **Pet Companions** — Passive stat bonuses from loyal animal companions
+- **Player Economy** — Global auction house and clan marketplaces with adjustable taxes
 
 ## Design Documents
 
@@ -26,10 +26,11 @@ TribalMMO is a text-driven, social MMO set in a prehistoric fantasy continent ca
 
 | Pillar | Description |
 |--------|-------------|
-| Finite Progression | Stats and skills cap at Tier III — no infinite grinding |
-| Player-Driven World | Factions, settlements, and territory define the landscape |
-| Social & Political Endgame | Alliances, diplomacy, and territory wars drive late-game |
-| Optional Monetization | Cosmetic-focused with settlement skins, pet skins, and seasonal passes |
+| Infinite Progression | Core stats scale forever — there is no cap |
+| Finite Skills | Skills cap at Level 100 — mastery is meaningful |
+| Player-Driven World | Clans, settlements, and social dynamics define the landscape |
+| Deterministic Combat | Turn-based, text-driven, skill-focused encounters |
+| No Endgame | The world evolves entirely through player actions |
 
 ## Tech Stack
 
@@ -82,13 +83,15 @@ TribalMMO is a text-driven, social MMO set in a prehistoric fantasy continent ca
 src/
   app/
     (auth)/          # Login and signup pages
-    (game)/          # Main game pages (dashboard, combat, crafting, etc.)
+    (game)/          # Main game pages (profile, combat, crafting, etc.)
   components/
     layout/          # Header and Navigation
     ui/              # Reusable Button, Card, Input, StaminaBar
   lib/
     auth.tsx         # Authentication context (Supabase Auth)
     game.tsx         # Game state context (character, skills, inventory)
+    stats.ts         # Core stat computation (4 infinitely scaling stats)
+    constants.ts     # Game constants (icons, rarities, skill data)
     supabase/        # Supabase client (browser) and admin (server)
   types/
     database.ts      # Supabase database type definitions
