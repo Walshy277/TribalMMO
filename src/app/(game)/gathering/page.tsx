@@ -1,5 +1,3 @@
-"use client";
-
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
@@ -22,7 +20,7 @@ import {
 interface GatherResult {
   skill: string;
   xp_gained: number;
-  tier: number;
+  level: number;
   item_name: string | null;
   item_qty: number;
   stamina_cost: number;
@@ -32,28 +30,28 @@ interface GatherResult {
 
 interface ResourceNode {
   name: string;
-  minTier: number;
+  minLevel: number;
   desc: string;
 }
 
 const woodcuttingResources: ResourceNode[] = [
-  { name: "Wood", minTier: 1, desc: "Basic lumber for crafting" },
-  { name: "Oak Log", minTier: 1, desc: "Sturdy wood, good for tools" },
-  { name: "Willow Log", minTier: 2, desc: "Flexible, used for bows" },
-  { name: "Maple Log", minTier: 3, desc: "Dense hardwood, highly valued" },
-  { name: "Yew Log", minTier: 4, desc: "Rare and incredibly strong" },
+  { name: "Wood", minLevel: 1, desc: "Basic lumber for crafting" },
+  { name: "Oak Log", minLevel: 1, desc: "Sturdy wood, good for tools" },
+  { name: "Willow Log", minLevel: 2, desc: "Flexible, used for bows" },
+  { name: "Maple Log", minLevel: 3, desc: "Dense hardwood, highly valued" },
+  { name: "Yew Log", minLevel: 8, desc: "Rare and incredibly strong" },
 ];
 
 const miningResources: ResourceNode[] = [
-  { name: "Stone", minTier: 1, desc: "Common building material" },
-  { name: "Copper Ore", minTier: 1, desc: "Soft metal for basic tools" },
-  { name: "Iron Ore", minTier: 2, desc: "Strong metal for weapons" },
-  { name: "Coal", minTier: 2, desc: "Fuel for smelting ores" },
-  { name: "Silver Ore", minTier: 3, desc: "Precious metal for jewelry" },
-  { name: "Gemstone", minTier: 3, desc: "Sparkling treasure from deep" },
-  { name: "Gold Ore", minTier: 4, desc: "The ultimate precious metal" },
-  { name: "Emerald", minTier: 4, desc: "A green gem of great value" },
-  { name: "Diamond", minTier: 5, desc: "The rarest stone in the world" },
+  { name: "Stone", minLevel: 1, desc: "Common building material" },
+  { name: "Copper Ore", minLevel: 1, desc: "Soft metal for basic tools" },
+  { name: "Iron Ore", minLevel: 2, desc: "Strong metal for weapons" },
+  { name: "Coal", minLevel: 2, desc: "Fuel for smelting ores" },
+  { name: "Silver Ore", minLevel: 3, desc: "Precious metal for jewelry" },
+  { name: "Gemstone", minLevel: 3, desc: "Sparkling treasure from deep" },
+  { name: "Gold Ore", minLevel: 8, desc: "The ultimate precious metal" },
+  { name: "Emerald", minLevel: 8, desc: "A green gem of great value" },
+  { name: "Diamond", minLevel: 10, desc: "The rarest stone in the world" },
 ];
 
 export default function GatheringPage() {
@@ -74,12 +72,12 @@ export default function GatheringPage() {
 
   const woodcuttingSkill = character.skills?.find((s) => s.name === "Woodcutting");
   const miningSkill = character.skills?.find((s) => s.name === "Mining");
-  const wcTier = woodcuttingSkill?.tier || 1;
+  const wcLevel = woodcuttingSkill?.level || 1;
   const wcXp = woodcuttingSkill?.experience || 0;
-  const minTier = miningSkill?.tier || 1;
+  const minLevel = miningSkill?.level || 1;
   const minXp = miningSkill?.experience || 0;
 
-  const currentSkill = actionType === "woodcutting" ? wcTier : minTier;
+  const currentSkill = actionType === "woodcutting" ? wcLevel : minLevel;
   const currentXp = actionType === "woodcutting" ? wcXp : minXp;
   const xpMax = currentSkill * 100;
   const xpPercent = Math.min((currentXp / xpMax) * 100, 100);
@@ -230,7 +228,7 @@ export default function GatheringPage() {
         </h2>
         <div className="space-y-1.5">
           {resources.map((res) => {
-            const unlocked = currentSkill >= res.minTier;
+            const unlocked = currentSkill >= res.minLevel;
             return (
               <div
                 key={res.name}
@@ -254,7 +252,7 @@ export default function GatheringPage() {
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-semibold ${unlocked ? "text-tribal-200" : "text-tribal-500"}`}>{res.name}</span>
                     <span className="text-tribal-600 text-[10px] font-bold bg-tribal-900/60 px-1.5 py-0.5 rounded border border-tribal-800/20">
-                      Lvl {res.minTier}
+                      Lvl {res.minLevel}
                     </span>
                   </div>
                   <p className="text-tribal-600 text-xs">{res.desc}</p>
@@ -272,11 +270,11 @@ export default function GatheringPage() {
         <h2 className="text-sm font-bold text-tribal-300 mb-3" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>Gathering Skills</h2>
         <div className="space-y-2">
           {[
-            { name: "Woodcutting", tier: wcTier, xp: wcXp, icon: TreePine, color: "#4a9e6a" },
-            { name: "Mining", tier: minTier, xp: minXp, icon: Mountain, color: "#8a7a6a" },
+            { name: "Woodcutting", level: wcLevel, xp: wcXp, icon: TreePine, color: "#4a9e6a" },
+            { name: "Mining", level: minLevel, xp: minXp, icon: Mountain, color: "#8a7a6a" },
           ].map((skill) => {
             const Icon = skill.icon;
-            const max = skill.tier * 100;
+            const max = skill.level * 100;
             const pct = Math.min((skill.xp / max) * 100, 100);
             return (
               <div key={skill.name} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-tribal-900/30 border border-tribal-800/20">
@@ -284,7 +282,7 @@ export default function GatheringPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-tribal-200 text-sm font-medium">{skill.name}</span>
-                    <span className="text-tribal-600 text-[10px] font-bold">Tier {skill.tier}</span>
+                    <span className="text-tribal-600 text-[10px] font-bold">Level {skill.level}</span>
                   </div>
                   <div className="w-full h-1.5 bg-tribal-900 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: skill.color + "80" }} />

@@ -1,136 +1,62 @@
-"use client";
-
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { StaminaBar } from "@/components/ui/StaminaBar";
 import { Mountain, Clock, AlertTriangle } from "lucide-react";
 
-interface MiningNode {
-  id: string;
-  name: string;
-  xp: number;
-  gold: number;
-  duration: number;
-  staminaCost: number;
-  requiredTier: number;
-  description: string;
-  drops: { name: string; min: number; max: number; chance: number }[];
-}
-
-const miningNodes: MiningNode[] = [
-  { id: "copper_vein", name: "Copper Vein", xp: 8, gold: 2, duration: 15, staminaCost: 8, requiredTier: 1, description: "Common copper deposits near the surface", drops: [{ name: "Copper Ore", min: 2, max: 4, chance: 1 }, { name: "Stone", min: 1, max: 2, chance: 0.6 }] },
-  { id: "iron_vein", name: "Iron Vein", xp: 15, gold: 4, duration: 25, staminaCost: 12, requiredTier: 2, description: "Solid iron ore for tools and weapons", drops: [{ name: "Iron Ore", min: 2, max: 4, chance: 1 }, { name: "Stone", min: 1, max: 3, chance: 0.7 }] },
-  { id: "coal_vein", name: "Coal Vein", xp: 12, gold: 3, duration: 20, staminaCost: 10, requiredTier: 2, description: "Essential fuel for smelting", drops: [{ name: "Coal", min: 2, max: 5, chance: 1 }] },
-  { id: "silver_vein", name: "Silver Vein", xp: 30, gold: 8, duration: 35, staminaCost: 15, requiredTier: 3, description: "Precious silver for jewelry", drops: [{ name: "Silver Ore", min: 1, max: 3, chance: 1 }, { name: "Gemstone", min: 0, max: 1, chance: 0.15 }] },
-  { id: "gold_vein", name: "Gold Vein", xp: 50, gold: 15, duration: 50, staminaCost: 20, requiredTier: 4, description: "Rare gold deposits deep underground", drops: [{ name: "Gold Ore", min: 1, max: 3, chance: 1 }, { name: "Gemstone", min: 0, max: 1, chance: 0.25 }, { name: "Diamond", min: 0, max: 1, chance: 0.05 }] },
+const miningNodes = [
+  { id: "copper_vein", name: "Copper Vein", xp: 8, staminaCost: 8, requiredLevel: 1, description: "Common copper deposits near the surface" },
+  { id: "iron_vein", name: "Iron Vein", xp: 15, staminaCost: 12, requiredLevel: 2, description: "Solid iron ore for tools and weapons" },
+  { id: "coal_vein", name: "Coal Vein", xp: 12, staminaCost: 10, requiredLevel: 2, description: "Essential fuel for smelting" },
+  { id: "silver_vein", name: "Silver Vein", xp: 30, staminaCost: 15, requiredLevel: 3, description: "Precious silver for jewelry" },
+  { id: "gold_vein", name: "Gold Vein", xp: 50, staminaCost: 20, requiredLevel: 4, description: "Rare gold deposits deep underground" },
 ];
 
 export default function MiningPage() {
   const { character, refreshCharacter } = useGame();
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [gathering, setGathering] = useState(false);
-  const [inventoryItems, setInventoryItems] = useState<Map<string, number>>(new Map());
+  const [lastResult, setLastResult] = useState<{ success: boolean; message: string; xp_gained: number; item_name: string | null; item_qty: number } | null>(null);
 
   useEffect(() => {
     document.title = "Mining — TribalMMO";
   }, []);
-
-  const buildInventoryMap = useCallback(() => {
-    if (!character?.inventory) return new Map<string, number>();
-    const map = new Map<string, number>();
-    for (const inv of character.inventory) {
-      if (inv.item) {
-        const current = map.get(inv.item.name) || 0;
-        map.set(inv.item.name, current + inv.quantity);
-      }
-    }
-    return map;
-  }, [character?.inventory]);
-
-  useEffect(() => {
-    setInventoryItems(buildInventoryMap());
-  }, [buildInventoryMap]);
 
   if (!character) {
     return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
   }
 
   const miningSkill = character.skills?.find((s) => s.name === "Mining");
-  const currentTier = miningSkill?.tier || 1;
+  const currentLevel = miningSkill?.level || 1;
   const xp = miningSkill?.experience || 0;
 
-  const mineOre = async (node: MiningNode) => {
+  const mineOre = async (node: typeof miningNodes[0]) => {
     if (!miningSkill || gathering) return;
     if (character.computed_stamina < node.staminaCost) return;
-    if (currentTier < node.requiredTier) return;
+    if (currentLevel < node.requiredLevel) return;
 
     setGathering(true);
+    setLastResult(null);
 
-    // Deduct stamina
-    const { error: staminaError } = await supabase
-      .from("characters")
-      .update({ stamina: Math.max(0, character.computed_stamina - node.staminaCost), stamina_updated_at: new Date().toISOString() })
-      .eq("id", character.id);
-    if (staminaError) { setGathering(false); return; }
-
-    // Add XP
-    const newXp = xp + node.xp;
-    const maxXP = currentTier * 100;
-    const newTier = newXp >= maxXP && currentTier < 5 ? currentTier + 1 : currentTier;
-
-    await supabase
-      .from("skills")
-      .update({ experience: newXp, tier: newTier })
-      .eq("id", miningSkill.id);
-
-    // Add gold
-    await supabase
-      .from("characters")
-      .update({ gold: character.gold + node.gold })
-      .eq("id", character.id);
-
-    // Add dropped items to inventory
-    const droppedItems: { name: string; quantity: number }[] = [];
-    for (const drop of node.drops) {
-      if (Math.random() <= drop.chance) {
-        const qty = Math.floor(Math.random() * (drop.max - drop.min + 1)) + drop.min;
-        if (qty <= 0) continue;
-        const existingItem = await supabase.from("items").select("id").eq("name", drop.name).single();
-        let itemId = existingItem.data?.id;
-        if (!itemId) {
-          const { data: newItem } = await supabase.from("items").insert({ name: drop.name, type: "resource", tier: 1 }).select("id").single();
-          itemId = newItem?.id;
-        }
-        if (!itemId) continue;
-        const existingInv = await supabase.from("inventory").select("id, quantity").eq("character_id", character.id).eq("item_id", itemId).single();
-        if (existingInv.data) {
-          await supabase.from("inventory").update({ quantity: existingInv.data.quantity + qty }).eq("id", existingInv.data.id);
-        } else {
-          await supabase.from("inventory").insert({ character_id: character.id, item_id: itemId, quantity: qty });
-        }
-        droppedItems.push({ name: drop.name, quantity: qty });
-      }
-    }
-
-    // Log transaction
-    const itemText = droppedItems.map((d) => `${d.name} x${d.quantity}`).join(", ");
-    await supabase.from("transactions").insert({
-      character_id: character.id,
-      type: "mining",
-      amount: node.gold,
-      description: `Mined ${node.name} (+${node.gold} gold, +${node.xp} XP, ${itemText})`,
-      metadata: { node: node.id, xp: node.xp, items: droppedItems },
+    const { data, error } = await supabase.rpc("gather_resource", {
+      p_character_id: character.id,
+      p_action: "mining",
     });
 
+    if (error) {
+      setLastResult({ success: false, message: error.message, xp_gained: 0, item_name: null, item_qty: 0 });
+      setGathering(false);
+      return;
+    }
+
+    const result = data as { success: boolean; message: string; xp_gained: number; item_name: string | null; item_qty: number; stamina_cost: number };
+    setLastResult(result);
     await refreshCharacter();
     setGathering(false);
-    setSelectedNode(null);
   };
 
-  const availableNodes = miningNodes.filter((n) => n.requiredTier <= currentTier);
-  const lockedNodes = miningNodes.filter((n) => n.requiredTier > currentTier);
+  const availableNodes = miningNodes.filter((n) => n.requiredLevel <= currentLevel);
+  const lockedNodes = miningNodes.filter((n) => n.requiredLevel > currentLevel);
 
   return (
     <div className="space-y-5 animate-fade-in max-w-3xl">
@@ -142,33 +68,40 @@ export default function MiningPage() {
       <div className="card">
         <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Mining Skill</h2>
         <div className="flex items-center justify-between">
-          <span className="text-tribal-100 font-bold text-xl">Tier {currentTier}</span>
-          <span className="text-tribal-500 text-sm">XP: {xp} / {currentTier * 100}</span>
+          <span className="text-tribal-100 font-bold text-xl">Level {currentLevel}</span>
+          <span className="text-tribal-500 text-sm">XP: {xp} / {currentLevel * 100}</span>
         </div>
         <p className="text-tribal-600 text-xs mt-2">
-          {currentTier < 5 ? "Mine ores to improve your skill" : "Max tier reached"}
+          {currentLevel < 100 ? "Mine ores to improve your skill" : "Max level reached"}
         </p>
       </div>
 
       <StaminaBar current={character.computed_stamina} max={character.max_stamina} size="md" />
 
+      {lastResult && (
+        <div className="card animate-fade-in" style={{ background: lastResult.success ? "rgba(18,42,27,0.3)" : "rgba(42,18,18,0.3)", borderColor: lastResult.success ? "rgba(45,110,68,0.2)" : "rgba(110,36,36,0.2)" }}>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-bold" style={{ color: lastResult.success ? "#4a9e6a" : "#b83a3a", fontFamily: "Crimson Pro, Georgia, serif" }}>
+              {lastResult.success ? "Mined!" : "Failed!"}
+            </h2>
+            <button onClick={() => setLastResult(null)} className="text-tribal-600 hover:text-tribal-400 text-xs">dismiss</button>
+          </div>
+          {lastResult.success && lastResult.item_name && (
+            <p className="text-[#6bc98a] text-sm font-semibold">+{lastResult.item_qty}x {lastResult.item_name} (+{lastResult.xp_gained} XP)</p>
+          )}
+          {!lastResult.success && (
+            <p className="text-tribal-500 text-xs">{lastResult.message}</p>
+          )}
+        </div>
+      )}
+
       <div className="card">
         <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Ore Deposits</h2>
         <div className="space-y-2">
           {availableNodes.map((node) => {
-            const isSelected = selectedNode === node.id;
             const canGather = character.computed_stamina >= node.staminaCost;
-
             return (
-              <div
-                key={node.id}
-                className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                  isSelected
-                    ? "bg-tribal-800/40 border-tribal-600/30"
-                    : "bg-tribal-900/30 border-tribal-800/20 hover:border-tribal-700/30"
-                }`}
-                onClick={() => setSelectedNode(isSelected ? null : node.id)}
-              >
+              <div key={node.id} className="bg-tribal-900/30 p-4 rounded-lg border border-tribal-800/20 hover:border-tribal-700/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Mountain size={18} className={canGather ? "text-tribal-500" : "text-tribal-700"} />
@@ -178,35 +111,25 @@ export default function MiningPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[#4a9e6a] text-xs font-semibold">+{node.gold}g</span>
-                    <span className="text-tribal-500 text-xs">+{node.xp}xp</span>
+                    <span className="text-[#4a9e6a] text-xs font-semibold">+{node.xp}xp</span>
                     <span className="text-tribal-700 text-xs flex items-center gap-1 tabular-nums">
-                      <Clock size={10} /> {node.duration}s
+                      <Clock size={10} /> {node.staminaCost} stam
                     </span>
-                    {!canGather && (
-                      <AlertTriangle size={14} className="text-tribal-400/70" />
-                    )}
+                    {!canGather && <AlertTriangle size={14} className="text-tribal-400/70" />}
                   </div>
                 </div>
-
-                {isSelected && (
-                  <div className="mt-3 pt-3 border-t border-tribal-800/20 animate-fade-in">
-                    <div className="flex items-center justify-between text-sm mb-3">
-                      <span className="text-tribal-400">Stamina Cost</span>
-                      <span className="text-tribal-200 font-semibold">{node.staminaCost}</span>
-                    </div>
-                    <Button
-                      variant={canGather ? "primary" : "secondary"}
-                      size="sm"
-                      icon={<Mountain size={14} />}
-                      onClick={(e) => { e.stopPropagation(); mineOre(node); }}
-                      loading={gathering}
-                      disabled={!canGather}
-                    >
-                      {canGather ? `Mine (-${node.staminaCost} stamina)` : "Not enough stamina"}
-                    </Button>
-                  </div>
-                )}
+                <div className="mt-3 pt-3 border-t border-tribal-800/20">
+                  <Button
+                    variant={canGather ? "primary" : "secondary"}
+                    size="sm"
+                    icon={<Mountain size={14} />}
+                    onClick={() => mineOre(node)}
+                    loading={gathering}
+                    disabled={!canGather}
+                  >
+                    {canGather ? `Mine (-${node.staminaCost} stamina)` : "Not enough stamina"}
+                  </Button>
+                </div>
               </div>
             );
           })}
@@ -228,7 +151,7 @@ export default function MiningPage() {
                     </div>
                   </div>
                   <span className="text-tribal-700 text-xs bg-tribal-900/40 px-2 py-1 rounded border border-tribal-800/10">
-                    Tier {node.requiredTier}
+                    Level {node.requiredLevel}
                   </span>
                 </div>
               </div>
