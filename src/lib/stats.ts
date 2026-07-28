@@ -7,10 +7,9 @@ type Pet = Database["public"]["Tables"]["pets"]["Row"];
 
 export interface EffectiveStats {
   strength: number;
-  agility: number;
-  endurance: number;
-  focus: number;
-  cunning: number;
+  defence: number;
+  speed: number;
+  vitality: number;
   attack: number;
   defense: number;
 }
@@ -22,113 +21,84 @@ export function computeEffectiveStats(
   pets?: Pet[]
 ): EffectiveStats {
   let str = character.strength;
-  let agi = character.agility;
-  let end = character.endurance;
-  let foc = character.focus;
-  let cun = character.cunning;
+  let def = character.defence;
+  let spd = character.speed;
+  let vit = character.vitality;
 
-  // Goat pet: x1.5 base stats (legendary, 1 in 1B)
-  const hasEquippedGoat = pets?.some((p) => p.equipped && p.type === "goat");
-  if (hasEquippedGoat) {
-    str = Math.floor(str * 1.5);
-    agi = Math.floor(agi * 1.5);
-    end = Math.floor(end * 1.5);
-    foc = Math.floor(foc * 1.5);
-    cun = Math.floor(cun * 1.5);
-  }
-
-  let atkBonus = 0;
-  let defBonus = 0;
-  let strBonus = 0;
-  let agiBonus = 0;
-  let endBonus = 0;
-  let focBonus = 0;
-  let cunBonus = 0;
-
-  // Dragon pet: +5 attack, +3 defense (mythical, 1 in 1M)
-  const hasEquippedDragon = pets?.some((p) => p.equipped && p.type === "dragon");
-  if (hasEquippedDragon) {
-    atkBonus += 5;
-    defBonus += 3;
-  }
-
-  // Wolf pet: +2 attack, +1 agility
-  const hasEquippedWolf = pets?.some((p) => p.equipped && p.type === "wolf");
-  if (hasEquippedWolf) {
-    atkBonus += 2;
-    agiBonus += 1;
-  }
-
-  // Boar pet: +3 endurance, +1 defense
-  const hasEquippedBoar = pets?.some((p) => p.equipped && p.type === "boar");
-  if (hasEquippedBoar) {
-    endBonus += 3;
-    defBonus += 1;
-  }
-
-  // Hawk pet: +2 agility, +1 cunning (rare)
-  const hasEquippedHawk = pets?.some((p) => p.equipped && p.type === "hawk");
-  if (hasEquippedHawk) {
-    agiBonus += 2;
-    cunBonus += 1;
-  }
-
-  // Snake pet: +2 cunning, +1 attack (rare)
-  const hasEquippedSnake = pets?.some((p) => p.equipped && p.type === "snake");
-  if (hasEquippedSnake) {
-    cunBonus += 2;
-    atkBonus += 1;
-  }
-
-  // Cat pet: +1 agility, +1 focus, +1 cunning (uncommon)
-  const hasEquippedCat = pets?.some((p) => p.equipped && p.type === "cat");
-  if (hasEquippedCat) {
-    agiBonus += 1;
-    focBonus += 1;
-    cunBonus += 1;
-  }
-
-  // Dog pet: +1 strength, +1 endurance, +1 attack (uncommon)
-  const hasEquippedDog = pets?.some((p) => p.equipped && p.type === "dog");
-  if (hasEquippedDog) {
-    strBonus += 1;
-    endBonus += 1;
-    atkBonus += 1;
+  // Pet passive stat bonuses (identity + utility, no infinite scaling)
+  const equippedPets = pets?.filter((p) => p.equipped) || [];
+  for (const pet of equippedPets) {
+    switch (pet.type) {
+      case "wolf":
+        str += 2;
+        spd += 1;
+        break;
+      case "cat":
+        spd += 2;
+        vit += 1;
+        break;
+      case "hawk":
+        spd += 3;
+        break;
+      case "boar":
+        vit += 3;
+        def += 1;
+        break;
+      case "dog":
+        str += 1;
+        vit += 2;
+        break;
+      case "snake":
+        str += 2;
+        spd += 1;
+        break;
+      case "dragon":
+        str += 3;
+        def += 2;
+        break;
+      case "goat":
+        str += 1;
+        def += 1;
+        spd += 1;
+        vit += 1;
+        break;
+    }
   }
 
   // Sum equipped item stat bonuses
+  let atkBonus = 0;
+  let defBonus = 0;
+
   const equipped = inventory.filter((inv) => inv.equipped && inv.item);
   for (const inv of equipped) {
     const stats = inv.item?.stats as Record<string, number> | undefined;
     if (!stats) continue;
+    str += stats.strength || 0;
+    def += stats.defence || 0;
+    spd += stats.speed || 0;
+    vit += stats.vitality || 0;
     atkBonus += stats.attack || 0;
     defBonus += stats.defense || 0;
-    strBonus += stats.strength || 0;
-    agiBonus += stats.agility || 0;
-    endBonus += stats.endurance || 0;
-    focBonus += stats.focus || 0;
-    cunBonus += stats.cunning || 0;
   }
 
-  // Apply clan philosophy passive bonuses to members
+  // Apply clan philosophy passive bonuses
   if (clanBonuses?.philosophy === "warborn") {
-    atkBonus += 2;
-    strBonus += 1;
+    str += 2;
+    atkBonus += 1;
   } else if (clanBonuses?.philosophy === "earthkeepers") {
-    endBonus += 2;
+    vit += 2;
     defBonus += 1;
   } else if (clanBonuses?.philosophy === "pathfinders") {
-    agiBonus += 2;
-    cunBonus += 1;
+    spd += 2;
+    atkBonus += 1;
   }
 
   return {
-    strength: str + strBonus,
-    agility: agi + agiBonus,
-    endurance: end + endBonus,
-    focus: foc + focBonus,
-    cunning: cun + cunBonus,
-    attack: str + agi + atkBonus,
-    defense: end + defBonus,
+    strength: str,
+    defence: def,
+    speed: spd,
+    vitality: vit,
+    attack: str + atkBonus,
+    defense: def + defBonus,
   };
 }

@@ -20,10 +20,9 @@ export interface Database {
           avatar_url: string
           profile_color: string
           strength: number
-          agility: number
-          endurance: number
-          focus: number
-          cunning: number
+          defence: number
+          speed: number
+          vitality: number
           stamina: number
           max_stamina: number
           gold: number
@@ -41,10 +40,9 @@ export interface Database {
           avatar_url?: string
           profile_color?: string
           strength?: number
-          agility?: number
-          endurance?: number
-          focus?: number
-          cunning?: number
+          defence?: number
+          speed?: number
+          vitality?: number
           stamina?: number
           max_stamina?: number
           gold?: number
@@ -62,10 +60,9 @@ export interface Database {
           avatar_url?: string
           profile_color?: string
           strength?: number
-          agility?: number
-          endurance?: number
-          focus?: number
-          cunning?: number
+          defence?: number
+          speed?: number
+          vitality?: number
           stamina?: number
           max_stamina?: number
           gold?: number
@@ -80,7 +77,7 @@ export interface Database {
           id: string
           character_id: string
           name: string
-          tier: number
+          level: number
           experience: number
           specialization: string | null
         }
@@ -88,7 +85,7 @@ export interface Database {
           id?: string
           character_id: string
           name: string
-          tier?: number
+          level?: number
           experience?: number
           specialization?: string | null
         }
@@ -96,7 +93,7 @@ export interface Database {
           id?: string
           character_id?: string
           name?: string
-          tier?: number
+          level?: number
           experience?: number
           specialization?: string | null
         }
@@ -107,7 +104,7 @@ export interface Database {
           id: string
           name: string
           type: string
-          tier: number
+          rarity: number
           stats: Json
           recipe_id: string | null
         }
@@ -115,7 +112,7 @@ export interface Database {
           id?: string
           name: string
           type: string
-          tier?: number
+          rarity?: number
           stats?: Json
           recipe_id?: string | null
         }
@@ -123,7 +120,7 @@ export interface Database {
           id?: string
           name?: string
           type?: string
-          tier?: number
+          rarity?: number
           stats?: Json
           recipe_id?: string | null
         }
@@ -178,7 +175,9 @@ export interface Database {
         Row: {
           id: string
           name: string
+          description: string
           symbol: string
+          banner_url: string | null
           philosophy: string
           founder_id: string
           created_at: string
@@ -186,7 +185,9 @@ export interface Database {
         Insert: {
           id?: string
           name: string
+          description?: string
           symbol: string
+          banner_url?: string | null
           philosophy: string
           founder_id: string
           created_at?: string
@@ -194,7 +195,9 @@ export interface Database {
         Update: {
           id?: string
           name?: string
+          description?: string
           symbol?: string
+          banner_url?: string | null
           philosophy?: string
           founder_id?: string
           created_at?: string
@@ -398,7 +401,7 @@ export interface Database {
           id: string
           name: string
           type: string
-          tier: number
+          rarity: number
           description: string | null
           buy_price: number
           sell_price: number
@@ -410,7 +413,7 @@ export interface Database {
           id?: string
           name: string
           type: string
-          tier?: number
+          rarity?: number
           description?: string | null
           buy_price: number
           sell_price: number
@@ -422,7 +425,7 @@ export interface Database {
           id?: string
           name?: string
           type?: string
-          tier?: number
+          rarity?: number
           description?: string | null
           buy_price?: number
           sell_price?: number
@@ -540,11 +543,11 @@ export interface Database {
         Returns: Json
       }
       craft_item: {
-        Args: { p_character_id: string; p_item_name: string; p_item_type: string; p_item_tier: number; p_item_stats: Json; p_duration: number; p_materials: Json }
+        Args: { p_character_id: string; p_item_name: string; p_item_type: string; p_item_rarity: number; p_item_stats: Json; p_duration: number; p_materials: Json }
         Returns: void
       }
       shop_buy: {
-        Args: { p_character_id: string; p_item_name: string; p_item_type: string; p_item_tier: number; p_item_stats: Json; p_total_cost: number; p_quantity: number }
+        Args: { p_character_id: string; p_item_name: string; p_item_type: string; p_item_rarity: number; p_item_stats: Json; p_total_cost: number; p_quantity: number }
         Returns: void
       }
       shop_sell: {
