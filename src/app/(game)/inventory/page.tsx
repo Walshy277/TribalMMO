@@ -1,20 +1,17 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { Swords, Shield, Package, PawPrint, Coins, FlaskConical, Hammer, X, ArrowRightLeft, Trash2 } from "lucide-react";
+import { Swords, Shield, Package, PawPrint, Coins, FlaskConical, X, ArrowRightLeft, Trash2 } from "lucide-react";
 import { typeIcons } from "@/lib/constants";
 import { Alert } from "@/components/ui/Alert";
-import type { LucideIcon } from "lucide-react";
 
 const slotTypes: Record<string, string> = { weapon: "weapon", armor: "armor", accessory: "accessory" };
 
 interface ItemDetail {
   name: string;
   type: string;
-  tier: number;
+  rarity: number;
   stats: Record<string, number>;
 }
 
@@ -269,8 +266,8 @@ export default function InventoryPage() {
                   <Icon size={20} className="text-tribal-500 mx-auto mb-1" />
                   <div className="text-tribal-200 text-sm font-medium">{item.name}</div>
                   <div className="text-tribal-600 text-xs tabular-nums">x{inv.quantity}</div>
-                  {item.tier > 1 && (
-                    <div className="text-tribal-700 text-xs mt-0.5">Tier {item.tier}</div>
+                  {item.rarity > 1 && (
+                    <div className="text-tribal-700 text-xs mt-0.5">Rarity {item.rarity}</div>
                   )}
                 </div>
               );
@@ -291,8 +288,8 @@ export default function InventoryPage() {
                 <h3 className="text-tribal-100 font-bold text-lg">{selectedInvItem.item!.name}</h3>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-tribal-500 text-xs capitalize">{selectedInvItem.item!.type}</span>
-                  {selectedInvItem.item!.tier > 1 && (
-                    <span className="text-tribal-700 text-xs bg-tribal-900/60 px-1.5 py-0.5 rounded">Tier {selectedInvItem.item!.tier}</span>
+                  {selectedInvItem.item!.rarity > 1 && (
+                    <span className="text-tribal-700 text-xs bg-tribal-900/60 px-1.5 py-0.5 rounded">Rarity {selectedInvItem.item!.rarity}</span>
                   )}
                   <span className="text-tribal-600 text-xs">x{selectedInvItem.quantity}</span>
                 </div>
@@ -323,7 +320,7 @@ export default function InventoryPage() {
                 Equip
               </Button>
             )}
-            {selectedInvItem.item!.type === "consumable" && (
+            {selectedInvItem.item!.type === "resources" && (
               <Button variant="success" size="sm" icon={<FlaskConical size={14} />} onClick={() => useConsumable(selectedInvItem.id, selectedInvItem.item as ItemDetail)} loading={loading}>
                 Use
               </Button>
@@ -348,10 +345,33 @@ export default function InventoryPage() {
             {character.pets.map((pet) => (
               <div key={pet.id} className="bg-tribal-900/40 p-3 rounded-lg flex items-center justify-between border border-tribal-800/20">
                 <div className="flex items-center gap-3">
-                  <PawPrint size={18} className="text-tribal-500" />
-                  <span className="text-tribal-200 font-semibold">{pet.name}</span>
+                  <PawPrint size={18} className={pet.equipped ? "text-[#4a9e6a]" : "text-tribal-500"} />
+                  <div>
+                    <span className="text-tribal-200 font-semibold">{pet.name}</span>
+                    <span className="text-tribal-500 text-sm capitalize ml-2">{pet.type}</span>
+                    {pet.equipped && (
+                      <span className="text-[#4a9e6a] text-xs ml-2 font-bold uppercase">Equipped</span>
+                    )}
+                  </div>
                 </div>
-                <span className="text-tribal-500 text-sm capitalize bg-tribal-900/60 px-3 py-1 rounded-full border border-tribal-800/20">{pet.type}</span>
+                <Button
+                  variant={pet.equipped ? "ghost" : "secondary"}
+                  size="sm"
+                  loading={loading}
+                  onClick={async () => {
+                    setLoading(true);
+                    if (pet.equipped) {
+                      await supabase.from("pets").update({ equipped: false }).eq("id", pet.id);
+                    } else {
+                      await supabase.from("pets").update({ equipped: false }).eq("character_id", character.id);
+                      await supabase.from("pets").update({ equipped: true }).eq("id", pet.id);
+                    }
+                    await refreshCharacter();
+                    setLoading(false);
+                  }}
+                >
+                  {pet.equipped ? "Unequip" : "Equip"}
+                </Button>
               </div>
             ))}
           </div>
