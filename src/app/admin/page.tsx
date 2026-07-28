@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Users, Shield, ShoppingCart, Package, Swords } from "lucide-react";
@@ -28,7 +26,7 @@ export default function AdminDashboard() {
   }, []);
 
   const fetchStats = async () => {
-    const [profiles, characters, factions, listings, items, actions] = await Promise.all([
+    const [profiles, characters, clans, listings, items, actions] = await Promise.all([
       supabase.from("profiles").select("id", { count: "exact", head: true }),
       supabase.from("characters").select("id", { count: "exact", head: true }),
       supabase.from("clans").select("id", { count: "exact", head: true }),
@@ -40,7 +38,7 @@ export default function AdminDashboard() {
     setStats([
       { label: "Players", value: profiles.count ?? 0, icon: Users, color: "text-blue-400" },
       { label: "Characters", value: characters.count ?? 0, icon: Users, color: "text-[#4a9e6a]" },
-      { label: "Clans", value: factions.count ?? 0, icon: Shield, color: "text-tribal-300" },
+      { label: "Clans", value: clans.count ?? 0, icon: Shield, color: "text-tribal-300" },
       { label: "Marketplace", value: listings.count ?? 0, icon: ShoppingCart, color: "text-[#8a6aaa]" },
       { label: "Items", value: items.count ?? 0, icon: Package, color: "text-[#6a90a8]" },
       { label: "Active Actions", value: actions.count ?? 0, icon: Swords, color: "text-[#b83a3a]" },

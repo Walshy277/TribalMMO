@@ -1,26 +1,25 @@
-"use client";
-
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
+import { rarityNames, rarityColors } from "@/lib/constants";
 import { Package, Plus, Pencil, Trash2, X, Save } from "lucide-react";
 
 interface Item {
   id: string;
   name: string;
   type: string;
-  tier: number;
+  rarity: number;
   stats: Record<string, unknown>;
   recipe_id: string | null;
 }
 
-const itemTypes = ["weapon", "armor", "consumable", "tool", "resource", "pet"];
+const itemTypes = ["weapon", "armor", "accessory", "collectible", "materials", "resources", "pet"];
 
 export default function AdminItemsPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", type: "weapon", tier: 1, stats: "{}" });
+  const [form, setForm] = useState({ name: "", type: "weapon", rarity: 1, stats: "{}" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -34,7 +33,7 @@ export default function AdminItemsPage() {
   }, []);
 
   const resetForm = () => {
-    setForm({ name: "", type: "weapon", tier: 1, stats: "{}" });
+    setForm({ name: "", type: "weapon", rarity: 1, stats: "{}" });
     setShowCreate(false);
     setEditing(null);
   };
@@ -45,7 +44,7 @@ export default function AdminItemsPage() {
     setForm({
       name: item.name,
       type: item.type,
-      tier: item.tier,
+      rarity: item.rarity,
       stats: JSON.stringify(item.stats || {}, null, 2),
     });
   };
@@ -56,9 +55,9 @@ export default function AdminItemsPage() {
     try { parsedStats = JSON.parse(form.stats); } catch { /* keep default */ }
 
     if (editing) {
-      await supabase.from("items").update({ name: form.name, type: form.type, tier: form.tier, stats: parsedStats }).eq("id", editing);
+      await supabase.from("items").update({ name: form.name, type: form.type, rarity: form.rarity, stats: parsedStats }).eq("id", editing);
     } else {
-      await supabase.from("items").insert({ name: form.name, type: form.type, tier: form.tier, stats: parsedStats });
+      await supabase.from("items").insert({ name: form.name, type: form.type, rarity: form.rarity, stats: parsedStats });
     }
     resetForm();
     await fetchItems();
@@ -97,8 +96,12 @@ export default function AdminItemsPage() {
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-tribal-400 uppercase mb-1 block">Tier</label>
-              <input type="number" value={form.tier} onChange={(e) => setForm({ ...form, tier: Number(e.target.value) })} className="input" min={1} />
+              <label className="text-[10px] font-bold text-tribal-400 uppercase mb-1 block">Rarity</label>
+              <select value={form.rarity} onChange={(e) => setForm({ ...form, rarity: Number(e.target.value) })} className="input">
+                {Object.entries(rarityNames).map(([val, name]) => (
+                  <option key={val} value={val}>{name}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div>
@@ -118,7 +121,7 @@ export default function AdminItemsPage() {
             <tr className="border-b border-[#262328]">
               <th className="text-left text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Name</th>
               <th className="text-left text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Type</th>
-              <th className="text-left text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Tier</th>
+              <th className="text-left text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Rarity</th>
               <th className="text-right text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Actions</th>
             </tr>
           </thead>
@@ -129,7 +132,11 @@ export default function AdminItemsPage() {
                 <td className="p-3">
                   <span className="text-xs bg-[#1a181e] text-tribal-300 px-2 py-1 rounded-full border border-tribal-600/30">{item.type}</span>
                 </td>
-                <td className="p-3 text-tribal-300 tabular-nums">{item.tier}</td>
+                <td className="p-3">
+                  <span className="text-xs font-semibold" style={{ color: rarityColors[item.rarity] || "#6e656c" }}>
+                    {rarityNames[item.rarity] || `Level ${item.rarity}`}
+                  </span>
+                </td>
                 <td className="p-3 text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="ghost" size="sm" icon={<Pencil size={12} />} onClick={() => startEdit(item)} />

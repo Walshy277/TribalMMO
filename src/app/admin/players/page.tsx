@@ -1,11 +1,9 @@
-"use client";
-
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import {
+import   {
   Users, Search, ChevronDown, ChevronUp, Dumbbell, Swords, Shield,
-  Crosshair, Brain, Save, Zap, Package, Plus, Trash2,
+  Zap, Heart, Save, Package, Plus, Trash2,
 } from "lucide-react";
 
 interface AdminCharacter {
@@ -14,14 +12,13 @@ interface AdminCharacter {
   user_id: string;
   background: string;
   strength: number;
-  agility: number;
-  endurance: number;
-  focus: number;
-  cunning: number;
+  defence: number;
+  speed: number;
+  vitality: number;
   stamina: number;
   max_stamina: number;
   created_at: string;
-  skills: { id: string; name: string; tier: number; experience: number }[];
+  skills: { id: string; name: string; level: number; experience: number }[];
   inventory: { id: string; item_id: string; quantity: number; item: { name: string; type: string } | null }[];
 }
 
@@ -71,10 +68,9 @@ export default function AdminPlayersPage() {
     if (char) {
       setEditStats({
         strength: char.strength,
-        agility: char.agility,
-        endurance: char.endurance,
-        focus: char.focus,
-        cunning: char.cunning,
+        defence: char.defence,
+        speed: char.speed,
+        vitality: char.vitality,
         stamina: char.stamina,
         max_stamina: char.max_stamina,
       });
@@ -87,10 +83,9 @@ export default function AdminPlayersPage() {
       .from("characters")
       .update({
         strength: editStats.strength,
-        agility: editStats.agility,
-        endurance: editStats.endurance,
-        focus: editStats.focus,
-        cunning: editStats.cunning,
+        defence: editStats.defence,
+        speed: editStats.speed,
+        vitality: editStats.vitality,
         stamina: editStats.stamina,
         max_stamina: editStats.max_stamina,
       })
@@ -104,8 +99,8 @@ export default function AdminPlayersPage() {
     await fetchCharacters();
   };
 
-  const updateSkillTier = async (skillId: string, tier: number) => {
-    await supabase.from("skills").update({ tier }).eq("id", skillId);
+  const updateSkillLevel = async (skillId: string, level: number) => {
+    await supabase.from("skills").update({ level }).eq("id", skillId);
     await fetchCharacters();
   };
 
@@ -139,10 +134,9 @@ export default function AdminPlayersPage() {
 
   const statConfig = [
     { key: "strength", label: "STR", icon: Dumbbell, color: "text-[#b83a3a]" },
-    { key: "agility", label: "AGI", icon: Swords, color: "text-[#4a9e6a]" },
-    { key: "endurance", label: "END", icon: Shield, color: "text-tribal-300" },
-    { key: "focus", label: "FOC", icon: Crosshair, color: "text-[#6a90a8]" },
-    { key: "cunning", label: "CUN", icon: Brain, color: "text-[#8a6aaa]" },
+    { key: "defence", label: "DEF", icon: Shield, color: "text-[#6a90a8]" },
+    { key: "speed", label: "SPD", icon: Zap, color: "text-[#4a9e6a]" },
+    { key: "vitality", label: "VIT", icon: Heart, color: "text-[#c9a84c]" },
   ];
 
   return (
@@ -240,11 +234,11 @@ export default function AdminPlayersPage() {
                         <div key={skill.id} className="flex items-center gap-3 bg-[#1e1c22] rounded-lg p-3">
                           <span className="text-tribal-200 font-medium text-sm w-24">{skill.name}</span>
                           <div className="flex items-center gap-2">
-                            <label className="text-tribal-500 text-[10px] uppercase">Tier</label>
+                              <label className="text-tribal-500 text-[10px] uppercase">Level</label>
                             <input
                               type="number"
-                              value={skill.tier}
-                              onChange={(e) => updateSkillTier(skill.id, Number(e.target.value))}
+                              value={skill.level}
+                              onChange={(e) => updateSkillLevel(skill.id, Number(e.target.value))}
                               className="input w-16 text-center py-1 text-sm"
                               min={1}
                             />
