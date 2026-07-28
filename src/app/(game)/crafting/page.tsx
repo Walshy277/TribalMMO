@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState, useCallback } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
@@ -15,7 +13,7 @@ interface Material {
 interface Recipe {
   name: string;
   type: string;
-  tier: number;
+  level: number;
   materials: Material[];
   desc: string;
   duration: number;
@@ -23,21 +21,21 @@ interface Recipe {
 }
 
 const recipes: Recipe[] = [
-  { name: "Stone Axe", type: "weapon", tier: 1, materials: [{ name: "Wood", quantity: 3 }, { name: "Stone", quantity: 2 }], desc: "A basic axe for chopping", duration: 600, resultStats: { attack: 3 } },
-  { name: "Wooden Spear", type: "weapon", tier: 1, materials: [{ name: "Wood", quantity: 4 }, { name: "Stone", quantity: 1 }], desc: "A simple throwing spear", duration: 600, resultStats: { attack: 4 } },
-  { name: "Hide Armor", type: "armor", tier: 1, materials: [{ name: "Hides", quantity: 5 }, { name: "Wood", quantity: 2 }], desc: "Basic protection from attacks", duration: 900, resultStats: { defense: 3 } },
-  { name: "Bone Knife", type: "weapon", tier: 1, materials: [{ name: "Bone", quantity: 3 }, { name: "Wood", quantity: 1 }], desc: "A sharp knife for cutting", duration: 600, resultStats: { attack: 2 } },
-  { name: "Herb Poultice", type: "consumable", tier: 1, materials: [{ name: "Herbs", quantity: 3 }], desc: "Restores 30 stamina when used", duration: 300, resultStats: { heal: 30 } },
-  { name: "Stone Hammer", type: "tool", tier: 2, materials: [{ name: "Stone", quantity: 5 }, { name: "Wood", quantity: 3 }], desc: "A heavy crafting tool (+2 crafting speed)", duration: 900, resultStats: { crafting_speed: 2 } },
-  { name: "Reinforced Armor", type: "armor", tier: 2, materials: [{ name: "Hides", quantity: 8 }, { name: "Stone", quantity: 4 }, { name: "Wood", quantity: 2 }], desc: "Sturdy protection", duration: 1800, resultStats: { defense: 7 } },
-  { name: "Bow", type: "weapon", tier: 2, materials: [{ name: "Wood", quantity: 6 }, { name: "Hides", quantity: 2 }], desc: "A ranged weapon", duration: 1200, resultStats: { attack: 6 } },
-  { name: "Copper Pickaxe", type: "tool", tier: 2, materials: [{ name: "Copper Ore", quantity: 5 }, { name: "Wood", quantity: 3 }], desc: "A sturdy pickaxe for mining (+3 mining speed)", duration: 1200, resultStats: { mining_speed: 3 } },
-  { name: "Iron Sword", type: "weapon", tier: 3, materials: [{ name: "Iron Ore", quantity: 8 }, { name: "Coal", quantity: 3 }, { name: "Wood", quantity: 2 }], desc: "A sharp iron blade", duration: 1800, resultStats: { attack: 10 } },
-  { name: "Iron Shield", type: "armor", tier: 3, materials: [{ name: "Iron Ore", quantity: 10 }, { name: "Coal", quantity: 4 }, { name: "Wood", quantity: 1 }], desc: "Heavy iron protection", duration: 2400, resultStats: { defense: 12 } },
-  { name: "Silver Amulet", type: "accessory", tier: 3, materials: [{ name: "Silver Ore", quantity: 6 }, { name: "Gemstone", quantity: 1 }], desc: "A mystical silver amulet", duration: 2000, resultStats: { focus: 8, cunning: 4 } },
-  { name: "Steel Platebody", type: "armor", tier: 4, materials: [{ name: "Iron Ore", quantity: 15 }, { name: "Coal", quantity: 8 }, { name: "Silver Ore", quantity: 3 }], desc: "Masterwork steel armor", duration: 3600, resultStats: { defense: 18, endurance: 6 } },
-  { name: "Gold Ring", type: "accessory", tier: 4, materials: [{ name: "Gold Ore", quantity: 5 }, { name: "Silver Ore", quantity: 3 }, { name: "Gemstone", quantity: 2 }], desc: "A ring of pure gold", duration: 3000, resultStats: { cunning: 10, focus: 5 } },
-  { name: "Diamond Dagger", type: "weapon", tier: 5, materials: [{ name: "Iron Ore", quantity: 10 }, { name: "Diamond", quantity: 1 }, { name: "Gold Ore", quantity: 3 }], desc: "A legendary diamond-tipped blade", duration: 4800, resultStats: { attack: 25, cunning: 8 } },
+  { name: "Stone Axe", type: "weapon", level: 1, materials: [{ name: "Wood", quantity: 3 }, { name: "Stone", quantity: 2 }], desc: "A basic axe for chopping", duration: 600, resultStats: { attack: 3 } },
+  { name: "Wooden Spear", type: "weapon", level: 1, materials: [{ name: "Wood", quantity: 4 }, { name: "Stone", quantity: 1 }], desc: "A simple throwing spear", duration: 600, resultStats: { attack: 4 } },
+  { name: "Hide Armor", type: "armor", level: 1, materials: [{ name: "Hides", quantity: 5 }, { name: "Wood", quantity: 2 }], desc: "Basic protection from attacks", duration: 900, resultStats: { defense: 3 } },
+  { name: "Bone Knife", type: "weapon", level: 1, materials: [{ name: "Bone", quantity: 3 }, { name: "Wood", quantity: 1 }], desc: "A sharp knife for cutting", duration: 600, resultStats: { attack: 2 } },
+  { name: "Herb Poultice", type: "resources", level: 1, materials: [{ name: "Herbs", quantity: 3 }], desc: "Restores 30 stamina when used", duration: 300, resultStats: { heal: 30 } },
+  { name: "Stone Hammer", type: "materials", level: 2, materials: [{ name: "Stone", quantity: 5 }, { name: "Wood", quantity: 3 }], desc: "A heavy crafting tool", duration: 900, resultStats: { strength: 2 } },
+  { name: "Reinforced Armor", type: "armor", level: 2, materials: [{ name: "Hides", quantity: 8 }, { name: "Stone", quantity: 4 }, { name: "Wood", quantity: 2 }], desc: "Sturdy protection", duration: 1800, resultStats: { defense: 7 } },
+  { name: "Bow", type: "weapon", level: 2, materials: [{ name: "Wood", quantity: 6 }, { name: "Hides", quantity: 2 }], desc: "A ranged weapon", duration: 1200, resultStats: { attack: 6 } },
+  { name: "Copper Pickaxe", type: "materials", level: 2, materials: [{ name: "Copper Ore", quantity: 5 }, { name: "Wood", quantity: 3 }], desc: "A sturdy pickaxe for mining", duration: 1200, resultStats: { strength: 3 } },
+  { name: "Iron Sword", type: "weapon", level: 3, materials: [{ name: "Iron Ore", quantity: 8 }, { name: "Coal", quantity: 3 }, { name: "Wood", quantity: 2 }], desc: "A sharp iron blade", duration: 1800, resultStats: { attack: 10 } },
+  { name: "Iron Shield", type: "armor", level: 3, materials: [{ name: "Iron Ore", quantity: 10 }, { name: "Coal", quantity: 4 }, { name: "Wood", quantity: 1 }], desc: "Heavy iron protection", duration: 2400, resultStats: { defence: 12 } },
+  { name: "Silver Amulet", type: "accessory", level: 3, materials: [{ name: "Silver Ore", quantity: 6 }, { name: "Gemstone", quantity: 1 }], desc: "A mystical silver amulet", duration: 2000, resultStats: { speed: 8, vitality: 4 } },
+  { name: "Steel Platebody", type: "armor", level: 4, materials: [{ name: "Iron Ore", quantity: 15 }, { name: "Coal", quantity: 8 }, { name: "Silver Ore", quantity: 3 }], desc: "Masterwork steel armor", duration: 3600, resultStats: { defence: 18, vitality: 6 } },
+  { name: "Gold Ring", type: "accessory", level: 4, materials: [{ name: "Gold Ore", quantity: 5 }, { name: "Silver Ore", quantity: 3 }, { name: "Gemstone", quantity: 2 }], desc: "A ring of pure gold", duration: 3000, resultStats: { speed: 10, vitality: 5 } },
+  { name: "Diamond Dagger", type: "weapon", level: 5, materials: [{ name: "Iron Ore", quantity: 10 }, { name: "Diamond", quantity: 1 }, { name: "Gold Ore", quantity: 3 }], desc: "A legendary diamond-tipped blade", duration: 4800, resultStats: { attack: 25, speed: 8 } },
 ];
 
 export default function CraftingPage() {
@@ -71,13 +69,13 @@ export default function CraftingPage() {
   }
 
   const craftingSkill = character.skills?.find((s) => s.name === "Crafting");
-  const currentTier = craftingSkill?.tier || 1;
+  const currentLevel = craftingSkill?.level || 1;
   const xp = craftingSkill?.experience || 0;
-  const availableRecipes = recipes.filter((r) => r.tier <= currentTier);
-  const lockedRecipes = recipes.filter((r) => r.tier > currentTier);
+  const availableRecipes = recipes.filter((r) => r.level <= currentLevel);
+  const lockedRecipes = recipes.filter((r) => r.level > currentLevel);
 
   const hasMaterials = (recipe: Recipe): boolean => {
-    const staminaCost = 10 + recipe.tier * 5;
+    const staminaCost = 10 + recipe.level * 5;
     return recipe.materials.every((mat) => (inventoryItems.get(mat.name) || 0) >= mat.quantity) && character.computed_stamina >= staminaCost;
   };
 
@@ -93,7 +91,7 @@ export default function CraftingPage() {
     if (!craftingSkill || crafting) return;
     if (!hasMaterials(recipe)) return;
 
-    const staminaCost = 10 + recipe.tier * 5;
+    const staminaCost = 10 + recipe.level * 5;
     if (character.computed_stamina < staminaCost) return;
 
     setCrafting(true);
@@ -122,17 +120,17 @@ export default function CraftingPage() {
       type: "crafting",
       duration: recipe.duration,
       completes_at: completesAt,
-      result: { item_name: recipe.name, item_type: recipe.type, stats: recipe.resultStats, tier: recipe.tier },
+      result: { item_name: recipe.name, item_type: recipe.type, item_stats: recipe.resultStats, level: recipe.level },
     });
 
     const xpGain = Math.floor(recipe.duration / 30);
     const newXp = craftingSkill.experience + xpGain;
-    const maxXP = craftingSkill.tier * 100;
-    const newTier = newXp >= maxXP && craftingSkill.tier < 5 ? craftingSkill.tier + 1 : craftingSkill.tier;
+    const maxXP = craftingSkill.level * 100;
+    const newLevel = newXp >= maxXP && craftingSkill.level < 100 ? craftingSkill.level + 1 : craftingSkill.level;
 
     await supabase
       .from("skills")
-      .update({ experience: newXp, tier: newTier })
+      .update({ experience: newXp, level: newLevel })
       .eq("id", craftingSkill.id);
 
     await refreshCharacter();
@@ -150,11 +148,11 @@ export default function CraftingPage() {
       <div className="card">
         <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Crafting Skill</h2>
         <div className="flex items-center justify-between">
-          <span className="text-tribal-100 font-bold text-xl">Tier {currentTier}</span>
+          <span className="text-tribal-100 font-bold text-xl">Level {currentLevel}</span>
           <span className="text-tribal-500 text-sm">Crafting</span>
         </div>
         <p className="text-tribal-600 text-xs mt-2">
-          {currentTier < 5 ? "Complete actions to improve your skill" : "Max tier reached"}
+          {currentLevel < 100 ? "Complete actions to improve your skill" : "Max level reached"}
         </p>
       </div>
 
@@ -192,7 +190,7 @@ export default function CraftingPage() {
                       <span className="text-tribal-700 text-xs flex items-center gap-1 tabular-nums">
                         <Clock size={10} /> {recipe.duration >= 3600 ? `${recipe.duration / 3600}h` : `${recipe.duration / 60}m`}
                       </span>
-                      <span className="text-tribal-700 text-xs bg-tribal-900/60 px-2 py-1 rounded border border-tribal-800/20">Tier {recipe.tier}</span>
+                      <span className="text-tribal-700 text-xs bg-tribal-900/60 px-2 py-1 rounded border border-tribal-800/20">Level {recipe.level}</span>
                       {!canCraft && (
                         <AlertTriangle size={14} className="text-tribal-400/70" />
                       )}
@@ -228,7 +226,7 @@ export default function CraftingPage() {
                         loading={crafting}
                         disabled={!canCraft}
                       >
-                        {canCraft ? `Craft (-${10 + recipe.tier * 5} stamina)` : character.computed_stamina < 10 + recipe.tier * 5 ? "Not enough stamina" : "Missing Materials"}
+                        {canCraft ? `Craft (-${10 + recipe.level * 5} stamina)` : character.computed_stamina < 10 + recipe.level * 5 ? "Not enough stamina" : "Missing Materials"}
                       </Button>
                     </div>
                   )}
@@ -256,7 +254,7 @@ export default function CraftingPage() {
                       </div>
                     </div>
                     <span className="text-tribal-700 text-xs bg-tribal-900/40 px-2 py-1 rounded flex items-center gap-1 border border-tribal-800/10">
-                      <Lock size={10} /> Tier {recipe.tier}
+                       <Lock size={10} /> Level {recipe.level}
                     </span>
                   </div>
                 </div>
