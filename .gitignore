@@ -1,12 +1,9 @@
 # Dependencies
 node_modules/
 
-# Next.js
-.next/
+# Build output
+dist/
 out/
-
-# Production
-build/
 
 # Debug
 npm-debug.log*
@@ -24,12 +21,8 @@ crash-out.log
 supabase/.temp/
 supabase/pw.txt
 
-# Vercel
-.vercel
-
 # TypeScript
 *.tsbuildinfo
-next-env.d.ts
 
 # IDEs
 .vscode/

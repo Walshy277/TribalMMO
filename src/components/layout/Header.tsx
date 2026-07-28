@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useGame } from "@/lib/game";
 import { Button } from "@/components/ui/Button";
@@ -12,7 +10,7 @@ export function Header() {
 
   return (
     <header className="bg-[rgba(14,12,16,0.9)] border-b border-[rgba(38,35,40,0.4)] px-5 py-3 flex items-center justify-between shrink-0 sticky top-0 z-50 backdrop-blur-md">
-      <Link href="/" className="flex items-center gap-2.5 group">
+      <Link to="/" className="flex items-center gap-2.5 group">
         <div className="w-8 h-8 bg-gradient-to-br from-[#c04e20] to-[#a8441c] flex items-center justify-center rounded-md shadow-[0_2px_8px_rgba(192,78,32,0.25)]">
           <Flame size={17} className="text-[#f5f0ea]" />
         </div>

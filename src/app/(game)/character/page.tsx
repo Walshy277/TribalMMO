@@ -1,10 +1,8 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { useGame, type CharacterWithSkills } from "@/lib/game";
 import { useRequireAuth } from "@/components/ui/PageGuard";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase/client";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { StaminaBar } from "@/components/ui/StaminaBar";
@@ -36,7 +34,7 @@ interface Transaction {
 export default function CharacterPage() {
   const { user, authLoading } = useRequireAuth();
   const { character, loading: gameLoading } = useGame();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
@@ -59,7 +57,7 @@ export default function CharacterPage() {
         <div className="text-center">
           <User size={48} className="text-tribal-700 mx-auto mb-3" />
           <p className="text-tribal-500 mb-4">No character found.</p>
-          <button onClick={() => router.push("/")} className="btn-primary inline-block text-sm px-4 py-2">Create Character</button>
+          <button onClick={() => navigate("/")} className="btn-primary inline-block text-sm px-4 py-2">Create Character</button>
         </div>
       </div>
     );
@@ -198,7 +196,7 @@ export default function CharacterPage() {
           ) : (
             <div>
               <p className="text-tribal-600 text-sm mb-2">No clan</p>
-              <Link href="/clans" className="text-tribal-400 hover:text-tribal-300 text-xs transition-colors">Join a clan →</Link>
+              <Link to="/clans" className="text-tribal-400 hover:text-tribal-300 text-xs transition-colors">Join a clan →</Link>
             </div>
           )}
         </div>
@@ -239,7 +237,7 @@ export default function CharacterPage() {
             return (
               <Link
                 key={action.href}
-                href={action.href}
+                to={action.href}
                 className="flex items-center justify-center gap-2 bg-tribal-900/40 hover:bg-tribal-800/40 transition-colors py-3 rounded-lg border border-tribal-800/20 hover:border-tribal-700/30"
               >
                 <Icon size={16} className="text-tribal-500" />

@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
@@ -187,7 +185,7 @@ export default function TownCentrePage() {
             return (
               <Link
                 key={link.href}
-                href={link.href}
+                to={link.href}
                 className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-tribal-900/30 border border-tribal-800/20 hover:bg-tribal-800/40 transition-colors"
               >
                 <Icon size={16} style={{ color: link.color }} />

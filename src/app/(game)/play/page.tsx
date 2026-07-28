@@ -1,8 +1,6 @@
-"use client";
-
 import { useAuth } from "@/lib/auth";
 import { useGame } from "@/lib/game";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -19,7 +17,7 @@ const backgrounds = [
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const { character, loading: gameLoading, createCharacter } = useGame();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [background, setBackground] = useState("hunter");
@@ -27,14 +25,14 @@ export default function Dashboard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!authLoading && !user) router.push("/login");
-  }, [user, authLoading, router]);
+    if (!authLoading && !user) navigate("/login");
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     if (!authLoading && !gameLoading && character) {
-      router.push("/character");
+      navigate("/character");
     }
-  }, [character, authLoading, gameLoading, router]);
+  }, [character, authLoading, gameLoading, navigate]);
 
   if (authLoading || gameLoading) {
     return <LoadingSkeleton />;

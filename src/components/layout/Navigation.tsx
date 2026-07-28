@@ -1,10 +1,7 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useGame } from "@/lib/game";
-import { usePathname } from "next/navigation";
 import {
   User,
   Map,
@@ -61,7 +58,7 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
   const { character } = useGame();
-  const pathname = usePathname();
+  const { pathname } = useLocation();
 
   if (!user) return null;
 
@@ -97,7 +94,7 @@ export function Navigation() {
                   return (
                     <Link
                       key={item.href}
-                      href={item.href}
+                      to={item.href}
                       className={`flex items-center gap-2.5 px-3 py-[0.4rem] text-[0.82rem] font-medium rounded-md transition-all duration-150 ${
                         active
                           ? "text-[#e6ddd2] bg-[rgba(192,78,32,0.1)]"
@@ -124,7 +121,7 @@ export function Navigation() {
         {character && (
           <div className="p-2.5 border-t border-[rgba(38,35,40,0.4)]">
             <Link
-              href="/character"
+              to="/character"
               className="flex items-center gap-2.5 p-2 hover:bg-[rgba(26,24,30,0.5)] transition-colors rounded-md"
             >
               <div className="w-9 h-9 bg-[#36291c] flex items-center justify-center text-xs font-bold text-[#b39b7c] rounded-md border border-[rgba(77,58,39,0.3)]">

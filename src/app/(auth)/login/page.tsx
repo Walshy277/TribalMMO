@@ -1,15 +1,13 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { Flame, LogIn } from "lucide-react";
 
 export default function LoginPage() {
   const { signIn, signInWithGoogle } = useAuth();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +26,7 @@ export default function LoginPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      router.push("/");
+      navigate("/");
     }
   };
 

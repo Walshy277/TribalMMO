@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { useGame } from "@/lib/game";
 import { Button } from "@/components/ui/Button";
@@ -91,19 +89,19 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             {!authLoading && !gameLoading && user && character ? (
-              <Link href="/character">
+              <Link to="/character">
                 <Button variant="primary" size="sm">
                   Play
                 </Button>
               </Link>
             ) : !authLoading && user ? (
-              <Link href="/play">
+              <Link to="/play">
                 <Button variant="primary" size="sm">
                   Play
                 </Button>
               </Link>
             ) : (
-              <Link href="/play">
+              <Link to="/play">
                 <Button variant="primary" size="sm">
                   Play Now
                 </Button>
@@ -131,7 +129,7 @@ export default function LandingPage() {
             <span className="text-[#c9a84c] text-sm font-medium">Free to play — browser-based</span>
           </div>
           <div className="flex items-center justify-center gap-4">
-            <Link href="/play">
+            <Link to="/play">
               <Button variant="primary" size="lg" icon={<ArrowRight size={18} />}>
                 Start Playing
               </Button>
@@ -296,7 +294,7 @@ export default function LandingPage() {
             Create your character, choose your background, and step into Nervella.
             Your clan is waiting.
           </p>
-          <Link href="/play">
+          <Link to="/play">
             <Button variant="primary" size="lg" icon={<ArrowRight size={18} />}>
               Start Your Journey
             </Button>
