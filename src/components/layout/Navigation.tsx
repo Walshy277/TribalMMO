@@ -12,13 +12,13 @@ import {
   Shield,
   Coins,
   Gavel,
-  Store,
   Gift,
   Menu,
   X,
-  Sparkles,
   TreePine,
   Mountain,
+  Sparkles,
+  Store,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -26,7 +26,7 @@ const navGroups = [
   {
     label: "You",
     items: [
-      { href: "/character", label: "Character", icon: User },
+      { href: "/profile", label: "Profile", icon: User },
       { href: "/inventory", label: "Inventory", icon: Backpack },
       { href: "/clans", label: "Clans", icon: Shield },
     ],
@@ -34,7 +34,9 @@ const navGroups = [
   {
     label: "World",
     items: [
+      { href: "/town-centre", label: "Town Centre", icon: Store },
       { href: "/exploration", label: "Explore", icon: Map },
+      { href: "/gathering", label: "Gather", icon: TreePine },
       { href: "/woodcutting", label: "Woodcutting", icon: TreePine },
       { href: "/mining", label: "Mining", icon: Mountain },
       { href: "/train", label: "Train", icon: Zap },
@@ -46,7 +48,7 @@ const navGroups = [
   {
     label: "Trade",
     items: [
-      { href: "/town-centre", label: "Town Centre", icon: Store },
+      { href: "/shops", label: "Shops", icon: Store },
       { href: "/marketplace", label: "Market", icon: Coins },
       { href: "/auction", label: "Auctions", icon: Gavel },
       { href: "/rewards", label: "Rewards", icon: Gift },
@@ -62,7 +64,7 @@ export function Navigation() {
 
   if (!user) return null;
 
-  const highestTier = character?.skills?.reduce((max, s) => Math.max(max, s.tier), 1) ?? 1;
+  const playerLevel = character?.level || 1;
 
   return (
     <>
@@ -121,7 +123,7 @@ export function Navigation() {
         {character && (
           <div className="p-2.5 border-t border-[rgba(38,35,40,0.4)]">
             <Link
-              to="/character"
+              to="/profile"
               className="flex items-center gap-2.5 p-2 hover:bg-[rgba(26,24,30,0.5)] transition-colors rounded-md"
             >
               <div className="w-9 h-9 bg-[#36291c] flex items-center justify-center text-xs font-bold text-[#b39b7c] rounded-md border border-[rgba(77,58,39,0.3)]">
@@ -129,7 +131,7 @@ export function Navigation() {
               </div>
               <div className="min-w-0">
                 <div className="text-[#cfc1ae] text-sm font-semibold truncate">{character.name}</div>
-                <div className="text-[#6e656c] text-xs">Tier {highestTier}</div>
+                <div className="text-[#6e656c] text-xs">Level {playerLevel}</div>
               </div>
             </Link>
           </div>

@@ -5,6 +5,7 @@ import { useAdmin } from "@/lib/admin";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Link } from "react-router-dom";
+import { ProtectedRoute } from "@/components/ui/PageGuard";
 import {
   LayoutDashboard,
   Users,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 import LandingPage from "@/app/page";
 import LoginPage from "@/app/(auth)/login/page";
@@ -34,8 +36,6 @@ import InventoryPage from "@/app/(game)/inventory/page";
 import MarketplacePage from "@/app/(game)/marketplace/page";
 import AuctionHousePage from "@/app/(game)/auction/page";
 import ShopsPage from "@/app/(game)/shops/page";
-import TownCentrePage from "@/app/(game)/town-centre/page";
-import ShrinePage from "@/app/(game)/shrine/page";
 import RewardsPage from "@/app/(game)/rewards/page";
 import ActionsPage from "@/app/(game)/actions/page";
 import ClansPage from "@/app/(game)/clans/page";
@@ -45,6 +45,9 @@ import AdminItemsPage from "@/app/admin/items/page";
 import AdminClansPage from "@/app/admin/clans/page";
 import AdminMarketplacePage from "@/app/admin/marketplace/page";
 import AdminToolsPage from "@/app/admin/tools/page";
+import GatheringPage from "@/app/(game)/gathering/page";
+import ShrinePage from "@/app/(game)/shrine/page";
+import TownCentrePage from "@/app/(game)/town-centre/page";
 
 function GameLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -70,6 +73,7 @@ const adminNavItems: { href: string; label: string; icon: LucideIcon }[] = [
 function AdminLayout({ children }: { children: React.ReactNode }) {
   const { isAdmin, loading } = useAdmin();
   const { signOut } = useAuth();
+  const { pathname } = useLocation();
 
   if (loading) {
     return (
@@ -105,12 +109,12 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 to={item.href}
                 className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-colors duration-100 ${
-                  item.href === "/admin"
+                  pathname === item.href
                     ? "text-[#e88] bg-[#8c2e2e]/[0.08]"
                     : "text-[#6e656c] hover:text-[#b39b7c] hover:bg-[#1a181e]"
                 }`}
               >
-                <Icon size={16} className={item.href === "/admin" ? "text-[#b83a3a]" : "text-[#4d3a27]"} />
+                <Icon size={16} className={pathname === item.href ? "text-[#b83a3a]" : "text-[#4d3a27]"} />
                 <span>{item.label}</span>
               </Link>
             );
@@ -168,23 +172,24 @@ export default function App() {
         <Route path="/login" element={<AuthLayout><LoginPage /></AuthLayout>} />
         <Route path="/signup" element={<AuthLayout><SignupPage /></AuthLayout>} />
 
-        <Route path="/play" element={<GameLayout><Dashboard /></GameLayout>} />
-        <Route path="/character" element={<GameLayout><CharacterPage /></GameLayout>} />
-        <Route path="/train" element={<GameLayout><TrainPage /></GameLayout>} />
-        <Route path="/woodcutting" element={<GameLayout><WoodcuttingPage /></GameLayout>} />
-        <Route path="/mining" element={<GameLayout><MiningPage /></GameLayout>} />
-        <Route path="/crafting" element={<GameLayout><CraftingPage /></GameLayout>} />
-        <Route path="/combat" element={<GameLayout><CombatPage /></GameLayout>} />
-        <Route path="/exploration" element={<GameLayout><ExplorationPage /></GameLayout>} />
-        <Route path="/inventory" element={<GameLayout><InventoryPage /></GameLayout>} />
-        <Route path="/marketplace" element={<GameLayout><MarketplacePage /></GameLayout>} />
-        <Route path="/auction" element={<GameLayout><AuctionHousePage /></GameLayout>} />
-        <Route path="/shops" element={<GameLayout><ShopsPage /></GameLayout>} />
-        <Route path="/town-centre" element={<GameLayout><TownCentrePage /></GameLayout>} />
-        <Route path="/shrine" element={<GameLayout><ShrinePage /></GameLayout>} />
-        <Route path="/rewards" element={<GameLayout><RewardsPage /></GameLayout>} />
-        <Route path="/actions" element={<GameLayout><ActionsPage /></GameLayout>} />
-        <Route path="/clans" element={<GameLayout><ClansPage /></GameLayout>} />
+        <Route path="/play" element={<ProtectedRoute><GameLayout><Dashboard /></GameLayout></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><GameLayout><CharacterPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/train" element={<ProtectedRoute><GameLayout><TrainPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/woodcutting" element={<ProtectedRoute><GameLayout><WoodcuttingPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/mining" element={<ProtectedRoute><GameLayout><MiningPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/crafting" element={<ProtectedRoute><GameLayout><CraftingPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/combat" element={<ProtectedRoute><GameLayout><CombatPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/exploration" element={<ProtectedRoute><GameLayout><ExplorationPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/inventory" element={<ProtectedRoute><GameLayout><InventoryPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/marketplace" element={<ProtectedRoute><GameLayout><MarketplacePage /></GameLayout></ProtectedRoute>} />
+        <Route path="/auction" element={<ProtectedRoute><GameLayout><AuctionHousePage /></GameLayout></ProtectedRoute>} />
+        <Route path="/shops" element={<ProtectedRoute><GameLayout><ShopsPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/gathering" element={<ProtectedRoute><GameLayout><GatheringPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/shrine" element={<ProtectedRoute><GameLayout><ShrinePage /></GameLayout></ProtectedRoute>} />
+        <Route path="/town-centre" element={<ProtectedRoute><GameLayout><TownCentrePage /></GameLayout></ProtectedRoute>} />
+        <Route path="/rewards" element={<ProtectedRoute><GameLayout><RewardsPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/actions" element={<ProtectedRoute><GameLayout><ActionsPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/clans" element={<ProtectedRoute><GameLayout><ClansPage /></GameLayout></ProtectedRoute>} />
 
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/admin/players" element={<AdminRoute><AdminPlayersPage /></AdminRoute>} />
