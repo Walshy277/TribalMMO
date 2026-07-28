@@ -5,7 +5,7 @@ import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { StaminaBar } from "@/components/ui/StaminaBar";
-import { Mountain, Clock, Coins, AlertTriangle } from "lucide-react";
+import { Mountain, Clock, AlertTriangle } from "lucide-react";
 
 interface MiningNode {
   id: string;
@@ -16,14 +16,15 @@ interface MiningNode {
   staminaCost: number;
   requiredTier: number;
   description: string;
+  drops: { name: string; min: number; max: number; chance: number }[];
 }
 
 const miningNodes: MiningNode[] = [
-  { id: "copper_vein", name: "Copper Vein", xp: 8, gold: 2, duration: 15, staminaCost: 8, requiredTier: 1, description: "Common copper deposits near the surface" },
-  { id: "iron_vein", name: "Iron Vein", xp: 15, gold: 4, duration: 25, staminaCost: 12, requiredTier: 2, description: "Solid iron ore for tools and weapons" },
-  { id: "coal_vein", name: "Coal Vein", xp: 12, gold: 3, duration: 20, staminaCost: 10, requiredTier: 2, description: "Essential fuel for smelting" },
-  { id: "silver_vein", name: "Silver Vein", xp: 30, gold: 8, duration: 35, staminaCost: 15, requiredTier: 3, description: "Precious silver for jewelry" },
-  { id: "gold_vein", name: "Gold Vein", xp: 50, gold: 15, duration: 50, staminaCost: 20, requiredTier: 4, description: "Rare gold deposits deep underground" },
+  { id: "copper_vein", name: "Copper Vein", xp: 8, gold: 2, duration: 15, staminaCost: 8, requiredTier: 1, description: "Common copper deposits near the surface", drops: [{ name: "Copper Ore", min: 2, max: 4, chance: 1 }, { name: "Stone", min: 1, max: 2, chance: 0.6 }] },
+  { id: "iron_vein", name: "Iron Vein", xp: 15, gold: 4, duration: 25, staminaCost: 12, requiredTier: 2, description: "Solid iron ore for tools and weapons", drops: [{ name: "Iron Ore", min: 2, max: 4, chance: 1 }, { name: "Stone", min: 1, max: 3, chance: 0.7 }] },
+  { id: "coal_vein", name: "Coal Vein", xp: 12, gold: 3, duration: 20, staminaCost: 10, requiredTier: 2, description: "Essential fuel for smelting", drops: [{ name: "Coal", min: 2, max: 5, chance: 1 }] },
+  { id: "silver_vein", name: "Silver Vein", xp: 30, gold: 8, duration: 35, staminaCost: 15, requiredTier: 3, description: "Precious silver for jewelry", drops: [{ name: "Silver Ore", min: 1, max: 3, chance: 1 }, { name: "Gemstone", min: 0, max: 1, chance: 0.15 }] },
+  { id: "gold_vein", name: "Gold Vein", xp: 50, gold: 15, duration: 50, staminaCost: 20, requiredTier: 4, description: "Rare gold deposits deep underground", drops: [{ name: "Gold Ore", min: 1, max: 3, chance: 1 }, { name: "Gemstone", min: 0, max: 1, chance: 0.25 }, { name: "Diamond", min: 0, max: 1, chance: 0.05 }] },
 ];
 
 export default function MiningPage() {
@@ -90,13 +91,37 @@ export default function MiningPage() {
       .update({ gold: character.gold + node.gold })
       .eq("id", character.id);
 
+    // Add dropped items to inventory
+    const droppedItems: { name: string; quantity: number }[] = [];
+    for (const drop of node.drops) {
+      if (Math.random() <= drop.chance) {
+        const qty = Math.floor(Math.random() * (drop.max - drop.min + 1)) + drop.min;
+        if (qty <= 0) continue;
+        const existingItem = await supabase.from("items").select("id").eq("name", drop.name).single();
+        let itemId = existingItem.data?.id;
+        if (!itemId) {
+          const { data: newItem } = await supabase.from("items").insert({ name: drop.name, type: "resource", tier: 1 }).select("id").single();
+          itemId = newItem?.id;
+        }
+        if (!itemId) continue;
+        const existingInv = await supabase.from("inventory").select("id, quantity").eq("character_id", character.id).eq("item_id", itemId).single();
+        if (existingInv.data) {
+          await supabase.from("inventory").update({ quantity: existingInv.data.quantity + qty }).eq("id", existingInv.data.id);
+        } else {
+          await supabase.from("inventory").insert({ character_id: character.id, item_id: itemId, quantity: qty });
+        }
+        droppedItems.push({ name: drop.name, quantity: qty });
+      }
+    }
+
     // Log transaction
+    const itemText = droppedItems.map((d) => `${d.name} x${d.quantity}`).join(", ");
     await supabase.from("transactions").insert({
       character_id: character.id,
       type: "mining",
       amount: node.gold,
-      description: `Mined ${node.name} (+${node.gold} gold, +${node.xp} XP)`,
-      metadata: { node: node.id, xp: node.xp },
+      description: `Mined ${node.name} (+${node.gold} gold, +${node.xp} XP, ${itemText})`,
+      metadata: { node: node.id, xp: node.xp, items: droppedItems },
     });
 
     await refreshCharacter();

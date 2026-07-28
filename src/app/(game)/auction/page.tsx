@@ -241,7 +241,9 @@ export default function AuctionHousePage() {
       }
 
       if (auction.current_bidder_id) {
-        const { error: refundError } = await supabase.from("characters").update({ gold: character.gold + auction.current_bid }).eq("id", auction.current_bidder_id);
+        const { data: bidder } = await supabase.from("characters").select("gold").eq("id", auction.current_bidder_id).single();
+        const bidderGold = bidder?.gold ?? 0;
+        const { error: refundError } = await supabase.from("characters").update({ gold: bidderGold + auction.current_bid }).eq("id", auction.current_bidder_id);
         if (refundError) console.error("Failed to refund bidder:", refundError);
       }
     }

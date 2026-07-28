@@ -80,6 +80,47 @@ export default function ExplorationPage() {
       .eq("id", character.id);
     if (error) console.error("Failed to update stamina:", error);
 
+    // Grant Survival XP for exploration
+    const survivalSkill = character.skills?.find((s) => s.name === "Survival");
+    if (survivalSkill) {
+      const xpGain = 3;
+      const newXp = survivalSkill.experience + xpGain;
+      const maxXP = survivalSkill.tier * 100;
+      const newTier = newXp >= maxXP && survivalSkill.tier < 5 ? survivalSkill.tier + 1 : survivalSkill.tier;
+      await supabase.from("skills").update({ experience: newXp, tier: newTier }).eq("id", survivalSkill.id);
+    }
+
+    // Add items from resource events
+    if (event.type === "resource") {
+      const resourceMap: Record<string, { name: string; qty: number }> = {
+        "You found some wood!": { name: "Wood", qty: 2 },
+        "You gathered a handful of herbs.": { name: "Herbs", qty: 1 },
+        "You discovered a stone deposit.": { name: "Stone", qty: 2 },
+        "You find a patch of medicinal herbs.": { name: "Herbs", qty: 2 },
+      };
+      const resource = resourceMap[event.text];
+      if (resource) {
+        const existingItem = await supabase.from("items").select("id").eq("name", resource.name).single();
+        let itemId = existingItem.data?.id;
+        if (!itemId) {
+          const { data: newItem } = await supabase.from("items").insert({ name: resource.name, type: "resource", tier: 1 }).select("id").single();
+          itemId = newItem?.id;
+        }
+        if (itemId) {
+          const existingInv = await supabase.from("inventory").select("id, quantity").eq("character_id", character.id).eq("item_id", itemId).single();
+          if (existingInv.data) {
+            await supabase.from("inventory").update({ quantity: existingInv.data.quantity + resource.qty }).eq("id", existingInv.data.id);
+          } else {
+            await supabase.from("inventory").insert({ character_id: character.id, item_id: itemId, quantity: resource.qty });
+          }
+        }
+      }
+    }
+
+    // Small gold reward for exploration
+    const goldReward = Math.floor(Math.random() * 3) + 1;
+    await supabase.from("characters").update({ gold: character.gold + goldReward }).eq("id", character.id);
+
     addLog({ text: `[${zones[zone].name}] ${event.text}`, icon: event.icon, color: event.color });
 
     if (event.type === "encounter") {

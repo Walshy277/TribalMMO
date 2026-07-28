@@ -9,7 +9,7 @@ import { typeIcons } from "@/lib/constants";
 import { Alert } from "@/components/ui/Alert";
 import type { LucideIcon } from "lucide-react";
 
-const slotTypes: Record<string, string> = { weapon: "weapon", armor: "armor" };
+const slotTypes: Record<string, string> = { weapon: "weapon", armor: "armor", accessory: "accessory" };
 
 interface ItemDetail {
   name: string;
@@ -35,6 +35,7 @@ export default function InventoryPage() {
 
   const equippedWeapon = character.inventory.find((inv) => inv.equipped && inv.item?.type === "weapon");
   const equippedArmor = character.inventory.find((inv) => inv.equipped && inv.item?.type === "armor");
+  const equippedAccessory = character.inventory.find((inv) => inv.equipped && inv.item?.type === "accessory");
 
   const unequippedItems = character.inventory.filter((inv) => !inv.equipped && inv.quantity > 0);
   const totalAttackBonus = equippedWeapon ? (equippedWeapon.item?.stats as Record<string, number>)?.attack || 0 : 0;
@@ -167,7 +168,7 @@ export default function InventoryPage() {
 
       <div className="card">
         <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Equipment</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className={`bg-tribal-900/40 p-5 rounded-lg border text-center transition-colors ${
             equippedWeapon ? "border-[#2d6e44]/30 hover:border-[#2d6e44]/40" : "border-tribal-800/20"
           }`}>
@@ -205,6 +206,32 @@ export default function InventoryPage() {
               <>
                 <div className="text-tribal-100 font-semibold mt-1">Cloth Wrap</div>
                 <div className="text-tribal-700 text-xs mt-1">DEF +0</div>
+              </>
+            )}
+          </div>
+          <div className={`bg-tribal-900/40 p-5 rounded-lg border text-center transition-colors ${
+            equippedAccessory ? "border-[#2d6e44]/30 hover:border-[#2d6e44]/40" : "border-tribal-800/20"
+          }`}>
+            <FlaskConical size={28} className={`mx-auto mb-2 ${equippedAccessory ? "text-[#4a9e6a]" : "text-tribal-600"}`} />
+            <div className="text-tribal-600 text-[11px] uppercase font-bold tracking-wider">Accessory</div>
+            {equippedAccessory ? (
+              <>
+                <div className="text-tribal-100 font-semibold mt-1">{equippedAccessory.item?.name}</div>
+                <div className="text-[#4a9e6a] text-xs mt-1">
+                  {(() => {
+                    const stats = equippedAccessory.item?.stats as Record<string, number>;
+                    if (!stats) return null;
+                    return Object.entries(stats).map(([k, v]) => `${k.slice(0, 3).toUpperCase()} +${v}`).join(" ");
+                  })()}
+                </div>
+                <Button variant="ghost" size="sm" className="mt-2" onClick={() => unequipItem(equippedAccessory.id)} loading={loading}>
+                  Unequip
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="text-tribal-100 font-semibold mt-1">Empty Slot</div>
+                <div className="text-tribal-700 text-xs mt-1">No bonuses</div>
               </>
             )}
           </div>

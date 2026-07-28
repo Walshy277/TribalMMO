@@ -5,7 +5,7 @@ import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { StaminaBar } from "@/components/ui/StaminaBar";
-import { TreePine, Clock, Coins, AlertTriangle } from "lucide-react";
+import { TreePine, Clock, AlertTriangle } from "lucide-react";
 
 interface WoodcuttingNode {
   id: string;
@@ -16,14 +16,15 @@ interface WoodcuttingNode {
   staminaCost: number;
   requiredTier: number;
   description: string;
+  drops: { name: string; min: number; max: number; chance: number }[];
 }
 
 const woodcuttingNodes: WoodcuttingNode[] = [
-  { id: "normal_tree", name: "Normal Tree", xp: 5, gold: 1, duration: 10, staminaCost: 5, requiredTier: 1, description: "Common trees found throughout the forest" },
-  { id: "oak_tree", name: "Oak Tree", xp: 10, gold: 2, duration: 15, staminaCost: 8, requiredTier: 1, description: "Sturdy oak with dense wood" },
-  { id: "willow_tree", name: "Willow Tree", xp: 15, gold: 3, duration: 20, staminaCost: 10, requiredTier: 2, description: "Flexible willow near water sources" },
-  { id: "maple_tree", name: "Maple Tree", xp: 25, gold: 5, duration: 30, staminaCost: 12, requiredTier: 3, description: "Valued for syrup and hard timber" },
-  { id: "yew_tree", name: "Yew Tree", xp: 40, gold: 8, duration: 45, staminaCost: 15, requiredTier: 4, description: "Ancient yew with magical properties" },
+  { id: "normal_tree", name: "Normal Tree", xp: 5, gold: 1, duration: 10, staminaCost: 5, requiredTier: 1, description: "Common trees found throughout the forest", drops: [{ name: "Wood", min: 2, max: 5, chance: 1 }, { name: "Normal Log", min: 1, max: 2, chance: 0.7 }] },
+  { id: "oak_tree", name: "Oak Tree", xp: 10, gold: 2, duration: 15, staminaCost: 8, requiredTier: 1, description: "Sturdy oak with dense wood", drops: [{ name: "Wood", min: 1, max: 3, chance: 0.8 }, { name: "Oak Log", min: 1, max: 3, chance: 1 }] },
+  { id: "willow_tree", name: "Willow Tree", xp: 15, gold: 3, duration: 20, staminaCost: 10, requiredTier: 2, description: "Flexible willow near water sources", drops: [{ name: "Wood", min: 2, max: 4, chance: 0.9 }, { name: "Willow Log", min: 1, max: 3, chance: 1 }] },
+  { id: "maple_tree", name: "Maple Tree", xp: 25, gold: 5, duration: 30, staminaCost: 12, requiredTier: 3, description: "Valued for syrup and hard timber", drops: [{ name: "Wood", min: 3, max: 5, chance: 1 }, { name: "Maple Log", min: 1, max: 3, chance: 1 }] },
+  { id: "yew_tree", name: "Yew Tree", xp: 40, gold: 8, duration: 45, staminaCost: 15, requiredTier: 4, description: "Ancient yew with magical properties", drops: [{ name: "Wood", min: 4, max: 6, chance: 1 }, { name: "Yew Log", min: 1, max: 2, chance: 1 }] },
 ];
 
 export default function WoodcuttingPage() {
@@ -90,13 +91,36 @@ export default function WoodcuttingPage() {
       .update({ gold: character.gold + node.gold })
       .eq("id", character.id);
 
+    // Add dropped items to inventory
+    const droppedItems: { name: string; quantity: number }[] = [];
+    for (const drop of node.drops) {
+      if (Math.random() <= drop.chance) {
+        const qty = Math.floor(Math.random() * (drop.max - drop.min + 1)) + drop.min;
+        const existingItem = await supabase.from("items").select("id").eq("name", drop.name).single();
+        let itemId = existingItem.data?.id;
+        if (!itemId) {
+          const { data: newItem } = await supabase.from("items").insert({ name: drop.name, type: "resource", tier: 1 }).select("id").single();
+          itemId = newItem?.id;
+        }
+        if (!itemId) continue;
+        const existingInv = await supabase.from("inventory").select("id, quantity").eq("character_id", character.id).eq("item_id", itemId).single();
+        if (existingInv.data) {
+          await supabase.from("inventory").update({ quantity: existingInv.data.quantity + qty }).eq("id", existingInv.data.id);
+        } else {
+          await supabase.from("inventory").insert({ character_id: character.id, item_id: itemId, quantity: qty });
+        }
+        droppedItems.push({ name: drop.name, quantity: qty });
+      }
+    }
+
     // Log transaction
+    const itemText = droppedItems.map((d) => `${d.name} x${d.quantity}`).join(", ");
     await supabase.from("transactions").insert({
       character_id: character.id,
       type: "woodcutting",
       amount: node.gold,
-      description: `Gathered ${node.name} (+${node.gold} gold, +${node.xp} XP)`,
-      metadata: { node: node.id, xp: node.xp },
+      description: `Gathered ${node.name} (+${node.gold} gold, +${node.xp} XP, ${itemText})`,
+      metadata: { node: node.id, xp: node.xp, items: droppedItems },
     });
 
     await refreshCharacter();

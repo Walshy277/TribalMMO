@@ -18,6 +18,8 @@ import {
   Package,
   AlertTriangle,
   Coins,
+  TreePine,
+  Hammer,
 } from "lucide-react";
 
 interface TrainResult {
@@ -48,6 +50,8 @@ const activities: Activity[] = [
   { id: "sprinting", name: "Sprinting", desc: "Run laps around the village for stamina", skill: "Survival", icon: Footprints, color: "#6a90a8" },
   { id: "foraging", name: "Foraging", desc: "Search the wilds for useful plants and herbs", skill: "Gathering", icon: Leaf, color: "#4a9e6a" },
   { id: "study", name: "Study", desc: "Read ancient texts to improve your craft", skill: "Crafting", icon: BookOpen, color: "#c9a84c" },
+  { id: "chopping_drill", name: "Chopping Drill", desc: "Practice axe techniques for woodcutting efficiency", skill: "Woodcutting", icon: TreePine, color: "#4a9e6a" },
+  { id: "mining_practice", name: "Mining Practice", desc: "Study ore veins and practice mining techniques", skill: "Mining", icon: Hammer, color: "#8a7a6a" },
 ];
 
 export default function TrainPage() {

@@ -103,6 +103,24 @@ export default function ActionsPage() {
         selected.push({ name: "Wood", quantity: 2 });
       }
       resultPayload.resources = selected;
+    } else if (type === "crafting") {
+      // Pick a random crafting result based on current crafting tier
+      const craftingSkill = character.skills?.find((s) => s.name === "Crafting");
+      const tier = craftingSkill?.tier || 1;
+      const craftingResults = [
+        { name: "Stone Axe", type: "weapon", tier: 1, stats: { attack: 3 } },
+        { name: "Wooden Spear", type: "weapon", tier: 1, stats: { attack: 4 } },
+        { name: "Hide Armor", type: "armor", tier: 1, stats: { defense: 3 } },
+        { name: "Bone Knife", type: "weapon", tier: 1, stats: { attack: 2 } },
+        { name: "Stone Hammer", type: "tool", tier: 2, stats: { crafting_speed: 2 } },
+        { name: "Reinforced Armor", type: "armor", tier: 2, stats: { defense: 7 } },
+        { name: "Bow", type: "weapon", tier: 2, stats: { attack: 6 } },
+      ].filter((r) => r.tier <= tier);
+      const result = craftingResults[Math.floor(Math.random() * craftingResults.length)];
+      resultPayload.item_name = result.name;
+      resultPayload.item_type = result.type;
+      resultPayload.item_tier = result.tier;
+      resultPayload.item_stats = result.stats;
     }
 
     // Deduct stamina
@@ -171,7 +189,7 @@ export default function ActionsPage() {
       await logTransaction(character.id, "action_reward", coinReward, `Gathering completion reward`);
       rewards.push({ itemName: "Coins", quantity: coinReward });
     } else if (action.type === "crafting") {
-      const result = action.result as { item_name?: string; item_type?: string; stats?: Record<string, number>; tier?: number } | null;
+      const result = action.result as { item_name?: string; item_type?: string; item_tier?: number; item_stats?: Record<string, number> } | null;
       if (result?.item_name) {
         const existingItem = await supabase.from("items").select("id").eq("name", result.item_name).single();
         let itemId = existingItem.data?.id;
@@ -179,8 +197,8 @@ export default function ActionsPage() {
           const { data: newItem } = await supabase.from("items").insert({
             name: result.item_name,
             type: result.item_type || "weapon",
-            tier: result.tier || 1,
-            stats: result.stats || {},
+            tier: result.item_tier || 1,
+            stats: result.item_stats || {},
           }).select("id").single();
           itemId = newItem?.id;
         }

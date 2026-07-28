@@ -175,11 +175,12 @@ export default function TownCentrePage() {
         <h2 className="text-sm font-bold text-tribal-300 mb-3" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>
           Quick Links
         </h2>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {[
             { href: "/shops", label: "Shops", icon: Store, color: "#c9a84c" },
             { href: "/shrine", label: "Shrine", icon: Shield, color: "#8a6aaa" },
-            { href: "/gathering", label: "Gather", icon: TreePine, color: "#4a9e6a" },
+            { href: "/woodcutting", label: "Woodcutting", icon: TreePine, color: "#4a9e6a" },
+            { href: "/mining", label: "Mining", icon: Hammer, color: "#8a7a6a" },
             { href: "/combat", label: "Combat", icon: Swords, color: "#b83a3a" },
           ].map((link) => {
             const Icon = link.icon;

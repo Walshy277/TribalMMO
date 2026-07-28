@@ -16,16 +16,17 @@ interface EnemyDef {
   atk: number;
   def: number;
   xp: number;
+  gold: number;
   flavor: string;
 }
 
 const enemies: EnemyDef[] = [
-  { name: "Wild Boar", icon: Shield, hp: 15, atk: 3, def: 1, xp: 10, flavor: "It charges with tusks bared!" },
-  { name: "Angry Wolf", icon: Shield, hp: 20, atk: 4, def: 2, xp: 15, flavor: "It snarls and circles you." },
-  { name: "Forest Bear", icon: Shield, hp: 35, atk: 6, def: 3, xp: 25, flavor: "A massive bear blocks your path." },
-  { name: "Rival Scout", icon: Swords, hp: 18, atk: 5, def: 2, xp: 20, flavor: "A rival clan scout challenges you." },
-  { name: "River Serpent", icon: Shield, hp: 12, atk: 3, def: 1, xp: 12, flavor: "A serpent lunges from the water!" },
-  { name: "Stone Golem", icon: Shield, hp: 40, atk: 4, def: 5, xp: 30, flavor: "An ancient golem awakens." },
+  { name: "Wild Boar", icon: Shield, hp: 15, atk: 3, def: 1, xp: 10, gold: 3, flavor: "It charges with tusks bared!" },
+  { name: "Angry Wolf", icon: Shield, hp: 20, atk: 4, def: 2, xp: 15, gold: 5, flavor: "It snarls and circles you." },
+  { name: "Forest Bear", icon: Shield, hp: 35, atk: 6, def: 3, xp: 25, gold: 10, flavor: "A massive bear blocks your path." },
+  { name: "Rival Scout", icon: Swords, hp: 18, atk: 5, def: 2, xp: 20, gold: 8, flavor: "A rival clan scout challenges you." },
+  { name: "River Serpent", icon: Shield, hp: 12, atk: 3, def: 1, xp: 12, gold: 4, flavor: "A serpent lunges from the water!" },
+  { name: "Stone Golem", icon: Shield, hp: 40, atk: 4, def: 5, xp: 30, gold: 15, flavor: "An ancient golem awakens." },
 ];
 
 interface CombatState {
@@ -144,6 +145,15 @@ export default function CombatPage() {
           await supabase.from("skills").update({ experience: skill.experience + combat.enemy.xp }).eq("id", skill.id);
         }
       }
+      // Award gold
+      await supabase.from("characters").update({ gold: character.gold + combat.enemy.gold }).eq("id", character.id);
+      await supabase.from("transactions").insert({
+        character_id: character.id,
+        type: "combat_reward",
+        amount: combat.enemy.gold,
+        description: `Defeated ${combat.enemy.name} (+${combat.enemy.gold} gold, +${combat.enemy.xp} XP)`,
+        metadata: { enemy: combat.enemy.name, xp: combat.enemy.xp, gold: combat.enemy.gold },
+      });
       await refreshCharacter();
     } else if (combat.result === "lost") {
       const newStamina = Math.max(0, character.computed_stamina - 15);

@@ -14,7 +14,7 @@ const philosophies: { id: string; name: string; bonuses: string[]; icon: LucideI
   { 
     id: "warborn", 
     name: "Warborn", 
-    bonuses: ["+10% combat damage", "+5% XP from combat", "Clan members deal bonus damage equal to clan size / 10"],
+    bonuses: ["+2 ATK, +1 STR (flat combat bonus)"],
     icon: Swords, 
     desc: "Strength through battle. Warborn clans dominate in PvP and PvE combat.",
     playstyle: "Aggressive combat-focused. Best for players who love fighting."
@@ -22,7 +22,7 @@ const philosophies: { id: string; name: string; bonuses: string[]; icon: LucideI
   { 
     id: "earthkeepers", 
     name: "Earthkeepers", 
-    bonuses: ["+15% gathering yield", "+10% crafting speed", "Unlock rare herb recipes at Tier II"],
+    bonuses: ["+2 END, +1 DEF (flat defence bonus)"],
     icon: Globe, 
     desc: "Harmony with nature. Earthkeepers gather more, craft better, and heal faster.",
     playstyle: "Economy and crafting. Best for resource-focused players."
@@ -30,7 +30,7 @@ const philosophies: { id: string; name: string; bonuses: string[]; icon: LucideI
   { 
     id: "pathfinders", 
     name: "Pathfinders", 
-    bonuses: ["+20% exploration rewards", "Chance to find rare items while exploring", "+10% stamina regen speed"],
+    bonuses: ["+2 AGI, +1 CUN (flat agility bonus)"],
     icon: Compass, 
     desc: "Masters of exploration. Pathfinders discover more, travel farther, and find treasures others miss.",
     playstyle: "Exploration and discovery. Best for adventurous players."
