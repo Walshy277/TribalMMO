@@ -1,5 +1,3 @@
-"use client";
-
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
@@ -9,24 +7,23 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Alert } from "@/components/ui/Alert";
 import {
   Swords,
-  Brain,
   Dumbbell,
-  Footprints,
-  Leaf,
-  BookOpen,
+  Shield,
+  Heart,
   Zap,
   Package,
   AlertTriangle,
   Coins,
   TreePine,
   Hammer,
+  Mountain,
 } from "lucide-react";
 
 interface TrainResult {
   skill: string;
   skill_name: string;
   xp_gained: number;
-  tier: number;
+  level: number;
   item_name: string | null;
   item_qty: number;
   coin_reward: number;
@@ -39,19 +36,20 @@ interface Activity {
   name: string;
   desc: string;
   skill: string;
+  stat: string;
   icon: typeof Swords;
   color: string;
 }
 
 const activities: Activity[] = [
-  { id: "sparring", name: "Sparring", desc: "Fight training dummies to hone combat skills", skill: "Combat", icon: Swords, color: "#b83a3a" },
-  { id: "meditation", name: "Meditation", desc: "Quiet reflection to sharpen your mind", skill: "Diplomacy", icon: Brain, color: "#8a6aaa" },
-  { id: "conditioning", name: "Conditioning", desc: "Physical training to build endurance", skill: "Survival", icon: Dumbbell, color: "#6a90a8" },
-  { id: "sprinting", name: "Sprinting", desc: "Run laps around the village for stamina", skill: "Survival", icon: Footprints, color: "#6a90a8" },
-  { id: "foraging", name: "Foraging", desc: "Search the wilds for useful plants and herbs", skill: "Gathering", icon: Leaf, color: "#4a9e6a" },
-  { id: "study", name: "Study", desc: "Read ancient texts to improve your craft", skill: "Crafting", icon: BookOpen, color: "#c9a84c" },
-  { id: "chopping_drill", name: "Chopping Drill", desc: "Practice axe techniques for woodcutting efficiency", skill: "Woodcutting", icon: TreePine, color: "#4a9e6a" },
-  { id: "mining_practice", name: "Mining Practice", desc: "Study ore veins and practice mining techniques", skill: "Mining", icon: Hammer, color: "#8a7a6a" },
+  { id: "sparring", name: "Sparring", desc: "Fight training dummies to hone combat skills", skill: "Combat", stat: "strength", icon: Swords, color: "#b83a3a" },
+  { id: "conditioning", name: "Conditioning", desc: "Physical training to build resilience", skill: "Combat", stat: "defence", icon: Shield, color: "#6a90a8" },
+  { id: "sprinting", name: "Sprinting", desc: "Run laps around the village for speed", skill: "Combat", stat: "speed", icon: Zap, color: "#4a9e6a" },
+  { id: "vitality", name: "Vitality Training", desc: "Push your body to increase vitality", skill: "Combat", stat: "vitality", icon: Heart, color: "#c9a84c" },
+  { id: "foraging", name: "Foraging", desc: "Search the wilds for useful plants and herbs", skill: "Gathering", stat: "strength", icon: Package, color: "#4a9e6a" },
+  { id: "study", name: "Study", desc: "Read ancient texts to improve your craft", skill: "Crafting", stat: "strength", icon: Hammer, color: "#c9a84c" },
+  { id: "chopping_drill", name: "Chopping Drill", desc: "Practice axe techniques for woodcutting efficiency", skill: "Woodcutting", stat: "strength", icon: TreePine, color: "#4a9e6a" },
+  { id: "mining_practice", name: "Mining Practice", desc: "Study ore veins and practice mining techniques", skill: "Mining", stat: "strength", icon: Mountain, color: "#8a7a6a" },
 ];
 
 export default function TrainPage() {
@@ -69,12 +67,12 @@ export default function TrainPage() {
     return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
   }
 
-  const getSkillTier = (name: string) => character.skills?.find((s) => s.name === name)?.tier || 1;
+  const getSkillLevel = (name: string) => character.skills?.find((s) => s.name === name)?.level || 1;
   const getSkillXp = (name: string) => character.skills?.find((s) => s.name === name)?.experience || 0;
 
   const getStaminaCost = (activity: Activity) => {
-    const tier = getSkillTier(activity.skill);
-    return 8 + Math.max(0, (tier - 1) * 2) + (["sparring", "sprinting"].includes(activity.id) ? 2 : 0);
+    const level = getSkillLevel(activity.skill);
+    return 8 + Math.max(0, (level - 1) * 2) + (["sparring", "sprinting"].includes(activity.id) ? 2 : 0);
   };
 
   const train = async (activity: Activity) => {
@@ -101,11 +99,31 @@ export default function TrainPage() {
     setTraining(false);
   };
 
+  const statColor = (stat: string) => {
+    switch (stat) {
+      case "strength": return "text-[#b83a3a]";
+      case "defence": return "text-[#6a90a8]";
+      case "speed": return "text-[#4a9e6a]";
+      case "vitality": return "text-[#c9a84c]";
+      default: return "text-tribal-300";
+    }
+  };
+
+  const getStatValue = (stat: string) => {
+    switch (stat) {
+      case "strength": return character.strength;
+      case "defence": return character.defence;
+      case "speed": return character.speed;
+      case "vitality": return character.vitality;
+      default: return 0;
+    }
+  };
+
   return (
     <div className="space-y-5 animate-fade-in max-w-3xl">
       <SectionHeader
         title="Train"
-        subtitle="Hone your skills through dedicated practice"
+        subtitle="Hone your skills and strengthen your core stats"
         right={sessionCount > 0 ? (
           <div className="text-tribal-500 text-xs bg-tribal-900/60 px-3 py-1.5 rounded-lg border border-tribal-800/30">
             {sessionCount} session{sessionCount !== 1 ? "s" : ""} today
@@ -154,15 +172,41 @@ export default function TrainPage() {
         </div>
       )}
 
+      {/* Core Stats Display */}
+      <div className="card">
+        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Core Stats</h2>
+        <p className="text-tribal-600 text-xs mb-3">Infinitely scaling — train to grow stronger</p>
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { key: "strength", label: "STR", icon: Dumbbell },
+            { key: "defence", label: "DEF", icon: Shield },
+            { key: "speed", label: "SPD", icon: Zap },
+            { key: "vitality", label: "VIT", icon: Heart },
+          ].map((stat) => {
+            const Icon = stat.icon;
+            const color = statColor(stat.key);
+            const value = getStatValue(stat.key);
+            return (
+              <div key={stat.key} className="text-center bg-tribal-900/40 py-2 rounded-lg border border-tribal-800/20">
+                <Icon size={14} className={`mx-auto mb-0.5 ${color}`} />
+                <div className="text-tribal-600 text-[9px] font-bold uppercase">{stat.label}</div>
+                <div className={`text-lg font-bold ${color}`}>{value}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="space-y-2">
         {activities.map((activity) => {
           const Icon = activity.icon;
-          const tier = getSkillTier(activity.skill);
+          const level = getSkillLevel(activity.skill);
           const xp = getSkillXp(activity.skill);
-          const xpMax = tier * 100;
+          const xpMax = level * 100;
           const xpPct = Math.min((xp / xpMax) * 100, 100);
           const cost = getStaminaCost(activity);
           const canTrain = character.computed_stamina >= cost && !training;
+          const statValue = getStatValue(activity.stat);
 
           return (
             <div
@@ -180,7 +224,10 @@ export default function TrainPage() {
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-tribal-200 font-semibold text-sm">{activity.name}</span>
                   <span className="text-tribal-600 text-[10px] font-bold bg-tribal-900/60 px-1.5 py-0.5 rounded border border-tribal-800/20">
-                    {activity.skill} Tier {tier}
+                    {activity.skill} Lv.{level}
+                  </span>
+                  <span className={`text-[10px] font-bold ${statColor(activity.stat)}`}>
+                    {activity.stat.toUpperCase()} {statValue}
                   </span>
                 </div>
                 <p className="text-tribal-500 text-xs mb-1.5">{activity.desc}</p>
@@ -211,7 +258,7 @@ export default function TrainPage() {
         <h2 className="text-sm font-bold text-tribal-300 mb-3" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>Skill Overview</h2>
         <div className="space-y-2">
           {character.skills?.map((skill) => {
-            const max = skill.tier * 100;
+            const max = skill.level * 100;
             const pct = Math.min((skill.experience / max) * 100, 100);
             const activity = activities.find((a) => a.skill === skill.name);
             const color = activity?.color || "#8a7a6a";
@@ -221,7 +268,7 @@ export default function TrainPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-tribal-200 text-sm font-medium">{skill.name}</span>
-                    <span className="text-tribal-600 text-[10px] font-bold">Tier {skill.tier}</span>
+                    <span className="text-tribal-600 text-[10px] font-bold">Level {skill.level}</span>
                   </div>
                   <div className="w-full h-1.5 bg-tribal-900 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: color + "80" }} />

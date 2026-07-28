@@ -1,10 +1,8 @@
-"use client";
-
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { Gavel, Clock, Coins, Package, Plus, X, Search, Trophy, AlertTriangle, Check } from "lucide-react";
+import { Gavel, Clock, Coins, Package, X, Search, Trophy, Check } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
 
 interface AuctionRow {
@@ -19,7 +17,7 @@ interface AuctionRow {
   created_at: string;
   claimed: boolean;
   seller: { name: string; id: string } | null;
-  item: { name: string; type: string; tier: number } | null;
+  item: { name: string; type: string; rarity: number } | null;
   current_bidder: { name: string } | null;
 }
 
@@ -63,7 +61,7 @@ export default function AuctionHousePage() {
   const fetchAuctions = async () => {
     const { data } = await supabase
       .from("auction_house")
-      .select("*, seller:characters!seller_id(name, id), item:items(name, type, tier), current_bidder:characters!current_bidder_id(name)")
+      .select("*, seller:characters!seller_id(name, id), item:items(name, type), current_bidder:characters!current_bidder_id(name)")
       .order("ends_at", { ascending: true }) as { data: AuctionRow[] | null };
     setAuctions(data || []);
   };
@@ -87,25 +85,16 @@ export default function AuctionHousePage() {
       return;
     }
 
-    const endsAt = new Date(Date.now() + duration * 1000).toISOString();
-
-    const newQty = invItem.quantity - quantity;
-    if (newQty <= 0) {
-      await supabase.from("inventory").delete().eq("id", invItem.id);
-    } else {
-      await supabase.from("inventory").update({ quantity: newQty }).eq("id", invItem.id);
-    }
-
-    const { error: insertError } = await supabase.from("auction_house").insert({
-      seller_id: character.id,
-      item_id: invItem.item_id,
-      quantity,
-      starting_price: startingPrice,
-      ends_at: endsAt,
+    const { error: rpcError } = await supabase.rpc("create_auction", {
+      p_character_id: character.id,
+      p_item_id: invItem.item_id,
+      p_quantity: quantity,
+      p_starting_price: startingPrice,
+      p_duration_seconds: duration,
     });
 
-    if (insertError) {
-      setError(insertError.message);
+    if (rpcError) {
+      setError(rpcError.message);
     }
 
     setShowCreate(false);
@@ -170,85 +159,15 @@ export default function AuctionHousePage() {
     if (!character) return;
     setLoading(true);
 
-    const now = new Date();
-    const endsAt = new Date(auction.ends_at);
-    const hasEnded = now >= endsAt;
+    const { error: rpcError } = await supabase.rpc("claim_auction", {
+      p_character_id: character.id,
+      p_auction_id: auction.id,
+    });
 
-    if (!hasEnded && auction.seller_id !== character.id) {
-      setLoading(false);
-      return;
+    if (rpcError) {
+      setError(rpcError.message);
     }
 
-    if (hasEnded && auction.current_bidder_id) {
-      if (auction.current_bidder_id === character.id) {
-        const existingInv = character.inventory.find((inv) => inv.item_id === auction.item_id);
-        if (existingInv) {
-          const { error } = await supabase.from("inventory").update({ quantity: existingInv.quantity + auction.quantity }).eq("id", existingInv.id);
-          if (error) console.error("Failed to update inventory:", error);
-        } else {
-          const { error } = await supabase.from("inventory").insert({
-            character_id: character.id,
-            item_id: auction.item_id,
-            quantity: auction.quantity,
-          });
-          if (error) console.error("Failed to add to inventory:", error);
-        }
-
-        const { error: payoutError } = await supabase.rpc("auction_payout", { p_seller_id: auction.seller_id, p_total_bid: auction.current_bid });
-        if (payoutError) console.error("Failed to pay seller:", payoutError);
-        await logTransaction(auction.seller_id, "auction_sale", auction.current_bid, `Auction sale: ${auction.item?.name || "item"}`, {
-          item_name: auction.item?.name,
-          buyer_id: character.id,
-          total_bid: auction.current_bid,
-        });
-      } else if (auction.seller_id === character.id) {
-        const refund = auction.current_bid;
-        const { error: refundError } = await supabase.from("characters").update({ gold: character.gold + refund }).eq("id", character.id);
-        if (refundError) console.error("Failed to refund seller:", refundError);
-        await logTransaction(character.id, "auction_sale", refund, `Auction sold: ${auction.item?.name || "item"}`, {
-          item_name: auction.item?.name,
-          buyer_id: auction.current_bidder_id,
-          total_bid: auction.current_bid,
-        });
-      }
-    } else if (hasEnded && !auction.current_bidder_id) {
-      if (auction.seller_id === character.id) {
-        const existingInv = character.inventory.find((inv) => inv.item_id === auction.item_id);
-        if (existingInv) {
-          const { error } = await supabase.from("inventory").update({ quantity: existingInv.quantity + auction.quantity }).eq("id", existingInv.id);
-          if (error) console.error("Failed to update inventory:", error);
-        } else {
-          const { error } = await supabase.from("inventory").insert({
-            character_id: character.id,
-            item_id: auction.item_id,
-            quantity: auction.quantity,
-          });
-          if (error) console.error("Failed to add to inventory:", error);
-        }
-      }
-    } else if (!hasEnded && auction.seller_id === character.id) {
-      const existingInv = character.inventory.find((inv) => inv.item_id === auction.item_id);
-      if (existingInv) {
-        const { error } = await supabase.from("inventory").update({ quantity: existingInv.quantity + auction.quantity }).eq("id", existingInv.id);
-        if (error) console.error("Failed to update inventory:", error);
-      } else {
-        const { error } = await supabase.from("inventory").insert({
-          character_id: character.id,
-          item_id: auction.item_id,
-          quantity: auction.quantity,
-        });
-        if (error) console.error("Failed to add to inventory:", error);
-      }
-
-      if (auction.current_bidder_id) {
-        const { data: bidder } = await supabase.from("characters").select("gold").eq("id", auction.current_bidder_id).single();
-        const bidderGold = bidder?.gold ?? 0;
-        const { error: refundError } = await supabase.from("characters").update({ gold: bidderGold + auction.current_bid }).eq("id", auction.current_bidder_id);
-        if (refundError) console.error("Failed to refund bidder:", refundError);
-      }
-    }
-
-    await supabase.from("auction_house").delete().eq("id", auction.id);
     setLoading(false);
     await fetchAuctions();
     await refreshCharacter();
@@ -425,8 +344,8 @@ export default function AuctionHousePage() {
                         <div className="flex items-center gap-2">
                           <span className="text-tribal-200 font-semibold text-sm">{auction.item?.name || "Unknown"}</span>
                           {auction.quantity > 1 && <span className="text-tribal-600 text-sm tabular-nums">x{auction.quantity}</span>}
-                          {auction.item?.tier && auction.item.tier > 1 && (
-                            <span className="text-tribal-700 text-xs bg-tribal-900/60 px-1.5 py-0.5 rounded">T{auction.item.tier}</span>
+                           {auction.item?.rarity && auction.item.rarity > 1 && (
+                            <span className="text-tribal-700 text-xs bg-tribal-900/60 px-1.5 py-0.5 rounded">R{auction.item.rarity}</span>
                           )}
                         </div>
                         <p className="text-tribal-700 text-xs">

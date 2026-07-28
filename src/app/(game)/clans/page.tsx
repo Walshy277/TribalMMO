@@ -1,20 +1,18 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
-import { Shield, Swords, Globe, Compass, Users, Plus, Crown, UserMinus, ArrowUp, ArrowDown, AlertTriangle, X } from "lucide-react";
+import { Shield, Swords, Globe, Compass, Users, Plus, Crown, UserMinus, ArrowUp, ArrowDown, AlertTriangle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const CLAN_COST_GOLD = 1; // 5,000 gold full price, 1 gold during beta
+const CLAN_COST_GOLD = 10; // 5,000 gold full price, 10 gold during beta
 
 const philosophies: { id: string; name: string; bonuses: string[]; icon: LucideIcon; desc: string; playstyle: string }[] = [
   { 
     id: "warborn", 
     name: "Warborn", 
-    bonuses: ["+2 ATK, +1 STR (flat combat bonus)"],
+    bonuses: ["+2 STR, +1 ATK (flat combat bonus)"],
     icon: Swords, 
     desc: "Strength through battle. Warborn clans dominate in PvP and PvE combat.",
     playstyle: "Aggressive combat-focused. Best for players who love fighting."
@@ -22,7 +20,7 @@ const philosophies: { id: string; name: string; bonuses: string[]; icon: LucideI
   { 
     id: "earthkeepers", 
     name: "Earthkeepers", 
-    bonuses: ["+2 END, +1 DEF (flat defence bonus)"],
+    bonuses: ["+2 VIT, +1 DEF (flat defence bonus)"],
     icon: Globe, 
     desc: "Harmony with nature. Earthkeepers gather more, craft better, and heal faster.",
     playstyle: "Economy and crafting. Best for resource-focused players."
@@ -30,11 +28,20 @@ const philosophies: { id: string; name: string; bonuses: string[]; icon: LucideI
   { 
     id: "pathfinders", 
     name: "Pathfinders", 
-    bonuses: ["+2 AGI, +1 CUN (flat agility bonus)"],
+    bonuses: ["+2 SPD, +1 ATK (flat speed bonus)"],
     icon: Compass, 
     desc: "Masters of exploration. Pathfinders discover more, travel farther, and find treasures others miss.",
     playstyle: "Exploration and discovery. Best for adventurous players."
   },
+];
+
+const clanRoles = [
+  { id: "chieftain", name: "Chieftain", desc: "Clan leader with full control" },
+  { id: "elder", name: "Elder", desc: "Senior advisor and decision maker" },
+  { id: "hunter", name: "Hunter", desc: "Combat and exploration specialist" },
+  { id: "gatherer", name: "Gatherer", desc: "Resource collection expert" },
+  { id: "crafter", name: "Crafter", desc: "Item creation and crafting specialist" },
+  { id: "member", name: "Member", desc: "Standard clan member" },
 ];
 
 interface ClanMemberFull {
@@ -52,6 +59,7 @@ interface ClanMemberWithChar extends ClanMemberFull {
 interface ClanWithMembers {
   id: string;
   name: string;
+  description: string;
   symbol: string;
   philosophy: string;
   founder_id: string;
@@ -64,6 +72,7 @@ export default function ClansPage() {
   const [clans, setClans] = useState<ClanWithMembers[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [clanName, setClanName] = useState("");
+  const [clanDesc, setClanDesc] = useState("");
   const [philosophy, setPhilosophy] = useState("warborn");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
@@ -94,21 +103,14 @@ export default function ClansPage() {
     setCreating(true);
     setError("");
 
-    const { error: coinErr } = await supabase
-      .from("characters")
-      .update({ gold: character.gold - CLAN_COST_GOLD })
-      .eq("id", character.id);
-    if (coinErr) { setError("Failed to deduct gold. Please try again."); setCreating(false); return; }
+    const { error: rpcError } = await supabase.rpc("create_clan_rpc", {
+      p_character_id: character.id,
+      p_name: clanName,
+      p_philosophy: philosophy,
+    });
 
-    const { data: clan, error: clanError } = await supabase
-      .from("clans")
-      .insert({ name: clanName, symbol: "shield", philosophy, founder_id: character.id })
-      .select()
-      .single();
+    if (rpcError) { setError(rpcError.message); setCreating(false); return; }
 
-    if (clanError) { setError(clanError.message); setCreating(false); return; }
-
-    await supabase.from("clan_members").insert({ clan_id: clan.id, character_id: character.id, role: "chieftain" });
     await refreshCharacter();
     await fetchClans();
     setShowCreate(false);
@@ -178,7 +180,8 @@ export default function ClansPage() {
     if (!character?.clan || character.clan.role !== "chieftain") return;
 
     setActionLoading(true);
-    const newRole = currentRole === "member" ? "officer" : "chieftain";
+    const roleIndex = clanRoles.findIndex((r) => r.id === currentRole);
+    const newRole = roleIndex < clanRoles.length - 1 ? clanRoles[roleIndex + 1].id : currentRole;
 
     if (newRole === "chieftain") {
       await supabase.from("clan_members").update({ role: "member" }).eq("id", character.clan.id);
@@ -194,12 +197,15 @@ export default function ClansPage() {
     if (!character?.clan || character.clan.role !== "chieftain") return;
 
     setActionLoading(true);
-    const newRole = currentRole === "chieftain" ? "officer" : "member";
-    if (newRole === "officer") {
-      setError("Cannot demote below officer. Transfer leadership instead.");
+    const roleIndex = clanRoles.findIndex((r) => r.id === currentRole);
+    const newRole = roleIndex > 0 ? clanRoles[roleIndex - 1].id : currentRole;
+
+    if (newRole === currentRole) {
+      setError("Cannot demote further. Transfer leadership instead.");
       setActionLoading(false);
       return;
     }
+
     await supabase.from("clan_members").update({ role: newRole }).eq("id", memberId);
     await refreshCharacter();
     await fetchClans();
@@ -215,7 +221,7 @@ export default function ClansPage() {
     <div className="space-y-5 animate-fade-in max-w-3xl">
       <div>
         <h1 className="text-2xl font-bold text-tribal-100">Clans</h1>
-        <p className="text-tribal-500 text-sm mt-0.5">Form alliances, wage wars</p>
+        <p className="text-tribal-500 text-sm mt-0.5">Form alliances, wage wars, build settlements</p>
       </div>
 
       {error && (
@@ -228,6 +234,9 @@ export default function ClansPage() {
             <div>
               <div className="text-tribal-600 text-[11px] uppercase font-bold tracking-wider mb-1">Your Clan</div>
               <h2 className="text-xl font-bold text-tribal-100">{myClan.clan.name}</h2>
+              {myClan.clan.description && (
+                <p className="text-tribal-500 text-sm mt-1">{myClan.clan.description}</p>
+              )}
               <div className="flex items-center gap-4 mt-2 text-sm flex-wrap">
                 <span className="text-tribal-500 flex items-center gap-1">
                   <Shield size={14} /> <span className="text-tribal-200 capitalize">{myClan.role}</span>
@@ -255,12 +264,13 @@ export default function ClansPage() {
             <div className="space-y-2">
               {(myClan.clan.clan_members || []).map((member) => {
                 const isMe = member.character_id === character.id;
+                const roleData = clanRoles.find((r) => r.id === member.role);
                 return (
                   <div key={member.id} className="bg-tribal-900/30 p-3 rounded-lg border border-tribal-800/20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                         member.role === "chieftain" ? "bg-tribal-800/50 text-tribal-300 border border-tribal-700/40" :
-                        member.role === "officer" ? "bg-[#1a2a34] text-[#6a90a8] border border-[#3a5060]" :
+                        member.role === "elder" ? "bg-[#1a2a34] text-[#6a90a8] border border-[#3a5060]" :
                         "bg-tribal-700 text-tribal-300 border border-tribal-600/40"
                       }`}>
                         {member.character?.name?.[0] || "?"}
@@ -273,12 +283,15 @@ export default function ClansPage() {
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className={`text-xs font-bold uppercase tracking-wider ${
                             member.role === "chieftain" ? "text-tribal-300" :
-                            member.role === "officer" ? "text-[#6a90a8]" :
+                            member.role === "elder" ? "text-[#6a90a8]" :
                             "text-tribal-600"
                           }`}>
                             {member.role === "chieftain" && <Crown size={10} className="inline mr-1" />}
                             {member.role}
                           </span>
+                          {roleData && (
+                            <span className="text-tribal-700 text-[10px]">{roleData.desc}</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -329,13 +342,18 @@ export default function ClansPage() {
           <div className="text-center mb-5">
             <Shield size={36} className="text-tribal-400 mx-auto mb-2" />
             <h2 className="text-xl font-bold text-tribal-100">Found a Clan</h2>
-            <p className="text-tribal-600 text-sm mt-1">Cost: {CLAN_COST_GOLD} gold</p>
+            <p className="text-tribal-600 text-sm mt-1">Cost: {CLAN_COST_GOLD} gold (beta price)</p>
           </div>
           <form onSubmit={createClan} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Clan Name</label>
               <input type="text" value={clanName} onChange={(e) => setClanName(e.target.value)}
                 className="input" placeholder="Enter clan name..." required minLength={2} maxLength={30} />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Description</label>
+              <textarea value={clanDesc} onChange={(e) => setClanDesc(e.target.value)}
+                className="input" placeholder="Describe your clan's purpose..." maxLength={200} rows={2} />
             </div>
             <div>
               <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Philosophy</label>
@@ -382,9 +400,10 @@ export default function ClansPage() {
       ) : (
         <div className="card text-center py-8">
           <Shield size={36} className="text-tribal-800 mx-auto mb-3" />
-          <p className="text-tribal-500 mb-5">You are not a member of any clan.</p>
+          <p className="text-tribal-500 mb-2">You are not a member of any clan.</p>
+          <p className="text-tribal-600 text-xs mb-5">Clans are the backbone of TribalMMO. Form one with friends to build settlements and shape the world.</p>
           <Button variant="primary" size="lg" icon={<Plus size={18} />} onClick={() => setShowCreate(true)}>
-            Create Clan
+            Create Clan ({CLAN_COST_GOLD} gold)
           </Button>
         </div>
       )}
@@ -416,6 +435,9 @@ export default function ClansPage() {
                         <PhilIcon size={18} className="text-tribal-500" />
                         <div>
                           <span className="text-tribal-200 font-semibold text-sm">{clan.name}</span>
+                          {clan.description && (
+                            <p className="text-tribal-600 text-xs truncate max-w-[200px]">{clan.description}</p>
+                          )}
                           <p className="text-tribal-600 text-xs capitalize flex items-center gap-1">
                             {clan.philosophy}
                             {phil && <span className="text-tribal-700">({phil.bonuses[0]})</span>}
@@ -436,7 +458,9 @@ export default function ClansPage() {
                   </div>
                   {isExpanded && (
                     <div className="bg-tribal-900/20 rounded-b-lg border border-t-0 border-tribal-800/20 p-4 animate-fade-in">
-                      <p className="text-tribal-500 text-xs mb-3">{phil?.desc || "A band of tribal survivors."}</p>
+                      {clan.description && (
+                        <p className="text-tribal-500 text-xs mb-3">{clan.description}</p>
+                      )}
                       {phil && (
                         <div className="mb-3">
                           <h4 className="text-xs font-bold text-tribal-400 uppercase tracking-wider mb-1.5">Bonuses</h4>
@@ -455,7 +479,7 @@ export default function ClansPage() {
                             <span className="text-tribal-300">{m.character?.name || "Unknown"}</span>
                             <span className={`text-xs font-bold uppercase ${
                               m.role === "chieftain" ? "text-tribal-300" :
-                              m.role === "officer" ? "text-[#6a90a8]" :
+                              m.role === "elder" ? "text-[#6a90a8]" :
                               "text-tribal-600"
                             }`}>
                               {m.role === "chieftain" && <Crown size={10} className="inline mr-1" />}

@@ -10,12 +10,11 @@ import {
   Store,
   Bed,
   AlertTriangle,
-  Shield,
-  Coins,
   TreePine,
   Hammer,
   Swords,
   Users,
+  ShoppingCart,
 } from "lucide-react";
 
 const npcs = [
@@ -176,10 +175,10 @@ export default function TownCentrePage() {
         <div className="grid grid-cols-3 gap-2">
           {[
             { href: "/shops", label: "Shops", icon: Store, color: "#c9a84c" },
-            { href: "/shrine", label: "Shrine", icon: Shield, color: "#8a6aaa" },
             { href: "/woodcutting", label: "Woodcutting", icon: TreePine, color: "#4a9e6a" },
             { href: "/mining", label: "Mining", icon: Hammer, color: "#8a7a6a" },
             { href: "/combat", label: "Combat", icon: Swords, color: "#b83a3a" },
+            { href: "/marketplace", label: "Marketplace", icon: ShoppingCart, color: "#4a9e6a" },
           ].map((link) => {
             const Icon = link.icon;
             return (

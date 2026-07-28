@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useGame, type CharacterWithSkills } from "@/lib/game";
+import { useGame } from "@/lib/game";
 import { useRequireAuth } from "@/components/ui/PageGuard";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase/client";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { StaminaBar } from "@/components/ui/StaminaBar";
@@ -14,13 +13,13 @@ import {
   Dumbbell,
   Swords,
   Shield,
-  Crosshair,
-  Brain,
-  Map,
+  Heart,
   Zap,
-  Store,
   Hammer,
   Cat,
+  Star,
+  Trophy,
+  Map,
 } from "lucide-react";
 
 interface Transaction {
@@ -31,14 +30,23 @@ interface Transaction {
   created_at: string;
 }
 
+const MAX_LEVEL = 100;
+
+function getLevelProgress(level: number, skills: { level: number }[]): { current: number; next: number; pct: number } {
+  const totalLevel = skills.reduce((sum, s) => sum + s.level, 0);
+  const current = Math.min(totalLevel, MAX_LEVEL);
+  const next = MAX_LEVEL;
+  const pct = next > 0 ? Math.round((current / next) * 100) : 0;
+  return { current, next, pct };
+}
+
 export default function CharacterPage() {
   const { user, authLoading } = useRequireAuth();
   const { character, loading: gameLoading } = useGame();
-  const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
-    document.title = "TribalMMO";
+    document.title = "Profile — TribalMMO";
   }, []);
 
   useEffect(() => {
@@ -56,8 +64,7 @@ export default function CharacterPage() {
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <User size={48} className="text-tribal-700 mx-auto mb-3" />
-          <p className="text-tribal-500 mb-4">No character found.</p>
-          <button onClick={() => navigate("/")} className="btn-primary inline-block text-sm px-4 py-2">Create Character</button>
+          <p className="text-tribal-500 mb-4">Setting up your profile...</p>
         </div>
       </div>
     );
@@ -78,37 +85,65 @@ export default function CharacterPage() {
   const clan = character.clan;
   const totalItems = character.inventory?.reduce((sum, inv) => sum + inv.quantity, 0) || 0;
   const equippedItems = character.inventory?.filter((inv) => inv.equipped) || [];
-  const highestTier = skills.reduce((max, s) => Math.max(max, s.tier), 1);
   const effectiveStats = computeEffectiveStats(character, character.inventory, character.clan?.clan, pets);
+
+  const levelProgress = getLevelProgress(character.level || 1, skills);
 
   const statColor = (stat: string) => {
     switch (stat) {
       case "STR": return "text-[#b83a3a]";
-      case "AGI": return "text-[#4a9e6a]";
-      case "END": return "text-tribal-300";
-      case "FOC": return "text-[#6a90a8]";
-      case "CUN": return "text-[#8a6aaa]";
+      case "DEF": return "text-[#6a90a8]";
+      case "SPD": return "text-[#4a9e6a]";
+      case "VIT": return "text-[#c9a84c]";
       default: return "text-tribal-300";
     }
   };
 
   return (
     <div className="space-y-4 animate-fade-in max-w-3xl">
-      {/* Identity */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-[#36291c] flex items-center justify-center text-lg font-bold text-[#b39b7c] rounded-sm border border-[#4d3a27]/50" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>
-            {character.name?.[0] || "?"}
+      {/* Identity + Level Header */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 bg-[#36291c] flex items-center justify-center text-xl font-bold text-[#b39b7c] rounded-sm border border-[#4d3a27]/50" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>
+              {character.name?.[0] || "?"}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-tribal-100" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>{character.name}</h1>
+              <p className="text-tribal-500 text-sm">{character.background}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-tribal-100" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>{character.name}</h1>
-            <p className="text-tribal-500 text-sm">{character.background}</p>
+          <div className="text-right">
+            <div className="flex items-center gap-1.5 justify-end">
+              <Star size={14} className="text-[#c9a84c]" />
+              <span className="text-tribal-200 text-2xl font-bold">{character.level || 1}</span>
+            </div>
+            <div className="text-tribal-600 text-[10px] font-bold uppercase tracking-wider">Level</div>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-tribal-600 text-[10px] font-bold uppercase tracking-wider">Level</div>
-          <div className="text-tribal-200 text-xl font-bold">{character.level || 1}</div>
-          <div className="text-tribal-600 text-[10px]">Highest Tier: {highestTier}</div>
+
+        {/* Level Progress Bar */}
+        <div className="bg-tribal-900/40 rounded-lg border border-tribal-800/20 p-3">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <Trophy size={12} className="text-[#c9a84c]" />
+              <span className="text-tribal-300 text-xs font-medium">Level Progress</span>
+            </div>
+            <span className="text-tribal-400 text-xs">{levelProgress.current} / {levelProgress.next} skill levels</span>
+          </div>
+          <div className="w-full bg-tribal-800/40 rounded-full h-3 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${levelProgress.pct}%`,
+                background: "linear-gradient(90deg, #c04e20, #c9a84c)",
+              }}
+            />
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-tribal-600 text-[10px]">Lvl {character.level || 1}</span>
+            <span className="text-tribal-600 text-[10px]">Lvl {Math.min((character.level || 1) + 1, MAX_LEVEL)}</span>
+          </div>
         </div>
       </div>
 
@@ -124,14 +159,14 @@ export default function CharacterPage() {
 
       {/* Core Stats */}
       <div className="card">
-        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Stats</h2>
-        <div className="grid grid-cols-5 gap-2">
+        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Core Stats</h2>
+        <p className="text-tribal-600 text-xs mb-3">Infinitely scaling — train to grow stronger</p>
+        <div className="grid grid-cols-4 gap-2">
           {[
-            { label: "STR", base: character.strength, value: effectiveStats.strength, icon: Dumbbell },
-            { label: "AGI", base: character.agility, value: effectiveStats.agility, icon: Swords },
-            { label: "END", base: character.endurance, value: effectiveStats.endurance, icon: Shield },
-            { label: "FOC", base: character.focus, value: effectiveStats.focus, icon: Crosshair },
-            { label: "CUN", base: character.cunning, value: effectiveStats.cunning, icon: Brain },
+            { label: "STR", sub: "Strength", base: character.strength, value: effectiveStats.strength, icon: Dumbbell },
+            { label: "DEF", sub: "Defence", base: character.defence, value: effectiveStats.defence, icon: Shield },
+            { label: "SPD", sub: "Speed", base: character.speed, value: effectiveStats.speed, icon: Zap },
+            { label: "VIT", sub: "Vitality", base: character.vitality, value: effectiveStats.vitality, icon: Heart },
           ].map((stat) => {
             const Icon = stat.icon;
             const color = statColor(stat.label);
@@ -149,7 +184,34 @@ export default function CharacterPage() {
         </div>
       </div>
 
-      {/* Attack & Defense */}
+      {/* Skills */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest">Skills</h2>
+          <span className="text-tribal-600 text-[10px]">Combined level: {levelProgress.current}</span>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
+          {skills.map((skill) => {
+            const Icon = skillIcons[skill.name] || Hammer;
+            const skillPct = Math.min((skill.level / MAX_LEVEL) * 100, 100);
+            return (
+              <div key={skill.id} className="text-center bg-tribal-900/40 py-3 rounded-lg border border-tribal-800/20">
+                <Icon size={16} className="text-tribal-500 mx-auto mb-1" />
+                <div className="text-tribal-300 text-xs font-medium">{skill.name}</div>
+                <div className="text-tribal-600 text-[10px] font-bold uppercase mt-0.5">Level {skill.level}</div>
+                <div className="w-full bg-tribal-800/40 rounded-full h-1 mt-1.5 mx-auto max-w-[80%]">
+                  <div
+                    className="h-full rounded-full bg-[#c04e20]"
+                    style={{ width: `${skillPct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Combat Power */}
       <div className="card">
         <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Combat Power</h2>
         <div className="grid grid-cols-2 gap-2">
@@ -159,27 +221,10 @@ export default function CharacterPage() {
             <div className="text-xl font-bold mt-0.5 text-[#b83a3a]">{effectiveStats.attack}</div>
           </div>
           <div className="text-center bg-tribal-900/40 py-3 rounded-lg border border-tribal-800/20">
-            <Shield size={16} className="mx-auto mb-1 text-tribal-300" />
+            <Shield size={16} className="mx-auto mb-1 text-[#6a90a8]" />
             <div className="text-tribal-600 text-[10px] font-bold uppercase">DEF</div>
-            <div className="text-xl font-bold mt-0.5 text-tribal-300">{effectiveStats.defense}</div>
+            <div className="text-xl font-bold mt-0.5 text-[#6a90a8]">{effectiveStats.defense}</div>
           </div>
-        </div>
-      </div>
-
-      {/* Skills */}
-      <div className="card">
-        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Skills</h2>
-        <div className="grid grid-cols-5 gap-2">
-          {skills.map((skill) => {
-            const Icon = skillIcons[skill.name] || Hammer;
-            return (
-              <div key={skill.id} className="text-center bg-tribal-900/40 py-3 rounded-lg border border-tribal-800/20">
-                <Icon size={16} className="text-tribal-500 mx-auto mb-1" />
-                <div className="text-tribal-300 text-xs font-medium">{skill.name}</div>
-                <div className="text-tribal-600 text-[10px] font-bold uppercase mt-0.5">Tier {skill.tier}</div>
-              </div>
-            );
-          })}
         </div>
       </div>
 
@@ -231,7 +276,7 @@ export default function CharacterPage() {
           {[
             { href: "/exploration", icon: Map, label: "Explore" },
             { href: "/combat", icon: Swords, label: "Combat" },
-            { href: "/actions", icon: Zap, label: "Actions" },
+            { href: "/train", icon: Zap, label: "Train" },
           ].map((action) => {
             const Icon = action.icon;
             return (

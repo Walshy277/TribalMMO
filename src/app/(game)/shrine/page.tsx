@@ -1,12 +1,10 @@
-"use client";
-
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { formatTimeAgo } from "@/lib/utils";
-import { Sparkles, Package, Coins, Heart, Send, Clock, Star, AlertTriangle } from "lucide-react";
+import { Sparkles, Package, Heart, Send, Clock, Star, AlertTriangle } from "lucide-react";
 
 interface ShrineDonation {
   id: string;
@@ -36,7 +34,7 @@ const blessings = [
 ];
 
 export default function ShrinePage() {
-  const { character, refreshCharacter, logTransaction } = useGame();
+  const { character, refreshCharacter } = useGame();
   const [donations, setDonations] = useState<ShrineDonation[]>([]);
   const [prayers, setPrayers] = useState<ShrinePrayer[]>([]);
   const [selectedItem, setSelectedItem] = useState("");
@@ -85,32 +83,15 @@ export default function ShrinePage() {
       return;
     }
 
-    // Remove from inventory
-    const newQty = invItem.quantity - donateQty;
-    if (newQty <= 0) {
-      const { error: delErr } = await supabase.from("inventory").delete().eq("id", invItem.id);
-      if (delErr) { setError("Failed to donate. Please try again."); setLoading(false); return; }
-    } else {
-      const { error: updErr } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", invItem.id);
-      if (updErr) { setError("Failed to donate. Please try again."); setLoading(false); return; }
-    }
-
-    // Record donation
-    const { error: insertErr } = await supabase.from("shrine_donations").insert({
-      character_id: character.id,
-      item_id: invItem.item_id,
-      quantity: donateQty,
+    const { data: goldReward, error: rpcError } = await supabase.rpc("shrine_donate", {
+      p_character_id: character.id,
+      p_inventory_id: invItem.id,
+      p_quantity: donateQty,
     });
-    if (insertErr) { setError("Failed to record donation. Please try again."); setLoading(false); return; }
 
-    // Grant bonus gold based on quantity
-    const coinReward = donateQty * 5;
-    const { error: coinErr } = await supabase.from("characters").update({ gold: character.gold + coinReward }).eq("id", character.id);
-    if (coinErr) { setError("Donation recorded but gold reward failed."); setLoading(false); return; }
+    if (rpcError) { setError("Failed to donate. Please try again."); setLoading(false); return; }
 
-    await logTransaction(character.id, "shrine_donate", coinReward, `Donated ${donateQty}x ${selectedItem} to the shrine`);
-
-    setSuccess(`The spirits accept your offering of ${donateQty}x ${selectedItem}. +${coinReward} gold bestowed.`);
+    setSuccess(`The spirits accept your offering of ${donateQty}x ${selectedItem}. +${goldReward} gold bestowed.`);
     setSelectedItem("");
     setDonateQty(1);
     setLoading(false);
@@ -124,39 +105,24 @@ export default function ShrinePage() {
     setError("");
     setSuccess("");
 
-    // Deduct 5 gold for praying
     if (character.gold < 5) {
       setError("Praying at the shrine costs 5 gold.");
       setLoading(false);
       return;
     }
 
-    const { error: coinErr } = await supabase.from("characters").update({ gold: character.gold - 5 }).eq("id", character.id);
-    if (coinErr) { setError("Failed to deduct offering. Please try again."); setLoading(false); return; }
-
-    // Roll for blessing (40% chance)
-    const blessed = Math.random() < 0.4;
-    let blessingText = null;
-
-    if (blessed) {
-      const { data, error: blessErr } = await supabase.rpc("shrine_bless", { p_character_id: character.id });
-      if (!blessErr && data) {
-        blessingText = String(data);
-      }
-    }
-
-    const { error: insertErr } = await supabase.from("shrine_prayers").insert({
-      character_id: character.id,
-      message: prayerMessage.trim(),
-      blessing: blessingText,
+    const { data: result, error: rpcError } = await supabase.rpc("shrine_pray", {
+      p_character_id: character.id,
+      p_message: prayerMessage.trim(),
     });
-    if (insertErr) { setError("Failed to record prayer. Please try again."); setLoading(false); return; }
 
-    await logTransaction(character.id, "shrine_pray", -5, `Prayed at the shrine: "${prayerMessage.trim()}"`);
+    if (rpcError) { setError(rpcError.message); setLoading(false); return; }
 
-    if (blessed && blessingText) {
-      setLastBlessing(blessingText);
-      setSuccess("Your prayer is answered! " + blessingText);
+    const prayerResult = result as { blessed: boolean; blessing: string | null };
+
+    if (prayerResult?.blessed && prayerResult.blessing) {
+      setLastBlessing(prayerResult.blessing);
+      setSuccess("Your prayer is answered! " + prayerResult.blessing);
     } else {
       const flavor = blessings[Math.floor(Math.random() * blessings.length)];
       setSuccess(flavor + " The spirits note your devotion.");

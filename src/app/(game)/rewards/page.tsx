@@ -1,11 +1,9 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
-import { Gift, Coins, Clock, CheckCircle, Star, Flame, Package, Shield, Zap } from "lucide-react";
+import { Gift, Coins, Clock, CheckCircle, Star, Flame, Package, Shield } from "lucide-react";
 
 interface DailyReward {
   day: number;
@@ -27,7 +25,7 @@ const dailyRewards: DailyReward[] = [
 ];
 
 export default function RewardsPage() {
-  const { character, refreshCharacter, logTransaction } = useGame();
+  const { character, refreshCharacter } = useGame();
   const [streak, setStreak] = useState(0);
   const [claimedToday, setClaimedToday] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -83,57 +81,26 @@ export default function RewardsPage() {
     setLoading(true);
     setSuccess("");
 
-    const nextDay = ((streak) % 7) + 1;
-    const reward = dailyRewards.find((r) => r.day === nextDay) || dailyRewards[0];
+    const { data: result, error: rpcError } = await supabase.rpc("claim_daily_reward", {
+      p_character_id: character.id,
+    });
 
-    // Give gold
-    const newGold = character.gold + reward.gold;
-    await supabase.from("characters").update({ gold: newGold }).eq("id", character.id);
-    await logTransaction(character.id, "daily_reward", reward.gold, `Day ${nextDay} daily reward`);
-
-    // Give bonus item if applicable
-    if (reward.bonusItem && reward.bonusQuantity) {
-      let { data: item } = await supabase.from("items").select("id").eq("name", reward.bonusItem).single();
-      if (!item) {
-        const type = reward.bonusItem === "Stamina Potion" ? "consumable" : "resource";
-        const stats = reward.bonusItem === "Stamina Potion" ? { heal: 25 } : {};
-        const { data: newItem } = await supabase.from("items").insert({ name: reward.bonusItem, type, tier: 1, stats }).select("id").single();
-        item = newItem;
-      }
-      if (item) {
-        const existingInv = await supabase.from("inventory").select("id, quantity").eq("character_id", character.id).eq("item_id", item.id).single();
-        if (existingInv.data) {
-          await supabase.from("inventory").update({ quantity: existingInv.data.quantity + reward.bonusQuantity }).eq("id", existingInv.data.id);
-        } else {
-          await supabase.from("inventory").insert({ character_id: character.id, item_id: item.id, quantity: reward.bonusQuantity });
-        }
-      }
-    }
-
-    // Update or insert daily_rewards
-    const newStreak = streak + 1;
-    const now = new Date().toISOString();
-
-    const { error: upsertError } = await supabase
-      .from("daily_rewards")
-      .upsert({
-        character_id: character.id,
-        last_claimed_at: now,
-        streak: newStreak,
-      }, { onConflict: "character_id" });
-
-    if (upsertError) {
-      if (upsertError.code === "42P01" || upsertError.message?.includes("does not exist")) {
+    if (rpcError) {
+      if (rpcError.code === "42P01" || rpcError.message?.includes("does not exist")) {
         setError("Daily rewards not available yet — run migration 004 in Supabase SQL editor.");
-        setLoading(false);
-        return;
+      } else {
+        setError(rpcError.message);
       }
+      setLoading(false);
+      return;
     }
 
-    setStreak(newStreak);
+    const reward = result as { day: number; gold: number; bonus_item: string | null; bonus_qty: number | null; streak: number };
+
+    setStreak(reward.streak);
     setClaimedToday(true);
     setNextClaimAt(new Date(Date.now() + 24 * 60 * 60 * 1000));
-    setSuccess(`Claimed Day ${nextDay}: ${reward.gold} gold${reward.bonusItem ? ` + ${reward.bonusQuantity}x ${reward.bonusItem}` : ""}!`);
+    setSuccess(`Claimed Day ${reward.day}: ${reward.gold} gold${reward.bonus_item ? ` + ${reward.bonus_qty}x ${reward.bonus_item}` : ""}!`);
 
     setLoading(false);
     await refreshCharacter();

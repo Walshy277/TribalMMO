@@ -1,10 +1,8 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useGame, type CharacterWithSkills } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { Store, Coins, Package, Search, ShoppingCart, Lock, TrendingDown } from "lucide-react";
+import { Store, Coins, Package, Search, TrendingDown } from "lucide-react";
 import { typeIcons } from "@/lib/constants";
 import { Alert } from "@/components/ui/Alert";
 import type { Database } from "@/types/database";
@@ -14,7 +12,7 @@ type ShopItem = Database["public"]["Tables"]["shop_items"]["Row"];
 const TABS = ["buy", "sell"] as const;
 
 export default function ShopsPage() {
-  const { character, refreshCharacter, logTransaction } = useGame();
+  const { character, refreshCharacter } = useGame();
   const [tab, setTab] = useState<"buy" | "sell">("buy");
   const [shopItems, setShopItems] = useState<ShopItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,11 +34,11 @@ export default function ShopsPage() {
       .from("shop_items")
       .select("*")
       .order("type")
-      .order("buy_price") as { data: ShopItem[] | null; error: { code?: string; message?: string } | null };
+      .order("buy_price");
     if (error && (error.code === "42P01" || error.message?.includes("does not exist"))) {
       setMigrationMissing(true);
     }
-    setShopItems(data || []);
+    setShopItems((data as ShopItem[]) || []);
   };
 
   const buyFromShop = async (item: ShopItem) => {
@@ -57,39 +55,17 @@ export default function ShopsPage() {
     setError("");
     setSuccess("");
 
-    const { error: coinError } = await supabase.from("characters").update({ gold: character.gold - totalCost }).eq("id", character.id);
-    if (coinError) { setError("Failed to deduct gold. Please try again."); setLoading(false); return; }
-
-    // Add to inventory
-    const existingInv = character.inventory.find((inv) => inv.item?.name === item.name);
-    if (existingInv) {
-      await supabase.from("inventory").update({ quantity: existingInv.quantity + qty }).eq("id", existingInv.id);
-    } else {
-      // Find or create the item in items table
-      let { data: existingItem } = await supabase.from("items").select("id").eq("name", item.name).single();
-      if (!existingItem) {
-        const { data: newItem } = await supabase.from("items").insert({
-          name: item.name,
-          type: item.type,
-          tier: item.tier,
-          stats: item.stats,
-        }).select("id").single();
-        existingItem = newItem;
-      }
-      if (existingItem) {
-        await supabase.from("inventory").insert({
-          character_id: character.id,
-          item_id: existingItem.id,
-          quantity: qty,
-        });
-      }
-    }
-
-    await logTransaction(character.id, "shop_buy", -totalCost, `Bought ${qty}x ${item.name} from shop`, {
-      item_name: item.name,
-      quantity: qty,
-      unit_price: item.buy_price,
+    const { error: rpcError } = await supabase.rpc("shop_buy", {
+      p_character_id: character.id,
+      p_item_name: item.name,
+      p_item_type: item.type,
+      p_item_rarity: item.rarity,
+      p_item_stats: item.stats || {},
+      p_total_cost: totalCost,
+      p_quantity: qty,
     });
+
+    if (rpcError) { setError(rpcError.message); setLoading(false); return; }
 
     setSuccess(`Bought ${qty}x ${item.name} for ${totalCost} gold.`);
     setBuyQuantities((prev) => ({ ...prev, [item.id]: 1 }));
@@ -112,22 +88,15 @@ export default function ShopsPage() {
     setError("");
     setSuccess("");
 
-    const { error: coinError } = await supabase.from("characters").update({ gold: character.gold + totalValue }).eq("id", character.id);
-    if (coinError) { setError("Failed to add gold. Please try again."); setLoading(false); return; }
-
-    // Remove from inventory
-    const newQty = invItem.quantity - qty;
-    if (newQty <= 0) {
-      await supabase.from("inventory").delete().eq("id", invItem.id);
-    } else {
-      await supabase.from("inventory").update({ quantity: newQty }).eq("id", invItem.id);
-    }
-
-    await logTransaction(character.id, "shop_sell", totalValue, `Sold ${qty}x ${invItem.item.name} to shop`, {
-      item_name: invItem.item.name,
-      quantity: qty,
-      unit_price: shopItem.sell_price,
+    const { error: rpcError } = await supabase.rpc("shop_sell", {
+      p_character_id: character.id,
+      p_inventory_id: invItem.id,
+      p_quantity: qty,
+      p_total_value: totalValue,
+      p_item_name: invItem.item.name,
     });
+
+    if (rpcError) { setError(rpcError.message); setLoading(false); return; }
 
     setSuccess(`Sold ${qty}x ${invItem.item.name} for ${totalValue} gold.`);
     setSellQuantities((prev) => ({ ...prev, [invItem.item_id]: 1 }));
@@ -246,8 +215,8 @@ export default function ShopsPage() {
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-tribal-200 font-semibold text-sm">{item.name}</span>
-                            {item.tier > 1 && (
-                              <span className="text-tribal-700 text-xs bg-tribal-900/60 px-1.5 py-0.5 rounded">T{item.tier}</span>
+                            {item.rarity > 1 && (
+                              <span className="text-tribal-700 text-xs bg-tribal-900/60 px-1.5 py-0.5 rounded">R{item.rarity}</span>
                             )}
                           </div>
                           {item.description && (
@@ -281,7 +250,7 @@ export default function ShopsPage() {
                             loading={loading}
                             disabled={!canAfford}
                           >
-                            {canAfford ? `Buy (${totalCost}c)` : "Can't afford"}
+                            {canAfford ? `Buy (${totalCost}g)` : "Can't afford"}
                           </Button>
                         </div>
                       </div>
@@ -319,8 +288,8 @@ export default function ShopsPage() {
                         <div>
                           <span className="text-tribal-200 font-semibold text-sm">{item.name}</span>
                           <span className="text-tribal-600 text-sm ml-2 tabular-nums">x{inv.quantity}</span>
-                          {item.tier > 1 && (
-                            <span className="text-tribal-700 text-xs ml-2">Tier {item.tier}</span>
+                           {item.rarity > 1 && (
+                            <span className="text-tribal-700 text-xs ml-2">Rarity {item.rarity}</span>
                           )}
                         </div>
                       </div>
@@ -346,7 +315,7 @@ export default function ShopsPage() {
                             onClick={() => sellToShop(inv)}
                             loading={loading}
                           >
-                            Sell ({totalValue}c)
+                            Sell ({totalValue}g)
                           </Button>
                         </div>
                       </div>

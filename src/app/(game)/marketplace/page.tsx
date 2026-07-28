@@ -1,10 +1,8 @@
-"use client";
-
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { Coins, Package, Plus, X, ShoppingCart, Search, ArrowUpDown, Trash2, Filter } from "lucide-react";
+import { Coins, Package, Plus, X, ShoppingCart, Search, Trash2 } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
 
 interface Listing {
@@ -15,7 +13,7 @@ interface Listing {
   price: number;
   created_at: string;
   seller: { name: string; id: string } | null;
-  item: { name: string; type: string; tier: number } | null;
+  item: { name: string; type: string; rarity: number } | null;
 }
 
 const TAX_RATE = 0.05;
@@ -44,7 +42,7 @@ export default function MarketplacePage() {
   const fetchListings = async () => {
     const { data } = await supabase
       .from("marketplace_listings")
-      .select("*, seller:characters!seller_id(name, id), item:items(name, type, tier)")
+      .select("*, seller:characters!seller_id(name, id), item:items(name, type, rarity)")
       .order("created_at", { ascending: false }) as { data: Listing[] | null };
     setListings(data || []);
   };
@@ -68,26 +66,17 @@ export default function MarketplacePage() {
       return;
     }
 
-    if (invItem.item_id) {
-      const newQty = invItem.quantity - quantity;
-      if (newQty <= 0) {
-        await supabase.from("inventory").delete().eq("id", invItem.id);
-      } else {
-        await supabase.from("inventory").update({ quantity: newQty }).eq("id", invItem.id);
-      }
+    const { error: rpcError } = await supabase.rpc("create_listing", {
+      p_character_id: character.id,
+      p_item_id: invItem.item_id,
+      p_quantity: quantity,
+      p_price: price,
+    });
 
-      const { error: insertError } = await supabase.from("marketplace_listings").insert({
-        seller_id: character.id,
-        item_id: invItem.item_id,
-        quantity,
-        price,
-      });
-
-      if (insertError) {
-        setError(insertError.message);
-        setLoading(false);
-        return;
-      }
+    if (rpcError) {
+      setError(rpcError.message);
+      setLoading(false);
+      return;
     }
 
     setShowCreate(false);
@@ -105,18 +94,15 @@ export default function MarketplacePage() {
 
     setLoading(true);
 
-    const existingInv = character.inventory.find((inv) => inv.item_id === listing.item_id);
-    if (existingInv) {
-      await supabase.from("inventory").update({ quantity: existingInv.quantity + listing.quantity }).eq("id", existingInv.id);
-    } else {
-      await supabase.from("inventory").insert({
-        character_id: character.id,
-        item_id: listing.item_id,
-        quantity: listing.quantity,
-      });
+    const { error: rpcError } = await supabase.rpc("cancel_listing", {
+      p_character_id: character.id,
+      p_listing_id: listingId,
+    });
+
+    if (rpcError) {
+      setError(rpcError.message);
     }
 
-    await supabase.from("marketplace_listings").delete().eq("id", listingId);
     setLoading(false);
     await fetchListings();
     await refreshCharacter();
@@ -139,25 +125,6 @@ export default function MarketplacePage() {
       p_price: listing.price,
     });
     if (purchaseError) { setError("Purchase failed. Please try again."); setLoading(false); return; }
-
-    const existingInv = character.inventory.find((inv) => inv.item_id === listing.item_id);
-    if (existingInv) {
-      const { error } = await supabase.from("inventory").update({ quantity: existingInv.quantity + listing.quantity }).eq("id", existingInv.id);
-      if (error) console.error("Failed to update inventory:", error);
-    } else {
-      const { error } = await supabase.from("inventory").insert({
-        character_id: character.id,
-        item_id: listing.item_id,
-        quantity: listing.quantity,
-      });
-      if (error) console.error("Failed to add to inventory:", error);
-    }
-
-    await logTransaction(character.id, "marketplace_buy", -listing.price, `Bought ${listing.quantity}x ${listing.item?.name || "item"}`, {
-      item_name: listing.item?.name,
-      quantity: listing.quantity,
-      seller_id: listing.seller_id,
-    });
 
     setLoading(false);
     setConfirmBuy(null);
@@ -319,7 +286,7 @@ export default function MarketplacePage() {
                       ) : isConfirming ? (
                         <div className="flex items-center gap-2 animate-fade-in">
                           <Button variant="danger" size="sm" onClick={() => buyListing(listing)} loading={loading}>
-                            Confirm ({listing.price}c)
+                            Confirm ({listing.price}g)
                           </Button>
                           <Button variant="ghost" size="sm" onClick={() => setConfirmBuy(null)}>
                             Cancel

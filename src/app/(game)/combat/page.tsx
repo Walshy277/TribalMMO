@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect } from "react";
 import { useGame, type CharacterWithSkills } from "@/lib/game";
 import { useState } from "react";
@@ -47,7 +45,7 @@ function CombatSkillDisplay({ character }: { character: CharacterWithSkills }) {
     <div>
       <div className="flex items-center justify-between">
         <span className="text-tribal-300 text-sm font-medium">Combat</span>
-        <span className="text-tribal-500 text-sm">Tier {combatSkill.tier}</span>
+        <span className="text-tribal-500 text-sm">Level {combatSkill.level}</span>
       </div>
     </div>
   );
@@ -78,7 +76,7 @@ export default function CombatPage() {
     if (error) return;
     await refreshCharacter();
     const enemy = enemies[Math.floor(Math.random() * enemies.length)];
-    const playerHp = 20 + effectiveStats.endurance * 3;
+    const playerHp = 20 + effectiveStats.vitality * 3;
     setCombat({
       active: true,
       enemy,
@@ -115,7 +113,7 @@ export default function CombatPage() {
 
   const flee = () => {
     if (!combat) return;
-    const success = Math.random() < 0.5 + (effectiveStats.agility * 0.05);
+    const success = Math.random() < 0.5 + (effectiveStats.speed * 0.05);
     if (success) {
       setCombat({ ...combat, log: [...combat.log, { text: "You fled into the wilderness!", type: "system" }], active: false, result: null });
     } else {
@@ -157,11 +155,10 @@ export default function CombatPage() {
       await refreshCharacter();
     } else if (combat.result === "lost") {
       const newStamina = Math.max(0, character.computed_stamina - 15);
-      const { error } = await supabase
+      await supabase
         .from("characters")
         .update({ stamina: newStamina, stamina_updated_at: new Date().toISOString() })
         .eq("id", character.id);
-      if (error) console.error("Failed to update stamina:", error);
       await refreshCharacter();
     }
 
@@ -256,10 +253,11 @@ export default function CombatPage() {
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: "STR", base: character.strength, value: effectiveStats.strength, icon: Dumbbell, color: "text-[#b83a3a]" },
-                { label: "AGI", base: character.agility, value: effectiveStats.agility, icon: Zap, color: "text-[#4a9e6a]" },
-                { label: "END", base: character.endurance, value: effectiveStats.endurance, icon: Shield, color: "text-tribal-300" },
+                { label: "DEF", base: character.defence, value: effectiveStats.defence, icon: Shield, color: "text-[#6a90a8]" },
+                { label: "SPD", base: character.speed, value: effectiveStats.speed, icon: Zap, color: "text-[#4a9e6a]" },
+                { label: "VIT", base: character.vitality, value: effectiveStats.vitality, icon: Heart, color: "text-[#c9a84c]" },
                 { label: "ATK", value: effectiveStats.attack, icon: Swords, color: "text-[#b83a3a]" },
-                { label: "DEF", value: effectiveStats.defense, icon: Shield, color: "text-tribal-300" },
+                { label: "DEF", value: effectiveStats.defense, icon: Shield, color: "text-[#6a90a8]" },
               ].map((stat) => {
                 const Icon = stat.icon;
                 return (
