@@ -1,12 +1,10 @@
-"use client";
-
 import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { StaminaBar } from "@/components/ui/StaminaBar";
 import { Alert } from "@/components/ui/Alert";
-import { Zap, Swords, Axe, Hammer, Check, Clock, Coins, Package, AlertTriangle } from "lucide-react";
+import { Zap, Axe, Hammer, Check, Clock, Coins, Package } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const actionTypes = [
@@ -53,7 +51,7 @@ export default function ActionsPage() {
     if (character) {
       fetchActions();
       const craftingSkill = character.skills?.find((s) => s.name === "Crafting");
-      setMaxSlots(craftingSkill && craftingSkill.tier >= 2 ? 2 : 1);
+      setMaxSlots(craftingSkill && craftingSkill.level >= 2 ? 2 : 1);
     }
   }, [character]);
 
@@ -104,22 +102,22 @@ export default function ActionsPage() {
       }
       resultPayload.resources = selected;
     } else if (type === "crafting") {
-      // Pick a random crafting result based on current crafting tier
+      // Pick a random crafting result based on current crafting level
       const craftingSkill = character.skills?.find((s) => s.name === "Crafting");
-      const tier = craftingSkill?.tier || 1;
+      const level = craftingSkill?.level || 1;
       const craftingResults = [
-        { name: "Stone Axe", type: "weapon", tier: 1, stats: { attack: 3 } },
-        { name: "Wooden Spear", type: "weapon", tier: 1, stats: { attack: 4 } },
-        { name: "Hide Armor", type: "armor", tier: 1, stats: { defense: 3 } },
-        { name: "Bone Knife", type: "weapon", tier: 1, stats: { attack: 2 } },
-        { name: "Stone Hammer", type: "tool", tier: 2, stats: { crafting_speed: 2 } },
-        { name: "Reinforced Armor", type: "armor", tier: 2, stats: { defense: 7 } },
-        { name: "Bow", type: "weapon", tier: 2, stats: { attack: 6 } },
-      ].filter((r) => r.tier <= tier);
+        { name: "Stone Axe", type: "weapon", level: 1, stats: { attack: 3 } },
+        { name: "Wooden Spear", type: "weapon", level: 1, stats: { attack: 4 } },
+        { name: "Hide Armor", type: "armor", level: 1, stats: { defense: 3 } },
+        { name: "Bone Knife", type: "weapon", level: 1, stats: { attack: 2 } },
+        { name: "Stone Hammer", type: "materials", level: 2, stats: { crafting_speed: 2 } },
+        { name: "Reinforced Armor", type: "armor", level: 2, stats: { defense: 7 } },
+        { name: "Bow", type: "weapon", level: 2, stats: { attack: 6 } },
+      ].filter((r) => r.level <= level);
       const result = craftingResults[Math.floor(Math.random() * craftingResults.length)];
       resultPayload.item_name = result.name;
       resultPayload.item_type = result.type;
-      resultPayload.item_tier = result.tier;
+      resultPayload.item_level = result.level;
       resultPayload.item_stats = result.stats;
     }
 
@@ -145,11 +143,11 @@ export default function ActionsPage() {
     if (skill) {
       const xp = Math.floor(duration / 30);
       const newXp = skill.experience + xp;
-      const maxXP = skill.tier * 100;
-      const newTier = newXp >= maxXP && skill.tier < 5 ? skill.tier + 1 : skill.tier;
+      const maxXP = skill.level * 100;
+      const newLevel = newXp >= maxXP && skill.level < 100 ? skill.level + 1 : skill.level;
       await supabase
         .from("skills")
-        .update({ experience: newXp, tier: newTier })
+        .update({ experience: newXp, level: newLevel })
         .eq("id", skill.id);
     }
 
@@ -169,7 +167,7 @@ export default function ActionsPage() {
         const existingItem = await supabase.from("items").select("id").eq("name", resource.name).single();
         let itemId = existingItem.data?.id;
         if (!itemId) {
-          const { data: newItem } = await supabase.from("items").insert({ name: resource.name, type: "resource", tier: 1 }).select("id").single();
+          const { data: newItem } = await supabase.from("items").insert({ name: resource.name, type: "materials", rarity: 1 }).select("id").single();
           itemId = newItem?.id;
         }
         if (!itemId) continue;
@@ -184,12 +182,11 @@ export default function ActionsPage() {
       }
 
       const coinReward = Math.floor(Math.random() * 5) + 1;
-      const { error: coinError } = await supabase.from("characters").update({ gold: character.gold + coinReward }).eq("id", character.id);
-      if (coinError) console.error("Failed to award gold:", coinError);
+      await supabase.from("characters").update({ gold: character.gold + coinReward }).eq("id", character.id);
       await logTransaction(character.id, "action_reward", coinReward, `Gathering completion reward`);
       rewards.push({ itemName: "Coins", quantity: coinReward });
     } else if (action.type === "crafting") {
-      const result = action.result as { item_name?: string; item_type?: string; item_tier?: number; item_stats?: Record<string, number> } | null;
+      const result = action.result as { item_name?: string; item_type?: string; item_rarity?: number; item_stats?: Record<string, number> } | null;
       if (result?.item_name) {
         const existingItem = await supabase.from("items").select("id").eq("name", result.item_name).single();
         let itemId = existingItem.data?.id;
@@ -197,7 +194,7 @@ export default function ActionsPage() {
           const { data: newItem } = await supabase.from("items").insert({
             name: result.item_name,
             type: result.item_type || "weapon",
-            tier: result.item_tier || 1,
+            rarity: result.item_rarity || 1,
             stats: result.item_stats || {},
           }).select("id").single();
           itemId = newItem?.id;
@@ -351,7 +348,7 @@ export default function ActionsPage() {
                     <div className="flex items-center gap-3 mt-1.5">
                       <span className="text-xs text-tribal-700 flex items-center gap-1">
                         <Clock size={12} />
-                        {action.duration >= 3600 ? `${action.duration / 3600}h` : `${action.duration / 60}m`}
+                        {action.duration >= 3600 ? `${Math.floor(action.duration / 3600)}h` : `${Math.floor(action.duration / 60)}m`}
                       </span>
                       <span className={`text-xs font-semibold flex items-center gap-1 ${canAfford ? "text-tribal-400" : "text-tribal-300"}`}>
                         <Zap size={12} /> {action.staminaCost} stamina
