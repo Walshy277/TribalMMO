@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -36,12 +34,30 @@ export interface CharacterWithSkills extends Character {
   level: number;
 }
 
+const MAX_LEVEL = 100;
+
+export async function recalculateCharacterLevel(characterId: string, supabaseClient: typeof supabase) {
+  const { data: skills } = await supabaseClient
+    .from("skills")
+    .select("level")
+    .eq("character_id", characterId);
+
+  if (!skills) return;
+
+  const totalSkillLevels = skills.reduce((sum, s) => sum + (s.level || 1), 0);
+  const newLevel = Math.min(totalSkillLevels, MAX_LEVEL);
+
+  await supabaseClient
+    .from("characters")
+    .update({ level: newLevel })
+    .eq("id", characterId);
+}
+
 interface GameContextType {
   character: CharacterWithSkills | null;
   loading: boolean;
   initialLoadDone: boolean;
   refreshCharacter: () => Promise<void>;
-  createCharacter: (name: string, background: string) => Promise<{ error?: string }>;
   logTransaction: (characterId: string, type: string, amount: number, description: string, metadata?: Record<string, unknown>) => Promise<void>;
 }
 
@@ -139,6 +155,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
         char.stamina_updated_at = new Date().toISOString();
       }
 
+      // Compute level from total skill levels
+      const computedLevel = Math.min(
+        (skillsResult.data ?? []).reduce((sum, s) => sum + (s.level || 1), 0),
+        100
+      );
+
+      // Persist level if changed
+      if (computedLevel !== char.level) {
+        await supabase
+          .from("characters")
+          .update({ level: computedLevel })
+          .eq("id", char.id);
+        char.level = computedLevel;
+      }
+
       setCharacter({
         ...char,
         skills: skillsResult.data ?? [],
@@ -147,6 +178,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         clan: clanResult.data ?? undefined,
         computed_stamina,
         next_stamina_at,
+        level: computedLevel,
       } as CharacterWithSkills);
     } catch {
       setCharacter(null);
@@ -180,51 +212,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const createCharacter = async (name: string, background: string) => {
-    if (!user) return { error: "Not authenticated" };
-
-    // Apply background stat bonuses
-    const bgBonuses: Record<string, Record<string, number>> = {
-      Hunter: { strength: 2, endurance: 1 },
-      Gatherer: { agility: 2, focus: 1 },
-      "Shelter Builder": { endurance: 2, strength: 1 },
-      Herbalist: { focus: 2, cunning: 1 },
-      Storyteller: { cunning: 2, agility: 1 },
-    };
-    const bonuses = bgBonuses[background] || {};
-
-    const { error: insertError } = await supabase.from("characters").insert({
-      user_id: user.id,
-      name,
-      background,
-      strength: bonuses.strength || 1,
-      agility: bonuses.agility || 1,
-      endurance: bonuses.endurance || 1,
-      focus: bonuses.focus || 1,
-      cunning: bonuses.cunning || 1,
-    });
-
-    if (insertError) return { error: insertError.message };
-
-    const { data: char } = await supabase
-      .from("characters")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (char) {
-      const skillNames = ["Gathering", "Crafting", "Combat", "Survival", "Diplomacy", "Woodcutting", "Mining"];
-      await supabase.from("skills").insert(
-        skillNames.map((n) => ({ character_id: char.id, name: n }))
-      );
-    }
-
-    await refreshCharacter();
-    return {};
-  };
-
   return (
-    <GameContext.Provider value={{ character, loading, initialLoadDone, refreshCharacter, createCharacter, logTransaction }}>
+    <GameContext.Provider value={{ character, loading, initialLoadDone, refreshCharacter, logTransaction }}>
       {children}
     </GameContext.Provider>
   );
