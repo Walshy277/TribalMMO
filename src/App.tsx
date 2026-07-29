@@ -47,6 +47,9 @@ import AdminToolsPage from "@/app/admin/tools/page";
 import GatheringPage from "@/app/(game)/gathering/page";
 import ShrinePage from "@/app/(game)/shrine/page";
 import TownCentrePage from "@/app/(game)/town-centre/page";
+import HuntingPage from "@/app/(game)/hunting/page";
+import BeggingPage from "@/app/(game)/begging/page";
+import TamingPage from "@/app/(game)/taming/page";
 
 function GameLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
@@ -205,6 +208,9 @@ export default function App() {
         <Route path="/gathering" element={<ProtectedRoute><GameLayout><GatheringPage /></GameLayout></ProtectedRoute>} />
         <Route path="/shrine" element={<ProtectedRoute><GameLayout><ShrinePage /></GameLayout></ProtectedRoute>} />
         <Route path="/town-centre" element={<ProtectedRoute><GameLayout><TownCentrePage /></GameLayout></ProtectedRoute>} />
+        <Route path="/hunting" element={<ProtectedRoute><GameLayout><HuntingPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/begging" element={<ProtectedRoute><GameLayout><BeggingPage /></GameLayout></ProtectedRoute>} />
+        <Route path="/taming" element={<ProtectedRoute><GameLayout><TamingPage /></GameLayout></ProtectedRoute>} />
         <Route path="/rewards" element={<ProtectedRoute><GameLayout><RewardsPage /></GameLayout></ProtectedRoute>} />
         <Route path="/actions" element={<ProtectedRoute><GameLayout><ActionsPage /></GameLayout></ProtectedRoute>} />
         <Route path="/clans" element={<ProtectedRoute><GameLayout><ClansPage /></GameLayout></ProtectedRoute>} />

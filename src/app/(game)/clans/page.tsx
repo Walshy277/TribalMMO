@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { useGame } from "@/lib/game";
+import { useGame, type BuildingWithCost, type VaultContents, type VaultItem } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
   Shield, Swords, Globe, Compass, Users, Plus, Crown, UserMinus, ArrowUp, ArrowDown,
-  AlertTriangle, Wheat, TreePine, Mountain, Heart, Sparkles, Building2, Scroll,
-  Bell, Trophy, History, Settings, HandHeart
+  ArrowUpRight, ArrowDownRight,
+  Wheat, TreePine, Mountain, Heart, Sparkles, Building2, Scroll,
+  Trophy, History, Settings, HandHeart, Eye, Gem
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Database } from "@/types/database";
@@ -14,7 +15,6 @@ import type { Database } from "@/types/database";
 const CLAN_COST_GOLD = 10;
 
 type ClanEvent = Database["public"]["Tables"]["clan_events"]["Row"] & { character?: { name: string } | null };
-type ClanProject = Database["public"]["Tables"]["clan_projects"]["Row"];
 type ClanWithSettlement = Database["public"]["Tables"]["clans"]["Row"] & {
   clan_members: (Database["public"]["Tables"]["clan_members"]["Row"] & { character?: { name: string } | null })[];
 };
@@ -25,8 +25,14 @@ const philosophies: { id: string; name: string; bonuses: string[]; icon: LucideI
   { id: "pathfinders", name: "Pathfinders", bonuses: ["+2 SPD, +1 ATK"], icon: Compass, desc: "Masters of exploration." },
 ];
 
-const projectIcons: Record<string, LucideIcon> = {
-  building: Building2, monument: Trophy, feast: Wheat, shrine: Sparkles, wall: Shield, tower: Mountain,
+const buildingIcons: Record<string, LucideIcon> = {
+  farm: Wheat, lumber_yard: TreePine, quarry: Mountain, forge: Swords,
+  watchtower: Eye, treasury: Gem, barracks: Shield, library: Scroll,
+};
+
+const buildingLabels: Record<string, string> = {
+  farm: "Farm", lumber_yard: "Lumber Yard", quarry: "Quarry", forge: "Forge",
+  watchtower: "Watchtower", treasury: "Treasury", barracks: "Barracks", library: "Library",
 };
 
 const eventIcons: Record<string, LucideIcon> = {
@@ -52,93 +58,91 @@ function ResourceBar({ current, max, label, icon }: { current: number; max?: num
   );
 }
 
-function ProjectCard({ project, characterId }: { project: ClanProject; characterId: string }) {
-  const woodPct = project.total_wood > 0 ? Math.min(100, (project.contributed_wood / project.total_wood) * 100) : 100;
-  const stonePct = project.total_stone > 0 ? Math.min(100, (project.contributed_stone / project.total_stone) * 100) : 100;
-  const foodPct = project.total_food > 0 ? Math.min(100, (project.contributed_food / project.total_food) * 100) : 100;
+function BuildingCard({ building, characterId, onContribute }: { building: BuildingWithCost; characterId: string; onContribute: () => void }) {
+  const Icon = buildingIcons[building.building_type] || Building2;
+  const label = buildingLabels[building.building_type] || building.building_type;
+  const woodPct = building.cost.wood > 0 ? Math.min(100, (building.contributed_wood / building.cost.wood) * 100) : 0;
+  const stonePct = building.cost.stone > 0 ? Math.min(100, (building.contributed_stone / building.cost.stone) * 100) : 0;
+  const foodPct = building.cost.food > 0 ? Math.min(100, (building.contributed_food / building.cost.food) * 100) : 0;
   const overallPct = Math.round(
-    ((project.contributed_wood + project.contributed_stone + project.contributed_food) /
-    Math.max(1, project.total_wood + project.total_stone + project.total_food)) * 100
+    ((building.contributed_wood + building.contributed_stone + building.contributed_food) /
+    Math.max(1, building.cost.wood + building.cost.stone + building.cost.food)) * 100
   );
-  const Icon = projectIcons[project.icon] || Building2;
-  const isComplete = project.status === "completed";
 
-  const [donateWood, setDonateWood] = useState(0);
-  const [donateStone, setDonateStone] = useState(0);
-  const [donateFood, setDonateFood] = useState(0);
-  const [showDonate, setShowDonate] = useState(false);
+  const [contribWood, setContribWood] = useState(0);
+  const [contribStone, setContribStone] = useState(0);
+  const [contribFood, setContribFood] = useState(0);
+  const [showContrib, setShowContrib] = useState(false);
+  const [contributing, setContributing] = useState(false);
 
   const handleContribute = async () => {
-    if (donateWood + donateStone + donateFood === 0) return;
-    await supabase.rpc("contribute_to_project", {
+    if (contribWood + contribStone + contribFood === 0) return;
+    setContributing(true);
+    const { error } = await supabase.rpc("contribute_to_building", {
       p_character_id: characterId,
-      p_project_id: project.id,
-      p_wood: donateWood, p_stone: donateStone, p_food: donateFood,
+      p_building_id: building.id,
+      p_wood: contribWood,
+      p_stone: contribStone,
+      p_food: contribFood,
     });
-    setDonateWood(0); setDonateStone(0); setDonateFood(0); setShowDonate(false);
+    setContributing(false);
+    if (!error) {
+      setContribWood(0); setContribStone(0); setContribFood(0); setShowContrib(false);
+      onContribute();
+    }
   };
 
   return (
-    <div className={`bg-slate-900/30 p-4 rounded-lg border ${isComplete ? "border-[#2d6e44]/30" : "border-slate-800/20"}`}>
+    <div className="bg-slate-900/30 p-4 rounded-lg border border-slate-800/20">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
-          <Icon size={18} className={isComplete ? "text-[#4a9e6a]" : "text-slate-400"} />
-          <span className={`font-semibold text-sm ${isComplete ? "text-[#4a9e6a]" : "text-slate-200"}`}>
-            {project.name}
-            {isComplete && " \u2713"}
-          </span>
+          <Icon size={18} className="text-slate-400" />
+          <span className="text-slate-200 font-semibold text-sm">{label}</span>
         </div>
-        <span className="text-slate-500 text-xs font-bold">{isComplete ? "Complete" : `${overallPct}%`}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-slate-500 text-xs font-bold">Lv.{building.level}</span>
+          <span className="text-slate-600 text-xs">{overallPct}%</span>
+        </div>
       </div>
-      {project.description && <p className="text-slate-600 text-xs mb-3">{project.description}</p>}
-      {!isComplete && (
-        <div className="space-y-1.5 mb-3">
-          {project.total_wood > 0 && <ResourceLine label="Wood" current={project.contributed_wood} total={project.total_wood} pct={woodPct} />}
-          {project.total_stone > 0 && <ResourceLine label="Stone" current={project.contributed_stone} total={project.total_stone} pct={stonePct} />}
-          {project.total_food > 0 && <ResourceLine label="Food" current={project.contributed_food} total={project.total_food} pct={foodPct} />}
-        </div>
-      )}
-      {project.reward_description && (
-        <div className="text-[#8a7a5a] text-xs mb-3 flex items-center gap-1.5">
-          <Trophy size={12} /> {project.reward_description}
-        </div>
-      )}
-      {!isComplete && (
-        <div>
-          {showDonate ? (
-            <div className="space-y-2 bg-slate-900/40 p-3 rounded-lg border border-slate-800/20">
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { label: "Wood", state: donateWood, set: setDonateWood },
-                  { label: "Stone", state: donateStone, set: setDonateStone },
-                  { label: "Food", state: donateFood, set: setDonateFood },
-                ].map(({ label, state, set }) => (
-                  <div key={label}>
-                    <label className="text-slate-600 text-[10px] uppercase block mb-1">{label}</label>
-                    <input type="number" min={0} value={state || ""} onChange={(e) => set(Math.max(0, parseInt(e.target.value) || 0))}
-                      className="input text-sm py-1.5" placeholder="0" />
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="primary" onClick={handleContribute} disabled={donateWood + donateStone + donateFood === 0}>
-                  Contribute
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setShowDonate(false)}>Cancel</Button>
-              </div>
+      <div className="space-y-1.5 mb-3">
+        <ProgressLine label="Wood" current={building.contributed_wood} total={building.cost.wood} pct={woodPct} />
+        <ProgressLine label="Stone" current={building.contributed_stone} total={building.cost.stone} pct={stonePct} />
+        <ProgressLine label="Food" current={building.contributed_food} total={building.cost.food} pct={foodPct} />
+      </div>
+      <div>
+        {showContrib ? (
+          <div className="space-y-2 bg-slate-900/40 p-3 rounded-lg border border-slate-800/20">
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: "Wood", state: contribWood, set: setContribWood },
+                { label: "Stone", state: contribStone, set: setContribStone },
+                { label: "Food", state: contribFood, set: setContribFood },
+              ].map(({ label, state, set }) => (
+                <div key={label}>
+                  <label className="text-slate-600 text-[10px] uppercase block mb-1">{label}</label>
+                  <input type="number" min={0} value={state || ""} onChange={(e) => set(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="input text-sm py-1.5" placeholder="0" />
+                </div>
+              ))}
             </div>
-          ) : (
-            <Button size="sm" variant="secondary" icon={<Plus size={12} />} onClick={() => setShowDonate(true)}>
-              Contribute
-            </Button>
-          )}
-        </div>
-      )}
+            <div className="flex gap-2">
+              <Button size="sm" variant="primary" onClick={handleContribute} loading={contributing} disabled={contribWood + contribStone + contribFood === 0}>
+                Contribute
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setShowContrib(false)}>Cancel</Button>
+            </div>
+          </div>
+        ) : (
+          <Button size="sm" variant="secondary" icon={<Plus size={12} />} onClick={() => setShowContrib(true)}>
+            Contribute
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
 
-function ResourceLine({ label, current, total, pct }: { label: string; current: number; total: number; pct: number }) {
+function ProgressLine({ label, current, total, pct }: { label: string; current: number; total: number; pct: number }) {
   return (
     <div className="flex items-center gap-2 text-xs">
       <span className="text-slate-500 w-10">{label}</span>
@@ -170,7 +174,7 @@ export default function ClansPage() {
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
-  const [tab, setTab] = useState<"overview" | "projects" | "members" | "laws" | "events">("overview");
+  const [tab, setTab] = useState<"overview" | "buildings" | "vault" | "members" | "laws" | "events">("overview");
 
   const [donateFood, setDonateFood] = useState(0);
   const [donateWood, setDonateWood] = useState(0);
@@ -178,15 +182,12 @@ export default function ClansPage() {
   const [donateGold, setDonateGold] = useState(0);
   const [showDonate, setShowDonate] = useState(false);
 
-  const [projectName, setProjectName] = useState("");
-  const [projectDesc, setProjectDesc] = useState("");
-  const [projectWood, setProjectWood] = useState(0);
-  const [projectStone, setProjectStone] = useState(0);
-  const [projectFood, setProjectFood] = useState(0);
-  const [projectReward, setProjectReward] = useState("");
-  const [projectRewardType, setProjectRewardType] = useState("morale");
-  const [projectRewardVal, setProjectRewardVal] = useState("5");
-  const [showCreateProject, setShowCreateProject] = useState(false);
+  const [vaultDepositAmount, setVaultDepositAmount] = useState(0);
+  const [vaultWithdrawAmount, setVaultWithdrawAmount] = useState(0);
+  const [vaultItemDeposit, setVaultItemDeposit] = useState("");
+  const [vaultItemQty, setVaultItemQty] = useState(0);
+  const [vaultItemWithdraw, setVaultItemWithdraw] = useState("");
+  const [vaultItemWithdrawQty, setVaultItemWithdrawQty] = useState(0);
 
   const [taxRate, setTaxRate] = useState(0);
   const [donationPolicy, setDonationPolicy] = useState("optional");
@@ -268,18 +269,6 @@ export default function ClansPage() {
     });
     await refreshCharacter();
     setDonateFood(0); setDonateWood(0); setDonateStone(0); setDonateGold(0); setShowDonate(false);
-  };
-
-  const handleCreateProject = async () => {
-    if (!character?.clan) return;
-    await supabase.rpc("create_clan_project", {
-      p_character_id: character.id, p_name: projectName, p_description: projectDesc || undefined,
-      p_total_wood: projectWood, p_total_stone: projectStone, p_total_food: projectFood,
-      p_reward_description: projectReward || undefined, p_reward_type: projectRewardType, p_reward_value: projectRewardVal,
-    });
-    await refreshCharacter();
-    setProjectName(""); setProjectDesc(""); setProjectWood(0); setProjectStone(0); setProjectFood(0);
-    setProjectReward(""); setShowCreateProject(false);
   };
 
   const handleUpdateLaws = async () => {
@@ -402,13 +391,14 @@ export default function ClansPage() {
 
   const clan = clanData!;
   const members = clan.clan_members || [];
-  const projects = (character.clanProjects || []).filter((p) => p.status === "active");
-  const completedProjects = (character.clanProjects || []).filter((p) => p.status === "completed");
   const events = character.clanEvents || [];
+  const buildings = character.clanBuildings || [];
+  const vault = character.clanVault || { gold: 0, items: [] };
 
   const tabs = [
     { id: "overview" as const, label: "Overview", icon: Shield },
-    { id: "projects" as const, label: "Projects", icon: Building2 },
+    { id: "buildings" as const, label: "Buildings", icon: Building2 },
+    { id: "vault" as const, label: "Vault", icon: Gem },
     { id: "members" as const, label: "Members", icon: Users },
     { id: "laws" as const, label: "Laws", icon: Scroll },
     { id: "events" as const, label: "History", icon: History },
@@ -446,6 +436,29 @@ export default function ClansPage() {
           </div>
         </div>
       )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="bg-slate-900/30 px-4 py-3 rounded-lg border border-slate-800/20 flex items-center justify-between">
+          <div>
+            <span className="text-slate-500 text-xs">Clan Level</span>
+            <p className="text-2xl font-bold text-slate-100">{clan.level || 1}</p>
+          </div>
+          <div className="text-right">
+            <span className="text-slate-500 text-xs">XP</span>
+            <p className="text-slate-400 font-semibold tabular-nums">{(clan.xp || 0).toLocaleString()}</p>
+          </div>
+        </div>
+        <div className="bg-slate-900/30 px-4 py-3 rounded-lg border border-slate-800/20 flex items-center justify-between">
+          <div>
+            <span className="text-slate-500 text-xs">Vault Gold</span>
+            <p className="text-2xl font-bold text-slate-100">{(vault.gold || 0).toLocaleString()}</p>
+          </div>
+          <div className="text-right">
+            <span className="text-slate-500 text-xs">Vault Items</span>
+            <p className="text-slate-400 font-semibold tabular-nums">{vault.items.length}</p>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <ResourceBar current={clan.food} label="Food" icon={<Wheat size={12} />} />
@@ -486,22 +499,37 @@ export default function ClansPage() {
       {tab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Active Projects</h2>
-            {projects.length === 0 ? (
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Clan Buildings</h2>
+            {buildings.length === 0 ? (
               <div className="card text-center py-6">
                 <Building2 size={24} className="text-slate-800 mx-auto mb-2" />
-                <p className="text-slate-600 text-xs">No active projects.</p>
-                {canManage && (
-                  <Button variant="secondary" size="sm" className="mt-3" icon={<Plus size={12} />} onClick={() => { setShowCreateProject(true); setTab("projects"); }}>
-                    Start Project
-                  </Button>
-                )}
+                <p className="text-slate-600 text-xs">No buildings available.</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {projects.slice(0, 2).map((p) => <ProjectCard key={p.id} project={p} characterId={character.id} />)}
+                {buildings.slice(0, 4).map((b) => {
+                  const BIcon = buildingIcons[b.building_type] || Building2;
+                  const blabel = buildingLabels[b.building_type] || b.building_type;
+                  const overallPct = Math.round(
+                    ((b.contributed_wood + b.contributed_stone + b.contributed_food) /
+                    Math.max(1, b.cost.wood + b.cost.stone + b.cost.food)) * 100
+                  );
+                  return (
+                    <div key={b.id} className="bg-slate-900/30 p-3 rounded-lg border border-slate-800/20 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <BIcon size={16} className="text-slate-400" />
+                        <span className="text-slate-200 text-sm font-semibold">{blabel}</span>
+                        <span className="text-slate-500 text-xs">Lv.{b.level}</span>
+                      </div>
+                      <span className="text-slate-600 text-xs">{overallPct}% to next</span>
+                    </div>
+                  );
+                })}
               </div>
             )}
+            <Button variant="ghost" size="sm" icon={<Building2 size={12} />} className="mt-2" onClick={() => setTab("buildings")}>
+              View All Buildings
+            </Button>
           </div>
           <div>
             <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Recent Events</h2>
@@ -527,71 +555,125 @@ export default function ClansPage() {
         </div>
       )}
 
-      {tab === "projects" && (
+      {tab === "buildings" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Community Projects</h2>
-            {canManage && (
-              <Button variant="secondary" size="sm" icon={<Plus size={12} />} onClick={() => setShowCreateProject(!showCreateProject)}>
-                New Project
-              </Button>
-            )}
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Settlement Buildings</h2>
           </div>
+          {buildings.length === 0 ? (
+            <div className="card text-center py-8">
+              <Building2 size={32} className="text-slate-800 mx-auto mb-2" />
+              <p className="text-slate-600 text-sm">No buildings available.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {buildings.map((b) => (
+                <BuildingCard key={b.id} building={b} characterId={character.id} onContribute={refreshCharacter} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-          {showCreateProject && (
-            <div className="card border-slate-600/30">
-              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Create Project</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-slate-600 text-[10px] uppercase block mb-1">Project Name</label>
-                  <input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} className="input" placeholder="e.g. Great Longhouse" />
+      {tab === "vault" && (
+        <div className="space-y-4">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Clan Vault</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="card">
+              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Gold Reserves</h3>
+              <p className="text-2xl font-bold text-slate-100 mb-4">{vault.gold.toLocaleString()} <span className="text-sm text-slate-500 font-normal">gold</span></p>
+              <div className="space-y-2">
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="text-slate-600 text-[10px] uppercase block mb-1">Deposit</label>
+                    <input type="number" min={0} value={vaultDepositAmount || ""} onChange={(e) => setVaultDepositAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="input text-sm py-1.5 w-full" placeholder="0" />
+                  </div>
+                  <Button size="sm" variant="primary" icon={<ArrowDownRight size={12} />}
+                    onClick={async () => {
+                      if (vaultDepositAmount <= 0) return;
+                      await supabase.rpc("vault_deposit_gold", { p_character_id: character.id, p_amount: vaultDepositAmount });
+                      setVaultDepositAmount(0);
+                      refreshCharacter();
+                    }}
+                    disabled={vaultDepositAmount <= 0}>Deposit</Button>
                 </div>
-                <div>
-                  <label className="text-slate-600 text-[10px] uppercase block mb-1">Description</label>
-                  <input type="text" value={projectDesc} onChange={(e) => setProjectDesc(e.target.value)} className="input" placeholder="What will this project do?" />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <ResourceInput label="Wood Required" value={projectWood} set={setProjectWood} />
-                  <ResourceInput label="Stone Required" value={projectStone} set={setProjectStone} />
-                  <ResourceInput label="Food Required" value={projectFood} set={setProjectFood} />
-                </div>
-                <div>
-                  <label className="text-slate-600 text-[10px] uppercase block mb-1">Reward Description</label>
-                  <input type="text" value={projectReward} onChange={(e) => setProjectReward(e.target.value)} className="input" placeholder="e.g. +5 Morale" />
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="primary" size="sm" onClick={handleCreateProject} disabled={!projectName}>Create Project</Button>
-                  <Button variant="ghost" size="sm" onClick={() => setShowCreateProject(false)}>Cancel</Button>
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="text-slate-600 text-[10px] uppercase block mb-1">Withdraw</label>
+                    <input type="number" min={0} value={vaultWithdrawAmount || ""} onChange={(e) => setVaultWithdrawAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="input text-sm py-1.5 w-full" placeholder="0" />
+                  </div>
+                  <Button size="sm" variant="secondary" icon={<ArrowUpRight size={12} />}
+                    onClick={async () => {
+                      if (vaultWithdrawAmount <= 0) return;
+                      await supabase.rpc("vault_withdraw_gold", { p_character_id: character.id, p_amount: vaultWithdrawAmount });
+                      setVaultWithdrawAmount(0);
+                      refreshCharacter();
+                    }}
+                    disabled={vaultWithdrawAmount <= 0 || (!isChieftain && !isElder)}>Withdraw</Button>
                 </div>
               </div>
             </div>
-          )}
 
-          {projects.length === 0 && completedProjects.length === 0 ? (
-            <div className="card text-center py-8">
-              <Building2 size={32} className="text-slate-800 mx-auto mb-2" />
-              <p className="text-slate-600 text-sm">No projects yet. Start building your settlement!</p>
+            <div className="card">
+              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Stored Items</h3>
+              {vault.items.length === 0 ? (
+                <p className="text-slate-600 text-sm text-center py-4">No items in vault.</p>
+              ) : (
+                <div className="space-y-1 max-h-60 overflow-y-auto mb-3">
+                  {vault.items.map((vi, i) => (
+                    <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-800/10 last:border-0">
+                      <span className="text-slate-300">{vi.item_name}</span>
+                      <span className="text-slate-500">x{vi.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="space-y-2 border-t border-slate-800/20 pt-3">
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="text-slate-600 text-[10px] uppercase block mb-1">Deposit Item</label>
+                    <input type="text" value={vaultItemDeposit} onChange={(e) => setVaultItemDeposit(e.target.value)}
+                      className="input text-sm py-1.5 w-full" placeholder="Item name" />
+                  </div>
+                  <div className="w-20">
+                    <label className="text-slate-600 text-[10px] uppercase block mb-1">Qty</label>
+                    <input type="number" min={1} value={vaultItemQty || ""} onChange={(e) => setVaultItemQty(Math.max(1, parseInt(e.target.value) || 0))}
+                      className="input text-sm py-1.5 w-full" placeholder="1" />
+                  </div>
+                  <Button size="sm" variant="primary" icon={<ArrowDownRight size={12} />}
+                    onClick={async () => {
+                      if (!vaultItemDeposit || vaultItemQty <= 0) return;
+                      await supabase.rpc("vault_deposit_item", { p_character_id: character.id, p_item_name: vaultItemDeposit, p_quantity: vaultItemQty });
+                      setVaultItemDeposit(""); setVaultItemQty(0);
+                      refreshCharacter();
+                    }}
+                    disabled={!vaultItemDeposit || vaultItemQty <= 0}>Deposit</Button>
+                </div>
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="text-slate-600 text-[10px] uppercase block mb-1">Withdraw Item</label>
+                    <input type="text" value={vaultItemWithdraw} onChange={(e) => setVaultItemWithdraw(e.target.value)}
+                      className="input text-sm py-1.5 w-full" placeholder="Item name" />
+                  </div>
+                  <div className="w-20">
+                    <label className="text-slate-600 text-[10px] uppercase block mb-1">Qty</label>
+                    <input type="number" min={1} value={vaultItemWithdrawQty || ""} onChange={(e) => setVaultItemWithdrawQty(Math.max(1, parseInt(e.target.value) || 0))}
+                      className="input text-sm py-1.5 w-full" placeholder="1" />
+                  </div>
+                  <Button size="sm" variant="secondary" icon={<ArrowUpRight size={12} />}
+                    onClick={async () => {
+                      if (!vaultItemWithdraw || vaultItemWithdrawQty <= 0) return;
+                      await supabase.rpc("vault_withdraw_item", { p_character_id: character.id, p_item_name: vaultItemWithdraw, p_quantity: vaultItemWithdrawQty });
+                      setVaultItemWithdraw(""); setVaultItemWithdrawQty(0);
+                      refreshCharacter();
+                    }}
+                    disabled={!vaultItemWithdraw || vaultItemWithdrawQty <= 0}>Withdraw</Button>
+                </div>
+              </div>
             </div>
-          ) : (
-            <>
-              {projects.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">In Progress</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {projects.map((p) => <ProjectCard key={p.id} project={p} characterId={character.id} />)}
-                  </div>
-                </div>
-              )}
-              {completedProjects.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Completed</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {completedProjects.slice(0, 4).map((p) => <ProjectCard key={p.id} project={p} characterId={character.id} />)}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+          </div>
         </div>
       )}
 

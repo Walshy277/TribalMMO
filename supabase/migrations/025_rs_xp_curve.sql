@@ -152,7 +152,7 @@ BEGIN
   WHERE character_id = p_character_id AND name = v_skill_name;
   v_skill_level := COALESCE(v_skill_level, 1);
 
-  v_stamina_cost := 8 + GREATEST(0, (v_skill_level - 1) * 2);
+  v_stamina_cost := 8;
 
   IF v_stamina < v_stamina_cost THEN
     RAISE EXCEPTION 'Not enough stamina (need %)', v_stamina_cost;
@@ -203,7 +203,7 @@ BEGIN
   v_success := random() > v_fail_chance;
 
   IF NOT v_success THEN
-    v_xp_gain := GREATEST(5, v_skill_level * 2 + floor(random() * v_skill_level / 2 + 1)::int);
+    v_xp_gain := 5 + floor(random() * 4)::int;
     PERFORM public.check_skill_xp(p_character_id, v_skill_name, v_xp_gain);
     PERFORM public.compute_player_level(p_character_id);
     v_message := 'Your attempt failed. Better luck next time.';
@@ -269,7 +269,7 @@ BEGIN
     INSERT INTO public.inventory (character_id, item_id, quantity) VALUES (p_character_id, v_item_id, v_item_qty);
   END IF;
 
-  v_xp_gain := GREATEST(10, v_skill_level * 3 + floor(random() * (v_skill_level / 2 + 1))::int);
+  v_xp_gain := 10 + floor(random() * 6)::int;
   PERFORM public.check_skill_xp(p_character_id, v_skill_name, v_xp_gain);
   PERFORM public.compute_player_level(p_character_id);
 
@@ -323,8 +323,6 @@ BEGIN
   SELECT level INTO v_skill_level FROM public.skills
   WHERE character_id = p_character_id AND name = v_skill_name;
 
-  v_stamina_cost := v_stamina_cost + GREATEST(0, (COALESCE(v_skill_level, 1) - 1) * 2);
-
   IF v_stamina < v_stamina_cost THEN
     RAISE EXCEPTION 'Not enough stamina (need %)', v_stamina_cost;
   END IF;
@@ -333,7 +331,7 @@ BEGIN
   SET stamina = stamina - v_stamina_cost, stamina_updated_at = now()
   WHERE id = p_character_id;
 
-  v_xp_gain := GREATEST(10, v_skill_level * 3 + floor(random() * (v_skill_level / 2 + 1))::int);
+  v_xp_gain := 10 + floor(random() * 6)::int;
   PERFORM public.check_skill_xp(p_character_id, v_skill_name, v_xp_gain);
   PERFORM public.compute_player_level(p_character_id);
 
@@ -415,7 +413,7 @@ BEGIN
   ON CONFLICT (character_id, item_id)
   DO UPDATE SET quantity = public.inventory.quantity + 1;
 
-  v_xp_gain := GREATEST(15, v_skill_level * 2 + floor(p_duration / 20)::int);
+  v_xp_gain := GREATEST(15, floor(p_duration / 20)::int);
   PERFORM public.check_skill_xp(p_character_id, 'Crafting', v_xp_gain);
   PERFORM public.compute_player_level(p_character_id);
 

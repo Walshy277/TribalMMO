@@ -17,6 +17,9 @@ import {
   Landmark,
   Handshake,
   Package,
+  Crosshair,
+  Hand,
+  Heart,
 } from "lucide-react";
 
 const socialFeatures = [
@@ -49,9 +52,11 @@ const socialFeatures = [
 const skills = [
   { icon: Package, label: "Gathering", color: "#3b82f6" },
   { icon: Hammer, label: "Crafting", color: "#60a5fa" },
-  { icon: Swords, label: "Combat", color: "#d45a28" },
   { icon: TreePine, label: "Woodcutting", color: "#2563eb" },
   { icon: Mountain, label: "Mining", color: "#a09a88" },
+  { icon: Crosshair, label: "Hunting", color: "#b83a3a" },
+  { icon: Hand, label: "Begging", color: "#c9a84c" },
+  { icon: Heart, label: "Taming", color: "#8a6aaa" },
 ];
 
 const coreStats = [

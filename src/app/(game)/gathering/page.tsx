@@ -81,7 +81,7 @@ export default function GatheringPage() {
   const xpIntoLevel = xp - xpForCurrent;
   const xpGap = xpForNext - xpForCurrent;
   const xpPercent = xpGap > 0 ? Math.min((xpIntoLevel / xpGap) * 100, 100) : 100;
-  const staminaCost = 8 + Math.max(0, (currentLevel - 1) * 2);
+  const staminaCost = 8;
 
   const gather = async () => {
     if (gathering) return;

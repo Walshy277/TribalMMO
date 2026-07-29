@@ -94,7 +94,7 @@ export default function CharacterPage() {
   const clan = character.clan;
   const totalItems = character.inventory?.reduce((sum, inv) => sum + inv.quantity, 0) || 0;
   const equippedItems = character.inventory?.filter((inv) => inv.equipped) || [];
-  const effectiveStats = computeEffectiveStats(character, character.inventory, character.clan?.clan, pets);
+  const effectiveStats = computeEffectiveStats(character, character.inventory, { philosophy: character.clan?.clan?.philosophy, buildings: character.clanBuildings }, pets);
   const levelProgress = getLevelProgress(character.level || 1, skills);
   const mastery = calcMastery(character.level || 1);
 
@@ -264,7 +264,7 @@ export default function CharacterPage() {
           <span className="text-slate-600 text-[10px]">Combined: {levelProgress.current} / {MAX_SKILL_LEVEL * 5}</span>
         </div>
         <div className="grid grid-cols-5 gap-2">
-          {skills.map((skill) => {
+          {skills.filter((s) => s.name !== "Combat").map((skill) => {
             const Icon = skillIcons[skill.name] || Hammer;
             const xpForCurrent = xpForLevel(skill.level);
             const xpForNext = xpForLevel(Math.min(skill.level + 1, MAX_SKILL_LEVEL));

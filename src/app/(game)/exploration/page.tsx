@@ -223,7 +223,7 @@ export default function ExplorationPage() {
     if (result.event_type === "encounter") {
       const weatherMod = weather.effect === "dangerous" ? 1 : 0;
       const enemy = explorationEnemies[Math.floor(Math.random() * explorationEnemies.length)];
-      const effectiveStats = computeEffectiveStats(character, character.inventory, character.clan?.clan, character.pets);
+      const effectiveStats = computeEffectiveStats(character, character.inventory, { philosophy: character.clan?.clan?.philosophy, buildings: character.clanBuildings }, character.pets);
       const playerHp = 20 + effectiveStats.vitality * 3 + (weather.effect === "exhausting" ? -5 : 0);
       setCombat({
         active: true,
@@ -266,7 +266,7 @@ export default function ExplorationPage() {
 
   const playerAttack = () => {
     if (!combat || !combat.active || !character) return;
-    const effectiveStats = computeEffectiveStats(character, character.inventory, character.clan?.clan, character.pets);
+    const effectiveStats = computeEffectiveStats(character, character.inventory, { philosophy: character.clan?.clan?.philosophy, buildings: character.clanBuildings }, character.pets);
     const weatherDmgMod = weather.effect === "low_visibility" ? -1 : 0;
     const dmg = Math.max(1, effectiveStats.attack - combat.enemyDef + rangeInt(0, 2) + weatherDmgMod);
     const newEnemyHp = combat.enemyHp - dmg;
@@ -287,13 +287,13 @@ export default function ExplorationPage() {
   const endCombat = async () => {
     if (!combat || !character) return;
     if (combat.result === "won") {
-      const { data, error: rpcError } = await supabase.rpc("resolve_combat_win", {
+      const { data } = await supabase.rpc("resolve_combat_win", {
         p_character_id: character.id,
-        p_xp_reward: 10 + rangeInt(0, 10),
+        p_xp_reward: 5 + rangeInt(0, 5),
       });
-      if (!rpcError && data) {
-        const result = data as { xp: number; gold: number };
-        addLog({ text: `Victory! +${result.xp} Combat XP, +${result.gold} gold.`, icon: Flame, color: "text-slate-300", eventType: "flavor" });
+      if (data) {
+        const result = data as { gold: number };
+        addLog({ text: `Victory! +${result.gold} gold.`, icon: Flame, color: "text-slate-300", eventType: "flavor" });
       }
     } else if (combat.result === "lost") {
       const { error: rpcError } = await supabase.rpc("resolve_combat_loss", {

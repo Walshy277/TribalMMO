@@ -17,7 +17,7 @@ export interface EffectiveStats {
 export function computeEffectiveStats(
   character: Character,
   inventory: (InventoryRow & { item: Item | null })[],
-  clanBonuses?: { philosophy?: string },
+  clanBonuses?: { philosophy?: string; buildings?: { building_type: string; level: number }[] },
   pets?: Pet[]
 ): EffectiveStats {
   let str = character.strength;
@@ -91,6 +91,35 @@ export function computeEffectiveStats(
   } else if (clanBonuses?.philosophy === "pathfinders") {
     spd += 2;
     atkBonus += 1;
+  }
+
+  // Apply clan building passive bonuses
+  const buildings = clanBonuses?.buildings ?? [];
+  for (const b of buildings) {
+    switch (b.building_type) {
+      case "farm":
+        vit += b.level;
+        break;
+      case "lumber_yard":
+        str += b.level;
+        break;
+      case "quarry":
+        def += b.level;
+        break;
+      case "forge":
+        atkBonus += b.level;
+        break;
+      case "watchtower":
+        defBonus += b.level;
+        break;
+      case "barracks":
+        str += Math.floor(b.level / 2);
+        def += Math.floor(b.level / 2);
+        break;
+      case "library":
+        spd += b.level;
+        break;
+    }
   }
 
   return {

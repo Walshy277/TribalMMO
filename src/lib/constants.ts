@@ -1,4 +1,4 @@
-import { Swords, Shield, Gem, CircleDot, Coins, PawPrint, Cat, Dog, Bird, Skull, Flame, Crown, TreePine, Mountain, Package, Hammer } from "lucide-react";
+import { Swords, Shield, Gem, CircleDot, Coins, PawPrint, Cat, Dog, Bird, Skull, Flame, Crown, TreePine, Mountain, Package, Hammer, Crosshair, Hand, Heart } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export const typeIcons: Record<string, LucideIcon> = {
@@ -32,7 +32,7 @@ export const rarityColors: Record<number, string> = {
 };
 
 export const MAX_SKILL_LEVEL = 99;
-export const MAX_PLAYER_LEVEL = 495; // 99 * 5 skills
+export const MAX_PLAYER_LEVEL = 792; // 99 * 8 skills (7 visible + hidden Combat)
 
 export function xpForLevel(targetLevel: number): number {
   if (targetLevel <= 1) return 0;
@@ -43,15 +43,17 @@ export function xpForLevel(targetLevel: number): number {
   return Math.floor(total / 4);
 }
 
-export const SKILL_NAMES = ["Gathering", "Crafting", "Combat", "Woodcutting", "Mining"] as const;
+export const SKILL_NAMES = ["Gathering", "Crafting", "Woodcutting", "Mining", "Hunting", "Begging", "Taming"] as const;
 export type SkillName = (typeof SKILL_NAMES)[number];
 
 export const skillIcons: Record<string, LucideIcon> = {
   Gathering: Package,
   Crafting: Hammer,
-  Combat: Swords,
   Woodcutting: TreePine,
   Mining: Mountain,
+  Hunting: Crosshair,
+  Begging: Hand,
+  Taming: Heart,
 };
 
 export const petIcons: Record<string, LucideIcon> = {

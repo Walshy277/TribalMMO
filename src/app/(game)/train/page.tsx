@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/Button";
 import { StaminaBar } from "@/components/ui/StaminaBar";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Alert } from "@/components/ui/Alert";
-import { xpForLevel, MAX_SKILL_LEVEL, SKILL_NAMES, skillIcons } from "@/lib/constants";
 import {
   Swords,
   Dumbbell,
@@ -13,14 +12,12 @@ import {
   Heart,
   Zap,
   AlertTriangle,
+  TrendingUp,
 } from "lucide-react";
 
 interface TrainResult {
-  skill: string;
-  skill_name: string;
-  xp_gained: number;
-  level: number;
-  coin_reward: number;
+  stat: string;
+  stat_gain: number;
   stamina_cost: number;
 }
 
@@ -34,10 +31,10 @@ interface Activity {
 }
 
 const activities: Activity[] = [
-  { id: "sparring", name: "Sparring", desc: "Fight training dummies to hone combat skills", stat: "strength", icon: Swords, color: "#b83a3a" },
+  { id: "sparring", name: "Sparring", desc: "Fight training dummies to build strength", stat: "strength", icon: Swords, color: "#b83a3a" },
   { id: "conditioning", name: "Conditioning", desc: "Physical training to build resilience", stat: "defence", icon: Shield, color: "#6a90a8" },
   { id: "sprinting", name: "Sprinting", desc: "Run laps around the village for speed", stat: "speed", icon: Zap, color: "#4a9e6a" },
-  { id: "vitality", name: "Vitality Training", desc: "Push your body to increase vitality", stat: "vitality", icon: Heart, color: "#3b82f6" },
+  { id: "vitality_training", name: "Vitality Training", desc: "Push your body to increase vitality", stat: "vitality", icon: Heart, color: "#3b82f6" },
 ];
 
 export default function TrainPage() {
@@ -55,17 +52,9 @@ export default function TrainPage() {
     return <div className="text-slate-500 text-center mt-20">Create a character first.</div>;
   }
 
-  const combatSkill = character.skills?.find((s) => s.name === "Combat");
-  const combatLevel = combatSkill?.level || 1;
-  const combatXp = combatSkill?.experience || 0;
-  const xpForNext = xpForLevel(Math.min(combatLevel + 1, MAX_SKILL_LEVEL)) - xpForLevel(combatLevel);
-  const xpIntoLevel = combatXp - xpForLevel(combatLevel);
-  const xpPct = xpForNext > 0 ? Math.min((xpIntoLevel / xpForNext) * 100, 100) : 100;
-  const xpNeeded = Math.max(0, xpForNext - xpIntoLevel);
-  const estActions = xpNeeded > 0 ? Math.max(1, Math.ceil(xpNeeded / 5)) : 0;
-
   const getStaminaCost = (activity: Activity) => {
-    return 8 + Math.max(0, (combatLevel - 1) * 2) + (["sparring", "sprinting"].includes(activity.id) ? 2 : 0);
+    const costs: Record<string, number> = { sparring: 10, conditioning: 12, sprinting: 10, vitality_training: 12 };
+    return costs[activity.id] || 10;
   };
 
   const train = async (activity: Activity) => {
@@ -99,6 +88,16 @@ export default function TrainPage() {
       case "speed": return "text-[#4a9e6a]";
       case "vitality": return "text-[#3b82f6]";
       default: return "text-slate-300";
+    }
+  };
+
+  const statLabel = (stat: string) => {
+    switch (stat) {
+      case "strength": return "STR";
+      case "defence": return "DEF";
+      case "speed": return "SPD";
+      case "vitality": return "VIT";
+      default: return stat.toUpperCase();
     }
   };
 
@@ -146,10 +145,9 @@ export default function TrainPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.15)" }}>
-              <Zap size={14} className="text-blue-500" />
-              <span className="text-blue-500 text-sm font-semibold">+{lastResult.xp_gained} Combat XP</span>
+              <TrendingUp size={14} className={statColor(lastResult.stat)} />
+              <span className={"text-sm font-semibold " + statColor(lastResult.stat)}>+{lastResult.stat_gain} {statLabel(lastResult.stat)}</span>
             </div>
-
           </div>
         </div>
       )}
@@ -172,33 +170,10 @@ export default function TrainPage() {
               <div key={stat.key} className="text-center bg-slate-900/40 py-2 rounded-lg border border-slate-800/20">
                 <Icon size={14} className={`mx-auto mb-0.5 ${color}`} />
                 <div className="text-slate-600 text-[9px] font-bold uppercase">{stat.label}</div>
-                <div className={`text-lg font-bold ${color}`}>{value}</div>
+                <div className={`text-lg font-bold ${color}`}>{value.toFixed(1)}</div>
               </div>
             );
           })}
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Combat Skill</h2>
-            <span className="text-slate-200 text-sm font-bold">Level {combatLevel}</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider" style={{
-              background: combatLevel >= 75 ? "#c9a84c20" : combatLevel >= 50 ? "#8a6aaa20" : combatLevel >= 25 ? "#6a90a820" : combatLevel >= 10 ? "#4a9e6a20" : "#6e656c20",
-              color: combatLevel >= 75 ? "#c9a84c" : combatLevel >= 50 ? "#8a6aaa" : combatLevel >= 25 ? "#6a90a8" : combatLevel >= 10 ? "#4a9e6a" : "#6e656c",
-            }}>
-              {combatLevel >= 99 ? "Grandmaster" : combatLevel >= 75 ? "Master" : combatLevel >= 50 ? "Expert" : combatLevel >= 25 ? "Adept" : combatLevel >= 10 ? "Journeyman" : "Novice"}
-            </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-500 bg-blue-500" style={{ width: `${xpPct}%` }} />
-          </div>
-          <span className="text-slate-600 text-[10px] tabular-nums">{combatXp.toLocaleString()} XP</span>
-        </div>
-        <div className="text-slate-700 text-[10px] mt-1 flex justify-between">
-          <span>{xpForNext > 0 ? `${xpIntoLevel.toLocaleString()} / ${xpForNext.toLocaleString()} XP` : "Max level!"}</span>
-          {xpForNext > 0 && <span className="text-slate-600">~{estActions} actions</span>}
         </div>
       </div>
 
@@ -225,7 +200,7 @@ export default function TrainPage() {
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-slate-200 font-semibold text-sm">{activity.name}</span>
                   <span className={`text-[10px] font-bold ${statColor(activity.stat)}`}>
-                    {activity.stat.toUpperCase()} {statValue}
+                    {statLabel(activity.stat)} {statValue.toFixed(1)}
                   </span>
                 </div>
                 <p className="text-slate-500 text-xs">{activity.desc}</p>

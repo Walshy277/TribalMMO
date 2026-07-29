@@ -203,6 +203,9 @@ export interface Database {
           pvp_policy: string
           recruitment_policy: string
           leader_elections: boolean
+          level: number
+          xp: number
+          vault_gold: number
           created_at: string
         }
         Insert: {
@@ -224,6 +227,9 @@ export interface Database {
           pvp_policy?: string
           recruitment_policy?: string
           leader_elections?: boolean
+          level?: number
+          xp?: number
+          vault_gold?: number
           created_at?: string
         }
         Update: {
@@ -245,6 +251,9 @@ export interface Database {
           pvp_policy?: string
           recruitment_policy?: string
           leader_elections?: boolean
+          level?: number
+          xp?: number
+          vault_gold?: number
           created_at?: string
         }
         Relationships: []
@@ -376,6 +385,129 @@ export interface Database {
         Update: {
           id?: string
           project_id?: string
+          character_id?: string
+          wood_contributed?: number
+          stone_contributed?: number
+          food_contributed?: number
+          contributed_at?: string
+        }
+        Relationships: []
+      }
+      clan_buildings: {
+        Row: {
+          id: string
+          clan_id: string
+          building_type: string
+          level: number
+          contributed_wood: number
+          contributed_stone: number
+          contributed_food: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          clan_id: string
+          building_type: string
+          level?: number
+          contributed_wood?: number
+          contributed_stone?: number
+          contributed_food?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          clan_id?: string
+          building_type?: string
+          level?: number
+          contributed_wood?: number
+          contributed_stone?: number
+          contributed_food?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      clan_vault_items: {
+        Row: {
+          id: string
+          clan_id: string
+          item_id: string
+          quantity: number
+          deposited_by: string | null
+          deposited_at: string
+        }
+        Insert: {
+          id?: string
+          clan_id: string
+          item_id: string
+          quantity?: number
+          deposited_by?: string | null
+          deposited_at?: string
+        }
+        Update: {
+          id?: string
+          clan_id?: string
+          item_id?: string
+          quantity?: number
+          deposited_by?: string | null
+          deposited_at?: string
+        }
+        Relationships: []
+      }
+      clan_vault_log: {
+        Row: {
+          id: string
+          clan_id: string
+          character_id: string
+          action: string
+          item_name: string | null
+          quantity: number
+          gold_amount: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          clan_id: string
+          character_id: string
+          action: string
+          item_name?: string | null
+          quantity?: number
+          gold_amount?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          clan_id?: string
+          character_id?: string
+          action?: string
+          item_name?: string | null
+          quantity?: number
+          gold_amount?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      building_contributions: {
+        Row: {
+          id: string
+          building_id: string
+          character_id: string
+          wood_contributed: number
+          stone_contributed: number
+          food_contributed: number
+          contributed_at: string
+        }
+        Insert: {
+          id?: string
+          building_id: string
+          character_id: string
+          wood_contributed?: number
+          stone_contributed?: number
+          food_contributed?: number
+          contributed_at?: string
+        }
+        Update: {
+          id?: string
+          building_id?: string
           character_id?: string
           wood_contributed?: number
           stone_contributed?: number
@@ -783,6 +915,174 @@ export interface Database {
         }
         Relationships: []
       }
+      npcs: {
+        Row: {
+          id: string
+          name: string
+          description: string
+          level: number
+          base_strength: number
+          base_defence: number
+          base_speed: number
+          base_vitality: number
+          hp: number
+          gold_min: number
+          gold_max: number
+          xp_reward: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string
+          level?: number
+          base_strength?: number
+          base_defence?: number
+          base_speed?: number
+          base_vitality?: number
+          hp?: number
+          gold_min?: number
+          gold_max?: number
+          xp_reward?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string
+          level?: number
+          base_strength?: number
+          base_defence?: number
+          base_speed?: number
+          base_vitality?: number
+          hp?: number
+          gold_min?: number
+          gold_max?: number
+          xp_reward?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      npc_equipment: {
+        Row: {
+          id: string
+          npc_id: string
+          item_id: string
+          slot: string
+        }
+        Insert: {
+          id?: string
+          npc_id: string
+          item_id: string
+          slot: string
+        }
+        Update: {
+          id?: string
+          npc_id?: string
+          item_id?: string
+          slot?: string
+        }
+        Relationships: []
+      }
+      npc_loot: {
+        Row: {
+          id: string
+          npc_id: string
+          item_name: string
+          chance: number
+          min_qty: number
+          max_qty: number
+        }
+        Insert: {
+          id?: string
+          npc_id: string
+          item_name: string
+          chance: number
+          min_qty?: number
+          max_qty?: number
+        }
+        Update: {
+          id?: string
+          npc_id?: string
+          item_name?: string
+          chance?: number
+          min_qty?: number
+          max_qty?: number
+        }
+        Relationships: []
+      }
+      collections: {
+        Row: {
+          id: string
+          name: string
+          description: string
+          icon: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string
+          icon?: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string
+          icon?: string
+          sort_order?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      collection_items: {
+        Row: {
+          id: string
+          collection_id: string
+          item_name: string
+          item_type: string
+          item_rarity: number
+        }
+        Insert: {
+          id?: string
+          collection_id: string
+          item_name: string
+          item_type?: string
+          item_rarity?: number
+        }
+        Update: {
+          id?: string
+          collection_id?: string
+          item_name?: string
+          item_type?: string
+          item_rarity?: number
+        }
+        Relationships: []
+      }
+      character_collections: {
+        Row: {
+          id: string
+          character_id: string
+          collection_id: string
+          completed_at: string
+        }
+        Insert: {
+          id?: string
+          character_id: string
+          collection_id: string
+          completed_at?: string
+        }
+        Update: {
+          id?: string
+          character_id?: string
+          collection_id?: string
+          completed_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -818,7 +1118,7 @@ export interface Database {
       }
       resolve_combat_win: {
         Args: { p_character_id: string; p_xp_reward: number }
-        Returns: { xp: number; gold: number }
+        Returns: Json
       }
       resolve_combat_loss: {
         Args: { p_character_id: string; p_stamina_cost: number }
@@ -963,6 +1263,90 @@ export interface Database {
       create_world_event: {
         Args: { p_name: string; p_description: string; p_event_type: string; p_modifiers?: Json; p_target?: number; p_reward_description?: string; p_reward_value?: string; p_duration_hours?: number }
         Returns: void
+      }
+      reward_npc_kill: {
+        Args: { p_character_id: string; p_npc_id: string }
+        Returns: Json
+      }
+      get_npc_effective_stats: {
+        Args: { p_npc_id: string }
+        Returns: Json
+      }
+      roll_npc_loot: {
+        Args: { p_npc_id: string }
+        Returns: Json
+      }
+      check_collection_progress: {
+        Args: { p_character_id: string; p_collection_id: string }
+        Returns: Json
+      }
+      claim_collection_reward: {
+        Args: { p_character_id: string; p_collection_id: string }
+        Returns: Json
+      }
+      get_character_collections: {
+        Args: { p_character_id: string }
+        Returns: Json
+      }
+      hunt: {
+        Args: { p_character_id: string }
+        Returns: Json
+      }
+      compute_player_level: {
+        Args: { p_character_id: string }
+        Returns: number
+      }
+      assert_character_owner: {
+        Args: { p_character_id: string }
+        Returns: void
+      }
+      beg: {
+        Args: { p_character_id: string }
+        Returns: Json
+      }
+      tame: {
+        Args: { p_character_id: string }
+        Returns: Json
+      }
+      check_skill_xp: {
+        Args: { p_character_id: string; p_skill_name: string; p_xp_gain: number }
+        Returns: void
+      }
+      contribute_to_building: {
+        Args: { p_character_id: string; p_building_id: string; p_wood?: number; p_stone?: number; p_food?: number }
+        Returns: Json
+      }
+      vault_deposit_gold: {
+        Args: { p_character_id: string; p_amount: number }
+        Returns: Json
+      }
+      vault_withdraw_gold: {
+        Args: { p_character_id: string; p_amount: number }
+        Returns: Json
+      }
+      vault_deposit_item: {
+        Args: { p_character_id: string; p_item_name: string; p_quantity: number }
+        Returns: Json
+      }
+      vault_withdraw_item: {
+        Args: { p_character_id: string; p_item_name: string; p_quantity: number }
+        Returns: Json
+      }
+      get_clan_buildings_with_progress: {
+        Args: { p_clan_id: string }
+        Returns: Json
+      }
+      get_clan_vault_contents: {
+        Args: { p_clan_id: string }
+        Returns: Json
+      }
+      add_clan_xp: {
+        Args: { p_clan_id: string; p_amount: number }
+        Returns: void
+      }
+      get_building_cost: {
+        Args: { p_level: number }
+        Returns: Json
       }
     }
     Enums: {

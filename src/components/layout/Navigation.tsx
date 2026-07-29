@@ -22,6 +22,9 @@ import {
   Home,
   Scroll,
   Flag,
+  Crosshair,
+  Hand,
+  Heart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -68,6 +71,9 @@ const navGroups: NavGroup[] = [
       { href: "/combat", label: "Combat", icon: Sword, color: "#b83a3a" },
       { href: "/crafting", label: "Craft", icon: Hammer, color: "#60a5fa" },
       { href: "/shrine", label: "Shrine", icon: Sparkles, color: "#a855f7" },
+      { href: "/hunting", label: "Hunt", icon: Crosshair, color: "#b83a3a" },
+      { href: "/begging", label: "Beg", icon: Hand, color: "#c9a84c" },
+      { href: "/taming", label: "Tame", icon: Heart, color: "#8a6aaa" },
     ],
   },
   {

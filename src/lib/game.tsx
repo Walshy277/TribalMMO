@@ -27,9 +27,26 @@ type ClanMemberWithClan = ClanMember & {
 
 type ClanEvent = Database["public"]["Tables"]["clan_events"]["Row"];
 type ClanProject = Database["public"]["Tables"]["clan_projects"]["Row"];
+type ClanBuilding = Database["public"]["Tables"]["clan_buildings"]["Row"];
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 type WorldEvent = Database["public"]["Tables"]["world_events"]["Row"];
 type Achievement = Database["public"]["Tables"]["achievements"]["Row"];
+
+export type VaultItem = {
+  item_name: string;
+  quantity: number;
+  rarity: number;
+  type: string;
+};
+
+export type VaultContents = {
+  gold: number;
+  items: VaultItem[];
+};
+
+export type BuildingWithCost = ClanBuilding & {
+  cost: { wood: number; stone: number; food: number };
+};
 
 export interface CharacterWithSkills extends Character {
   skills: Skill[];
@@ -40,6 +57,8 @@ export interface CharacterWithSkills extends Character {
   next_stamina_at: string | null;
   level: number;
   clanProjects?: ClanProject[];
+  clanBuildings?: BuildingWithCost[];
+  clanVault?: VaultContents;
   clanEvents?: ClanEvent[];
   notifications?: Notification[];
   worldEvents?: WorldEvent[];
@@ -138,6 +157,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ]);
 
       let clanProjects: ClanProject[] = [];
+      let clanBuildings: BuildingWithCost[] = [];
+      let clanVault: VaultContents = { gold: 0, items: [] };
       let clanEvents: ClanEvent[] = [];
       let notifications: Notification[] = [];
       let worldEvents: WorldEvent[] = [];
@@ -145,14 +166,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
       if (clanResult.data) {
         const clanId = clanResult.data.clan_id;
-        const [projectsRes, eventsRes, notifsRes, worldRes, achievRes] = await Promise.all([
+        const [projectsRes, buildingsRes, vaultRes, eventsRes, notifsRes, worldRes, achievRes] = await Promise.all([
           withTimeout(supabase.from("clan_projects").select("*").eq("clan_id", clanId).order("created_at", { ascending: false }).limit(5), 8000),
+          withTimeout(supabase.rpc("get_clan_buildings_with_progress", { p_clan_id: clanId }), 8000),
+          withTimeout(supabase.rpc("get_clan_vault_contents", { p_clan_id: clanId }), 8000),
           withTimeout(supabase.from("clan_events").select("*").eq("clan_id", clanId).order("created_at", { ascending: false }).limit(20), 8000),
           withTimeout(supabase.from("notifications").select("*").eq("character_id", char.id).order("created_at", { ascending: false }).limit(20), 8000),
           withTimeout(supabase.from("world_events").select("*").eq("status", "active").limit(5), 8000),
           withTimeout(supabase.from("achievements").select("*").eq("character_id", char.id).limit(20), 8000),
         ]);
         clanProjects = (projectsRes.data ?? []) as ClanProject[];
+        clanBuildings = (buildingsRes.data ?? []) as BuildingWithCost[];
+        clanVault = (vaultRes.data ?? { gold: 0, items: [] }) as VaultContents;
         clanEvents = (eventsRes.data ?? []) as ClanEvent[];
         notifications = (notifsRes.data ?? []) as Notification[];
         worldEvents = (worldRes.data ?? []) as WorldEvent[];
@@ -214,6 +239,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         next_stamina_at,
         level: computedLevel,
         clanProjects,
+        clanBuildings,
+        clanVault,
         clanEvents,
         notifications,
         worldEvents,
