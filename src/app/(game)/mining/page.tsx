@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { StaminaBar } from "@/components/ui/StaminaBar";
 import { Mountain, Clock, AlertTriangle } from "lucide-react";
+import { xpForLevel, MAX_SKILL_LEVEL } from "@/lib/constants";
 
 const miningNodes = [
   { id: "copper_vein", name: "Copper Vein", xp: 8, staminaCost: 8, requiredLevel: 1, description: "Common copper deposits near the surface" },
@@ -19,19 +20,27 @@ export default function MiningPage() {
   const [lastResult, setLastResult] = useState<{ success: boolean; message: string; xp_gained: number; item_name: string | null; item_qty: number } | null>(null);
 
   useEffect(() => {
-    document.title = "Mining — TribalMMO";
+    document.title = "Mining � TribalMMO";
   }, []);
 
   if (!character) {
-    return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
+    return <div className="text-slate-500 text-center mt-20">Create a character first.</div>;
   }
 
   const miningSkill = character.skills?.find((s) => s.name === "Mining");
   const currentLevel = miningSkill?.level || 1;
   const xp = miningSkill?.experience || 0;
 
+  const xpForCurrent = xpForLevel(currentLevel);
+  const xpForNext = xpForLevel(Math.min(currentLevel + 1, MAX_SKILL_LEVEL));
+  const xpIntoLevel = xp - xpForCurrent;
+  const xpGap = xpForNext - xpForCurrent;
+  const xpPercent = xpGap > 0 ? Math.min((xpIntoLevel / xpGap) * 100, 100) : 100;
+  const xpNeeded = Math.max(0, xpGap - xpIntoLevel);
+  const estActions = xpNeeded > 0 ? Math.max(1, Math.ceil(xpNeeded / 5)) : 0;
+
   const mineOre = async (node: typeof miningNodes[0]) => {
-    if (!miningSkill || gathering) return;
+    if (gathering) return;
     if (character.computed_stamina < node.staminaCost) return;
     if (currentLevel < node.requiredLevel) return;
 
@@ -59,20 +68,26 @@ export default function MiningPage() {
   const lockedNodes = miningNodes.filter((n) => n.requiredLevel > currentLevel);
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-tribal-100">Mining</h1>
-        <p className="text-tribal-500 text-sm mt-0.5">Mine ores for resources and gold</p>
+        <h1 className="text-2xl font-bold text-slate-100">Mining</h1>
+        <p className="text-slate-500 text-sm mt-0.5">Mine ores for resources and gold</p>
       </div>
 
       <div className="card">
-        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-3">Mining Skill</h2>
-        <div className="flex items-center justify-between">
-          <span className="text-tribal-100 font-bold text-xl">Level {currentLevel}</span>
-          <span className="text-tribal-500 text-sm">XP: {xp} / {currentLevel * 100}</span>
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Mining Skill</h2>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-slate-100 font-bold text-xl">Level {currentLevel}</span>
+          <span className="text-slate-500 text-sm tabular-nums">{xpIntoLevel.toLocaleString()} / {xpGap.toLocaleString()} XP</span>
         </div>
-        <p className="text-tribal-600 text-xs mt-2">
-          {currentLevel < 100 ? "Mine ores to improve your skill" : "Max level reached"}
+        <div className="w-full bg-slate-900/60 rounded-full h-2.5 mb-2">
+          <div
+            className="bg-[#4a9e6a] h-2.5 rounded-full transition-all duration-300"
+            style={{ width: `${xpPercent}%` }}
+          />
+        </div>
+        <p className="text-slate-600 text-xs mt-2">
+          {currentLevel < MAX_SKILL_LEVEL ? `~${estActions} actions to next level` : "Max level reached"}
         </p>
       </div>
 
@@ -84,41 +99,41 @@ export default function MiningPage() {
             <h2 className="text-sm font-bold" style={{ color: lastResult.success ? "#4a9e6a" : "#b83a3a", fontFamily: "Crimson Pro, Georgia, serif" }}>
               {lastResult.success ? "Mined!" : "Failed!"}
             </h2>
-            <button onClick={() => setLastResult(null)} className="text-tribal-600 hover:text-tribal-400 text-xs">dismiss</button>
+            <button onClick={() => setLastResult(null)} className="text-slate-600 hover:text-slate-400 text-xs">dismiss</button>
           </div>
           {lastResult.success && lastResult.item_name && (
             <p className="text-[#6bc98a] text-sm font-semibold">+{lastResult.item_qty}x {lastResult.item_name} (+{lastResult.xp_gained} XP)</p>
           )}
           {!lastResult.success && (
-            <p className="text-tribal-500 text-xs">{lastResult.message}</p>
+            <p className="text-slate-500 text-xs">{lastResult.message}</p>
           )}
         </div>
       )}
 
       <div className="card">
-        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Ore Deposits</h2>
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Ore Deposits</h2>
         <div className="space-y-2">
           {availableNodes.map((node) => {
             const canGather = character.computed_stamina >= node.staminaCost;
             return (
-              <div key={node.id} className="bg-tribal-900/30 p-4 rounded-lg border border-tribal-800/20 hover:border-tribal-700/30 transition-all">
+              <div key={node.id} className="bg-slate-900/30 p-4 rounded-lg border border-slate-800/20 hover:border-slate-700/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Mountain size={18} className={canGather ? "text-tribal-500" : "text-tribal-700"} />
+                    <Mountain size={18} className={canGather ? "text-slate-500" : "text-slate-700"} />
                     <div>
-                      <span className="text-tribal-200 font-semibold text-sm">{node.name}</span>
-                      <p className="text-tribal-600 text-xs">{node.description}</p>
+                      <span className="text-slate-200 font-semibold text-sm">{node.name}</span>
+                      <p className="text-slate-600 text-xs">{node.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[#4a9e6a] text-xs font-semibold">+{node.xp}xp</span>
-                    <span className="text-tribal-700 text-xs flex items-center gap-1 tabular-nums">
+                    <span className="text-slate-700 text-xs flex items-center gap-1 tabular-nums">
                       <Clock size={10} /> {node.staminaCost} stam
                     </span>
-                    {!canGather && <AlertTriangle size={14} className="text-tribal-400/70" />}
+                    {!canGather && <AlertTriangle size={14} className="text-slate-400/70" />}
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-tribal-800/20">
+                <div className="mt-3 pt-3 border-t border-slate-800/20">
                   <Button
                     variant={canGather ? "primary" : "secondary"}
                     size="sm"
@@ -127,7 +142,7 @@ export default function MiningPage() {
                     loading={gathering}
                     disabled={!canGather}
                   >
-                    {canGather ? `Mine (-${node.staminaCost} stamina)` : "Not enough stamina"}
+                    {canGather ? "Mine (" + node.staminaCost + " stamina)" : "Not enough stamina"}
                   </Button>
                 </div>
               </div>
@@ -138,19 +153,19 @@ export default function MiningPage() {
 
       {lockedNodes.length > 0 && (
         <div className="card">
-          <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Locked Deposits</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Locked Deposits</h2>
           <div className="space-y-2">
             {lockedNodes.map((node) => (
-              <div key={node.id} className="bg-tribal-900/20 p-4 rounded-lg border border-tribal-800/10 opacity-50">
+              <div key={node.id} className="bg-slate-900/20 p-4 rounded-lg border border-slate-800/10 opacity-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Mountain size={18} className="text-tribal-700 shrink-0" />
+                    <Mountain size={18} className="text-slate-700 shrink-0" />
                     <div>
-                      <span className="text-tribal-400 font-semibold text-sm">{node.name}</span>
-                      <p className="text-tribal-700 text-xs">{node.description}</p>
+                      <span className="text-slate-400 font-semibold text-sm">{node.name}</span>
+                      <p className="text-slate-700 text-xs">{node.description}</p>
                     </div>
                   </div>
-                  <span className="text-tribal-700 text-xs bg-tribal-900/40 px-2 py-1 rounded border border-tribal-800/10">
+                  <span className="text-slate-700 text-xs bg-slate-900/40 px-2 py-1 rounded border border-slate-800/10">
                     Level {node.requiredLevel}
                   </span>
                 </div>

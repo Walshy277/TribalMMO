@@ -32,6 +32,7 @@ export default function MarketplacePage() {
   const [sortBy, setSortBy] = useState<"newest" | "price_asc" | "price_desc">("newest");
   const [filterType, setFilterType] = useState<string>("all");
   const [confirmBuy, setConfirmBuy] = useState<string | null>(null);
+  const [listingsCount, setListingsCount] = useState(0);
 
   useEffect(() => {
     document.title = "Marketplace — TribalMMO";
@@ -45,6 +46,18 @@ export default function MarketplacePage() {
       .select("*, seller:characters!seller_id(name, id), item:items(name, type, rarity)")
       .order("created_at", { ascending: false }) as { data: Listing[] | null };
     setListings(data || []);
+
+    if (character) {
+      const { count: marketCount } = await supabase
+        .from("marketplace_listings")
+        .select("*", { count: "exact", head: true })
+        .eq("seller_id", character.id);
+      const { count: auctionCount } = await supabase
+        .from("auction_house")
+        .select("*", { count: "exact", head: true })
+        .eq("seller_id", character.id);
+      setListingsCount((marketCount || 0) + (auctionCount || 0));
+    }
   };
 
   const createListing = async (e: React.FormEvent) => {
@@ -152,25 +165,31 @@ export default function MarketplacePage() {
       return 0;
     });
 
-  if (!character) return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
+  if (!character) return <div className="text-slate-500 text-center mt-20">Create a character first.</div>;
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-tribal-100">Marketplace</h1>
-          <p className="text-tribal-500 text-sm mt-0.5">Trade with other players</p>
+          <h1 className="text-2xl font-bold text-slate-100">Marketplace</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Trade with other players</p>
         </div>
-        <div className="flex items-center gap-2 text-tribal-100 bg-tribal-900/60 px-4 py-2 rounded-lg border border-tribal-800/30">
-          <Coins size={16} className="text-tribal-400" />
-          <span className="font-bold tabular-nums">{character.gold}</span>
-          <span className="text-tribal-500 text-sm">gold</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-slate-100 bg-slate-900/60 px-4 py-2 rounded-lg border border-slate-800/30">
+            <Coins size={16} className="text-slate-400" />
+            <span className="font-bold tabular-nums">{character.gold}</span>
+            <span className="text-slate-500 text-sm">gold</span>
+          </div>
+          <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-900/60 px-3 py-2 rounded-lg border border-slate-800/30">
+            <span className="tabular-nums">{listingsCount}</span>
+            <span className="text-slate-500">/ 5 listings</span>
+          </div>
         </div>
       </div>
 
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest">Listings</h2>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Listings</h2>
           <Button
             variant={showCreate ? "secondary" : "primary"}
             size="sm"
@@ -182,9 +201,9 @@ export default function MarketplacePage() {
         </div>
 
         {showCreate && (
-          <form onSubmit={createListing} className="space-y-3 mb-4 p-4 bg-tribal-900/30 rounded-lg border border-tribal-800/20 animate-fade-in">
+          <form onSubmit={createListing} className="space-y-3 mb-4 p-4 bg-slate-900/30 rounded-lg border border-slate-800/20 animate-fade-in">
             <div>
-              <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Item from Inventory</label>
+              <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Item from Inventory</label>
               <select value={selectedInvItem} onChange={(e) => setSelectedInvItem(e.target.value)} className="input" required>
                 <option value="">Select an item...</option>
                 {sellableItems.map((inv) => (
@@ -196,15 +215,16 @@ export default function MarketplacePage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Quantity</label>
+                <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Quantity</label>
                 <input type="number" value={quantity} onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))} className="input" min={1} required />
               </div>
               <div>
-                <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Price (each)</label>
+                <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Price (each)</label>
                 <input type="number" value={price} onChange={(e) => setPrice(Math.max(1, Number(e.target.value)))} className="input" min={1} required />
               </div>
             </div>
-            <p className="text-tribal-700 text-xs">5% tax on sale. You receive {Math.ceil(price * (1 - TAX_RATE))} gold per item.</p>
+            <p className="text-slate-700 text-xs">5% tax on sale. You receive {Math.ceil(price * (1 - TAX_RATE))} gold per item.</p>
+            <p className="text-slate-700 text-xs">1% listing fee (1g minimum) applies.</p>
             {error && (
               <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
             )}
@@ -216,7 +236,7 @@ export default function MarketplacePage() {
 
         <div className="flex flex-wrap gap-2 mb-4">
           <div className="relative flex-1 min-w-[150px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-tribal-600" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
             <input
               type="text"
               value={searchQuery}
@@ -248,8 +268,8 @@ export default function MarketplacePage() {
 
         {filteredListings.length === 0 ? (
           <div className="text-center py-8">
-            <ShoppingCart size={32} className="text-tribal-800 mx-auto mb-2" />
-            <p className="text-tribal-600">{listings.length === 0 ? "No items listed for sale." : "No listings match your filters."}</p>
+            <ShoppingCart size={32} className="text-slate-800 mx-auto mb-2" />
+            <p className="text-slate-600">{listings.length === 0 ? "No items listed for sale." : "No listings match your filters."}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -259,26 +279,26 @@ export default function MarketplacePage() {
               const isConfirming = confirmBuy === listing.id;
 
               return (
-                <div key={listing.id} className="bg-tribal-900/40 p-4 rounded-lg border border-tribal-800/20 hover:border-tribal-700/30 transition-colors">
+                <div key={listing.id} className="bg-slate-900/40 p-4 rounded-lg border border-slate-800/20 hover:border-slate-700/30 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Package size={18} className="text-tribal-500 shrink-0" />
+                      <Package size={18} className="text-slate-500 shrink-0" />
                       <div>
-                        <span className="text-tribal-200 font-semibold text-sm">{listing.item?.name || "Unknown"}</span>
-                        <span className="text-tribal-600 text-sm ml-2 tabular-nums">x{listing.quantity}</span>
+                        <span className="text-slate-200 font-semibold text-sm">{listing.item?.name || "Unknown"}</span>
+                        <span className="text-slate-600 text-sm ml-2 tabular-nums">x{listing.quantity}</span>
                         {listing.item?.type && (
-                          <span className="text-tribal-700 text-xs ml-2 capitalize">{listing.item.type}</span>
+                          <span className="text-slate-700 text-xs ml-2 capitalize">{listing.item.type}</span>
                         )}
-                        <p className="text-tribal-700 text-xs">by {listing.seller?.name || "Unknown"}{isOwn && " (you)"}</p>
+                        <p className="text-slate-700 text-xs">by {listing.seller?.name || "Unknown"}{isOwn && " (you)"}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-tribal-200 font-semibold text-sm flex items-center gap-1 tabular-nums">
-                        <Coins size={14} className="text-tribal-400" /> {listing.price}
+                      <span className="text-slate-200 font-semibold text-sm flex items-center gap-1 tabular-nums">
+                        <Coins size={14} className="text-slate-400" /> {listing.price}
                       </span>
                       {isOwn ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-tribal-700 text-xs">Your listing</span>
+                          <span className="text-slate-700 text-xs">Your listing</span>
                           <Button variant="ghost" size="sm" icon={<Trash2 size={12} />} onClick={() => cancelListing(listing.id)} loading={loading}>
                             Delist
                           </Button>

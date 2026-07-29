@@ -26,14 +26,14 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       return;
     }
     if (initialLoadDone && !character) {
-      navigate("/play");
+      navigate("/");
     }
   }, [user, authLoading, gameLoading, character, initialLoadDone, navigate]);
 
   if (authLoading || gameLoading || !initialLoadDone) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-[#6e656c] text-xs uppercase tracking-widest" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>
+        <div className="text-slate-400 text-xs uppercase tracking-widest font-heading">
           Loading...
         </div>
       </div>

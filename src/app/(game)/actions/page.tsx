@@ -80,8 +80,6 @@ export default function ActionsPage() {
       return;
     }
 
-    const completesAt = new Date(Date.now() + duration * 1000).toISOString();
-
     const resultPayload: Record<string, unknown> = {};
     if (type === "gathering") {
       const totalWeight = gatheringResources.reduce((sum, r) => sum + r.weight, 0);
@@ -102,7 +100,6 @@ export default function ActionsPage() {
       }
       resultPayload.resources = selected;
     } else if (type === "crafting") {
-      // Pick a random crafting result based on current crafting level
       const craftingSkill = character.skills?.find((s) => s.name === "Crafting");
       const level = craftingSkill?.level || 1;
       const craftingResults = [
@@ -121,119 +118,52 @@ export default function ActionsPage() {
       resultPayload.item_stats = result.stats;
     }
 
-    // Deduct stamina
-    const newStamina = Math.max(0, currentStamina - staminaCost);
-    const { error: staminaError } = await supabase.from("characters").update({
-      stamina: newStamina,
-      stamina_updated_at: new Date().toISOString(),
-    }).eq("id", character.id);
-    if (staminaError) { setError("Failed to deduct stamina. Please try again."); return; }
-
-    await logTransaction(character.id, "stamina_cost", -staminaCost, `Started ${type} (-${staminaCost} stamina)`);
-
-    await supabase.from("actions").insert({
-      character_id: character.id,
-      type,
-      duration,
-      completes_at: completesAt,
-      result: Object.keys(resultPayload).length > 0 ? resultPayload as unknown as import("@/types/database").Json : undefined,
+    const { error: rpcError } = await supabase.rpc("start_action", {
+      p_character_id: character.id,
+      p_type: type,
+      p_duration: duration,
+      p_skill_name: skillName,
+      p_stamina_cost: staminaCost,
+      p_result: Object.keys(resultPayload).length > 0 ? resultPayload as import("@/types/database").Json : undefined,
     });
-
-    const skill = character.skills?.find((s) => s.name === skillName);
-    if (skill) {
-      const xp = Math.floor(duration / 30);
-      const newXp = skill.experience + xp;
-      const maxXP = skill.level * 100;
-      const newLevel = newXp >= maxXP && skill.level < 100 ? skill.level + 1 : skill.level;
-      await supabase
-        .from("skills")
-        .update({ experience: newXp, level: newLevel })
-        .eq("id", skill.id);
-    }
+    if (rpcError) { setError(rpcError.message || "Failed to start action."); return; }
 
     await fetchActions();
     await refreshCharacter();
   };
 
-  const completeAction = async (actionId: string, action: ActionRow) => {
+  const completeAction = async (actionId: string, _action: ActionRow) => {
     if (!character) return;
-    const rewards: Reward[] = [];
 
-    if (action.type === "gathering") {
-      const result = action.result as { resources?: { name: string; quantity: number }[] } | null;
-      const resources = result?.resources || [];
+    const { data, error: rpcError } = await supabase.rpc("complete_action", {
+      p_character_id: character.id,
+      p_action_id: actionId,
+    });
+    if (rpcError) return;
 
-      for (const resource of resources) {
-        const existingItem = await supabase.from("items").select("id").eq("name", resource.name).single();
-        let itemId = existingItem.data?.id;
-        if (!itemId) {
-          const { data: newItem } = await supabase.from("items").insert({ name: resource.name, type: "materials", rarity: 1 }).select("id").single();
-          itemId = newItem?.id;
-        }
-        if (!itemId) continue;
-
-        const existingInv = await supabase.from("inventory").select("id, quantity").eq("character_id", character.id).eq("item_id", itemId).single();
-        if (existingInv.data) {
-          await supabase.from("inventory").update({ quantity: existingInv.data.quantity + resource.quantity }).eq("id", existingInv.data.id);
-        } else {
-          await supabase.from("inventory").insert({ character_id: character.id, item_id: itemId, quantity: resource.quantity });
-        }
-        rewards.push({ itemName: resource.name, quantity: resource.quantity });
-      }
-
-      const coinReward = Math.floor(Math.random() * 5) + 1;
-      await supabase.from("characters").update({ gold: character.gold + coinReward }).eq("id", character.id);
-      await logTransaction(character.id, "action_reward", coinReward, `Gathering completion reward`);
-      rewards.push({ itemName: "Coins", quantity: coinReward });
-    } else if (action.type === "crafting") {
-      const result = action.result as { item_name?: string; item_type?: string; item_rarity?: number; item_stats?: Record<string, number> } | null;
-      if (result?.item_name) {
-        const existingItem = await supabase.from("items").select("id").eq("name", result.item_name).single();
-        let itemId = existingItem.data?.id;
-        if (!itemId) {
-          const { data: newItem } = await supabase.from("items").insert({
-            name: result.item_name,
-            type: result.item_type || "weapon",
-            rarity: result.item_rarity || 1,
-            stats: result.item_stats || {},
-          }).select("id").single();
-          itemId = newItem?.id;
-        }
-        if (itemId) {
-          const existingInv = await supabase.from("inventory").select("id, quantity").eq("character_id", character.id).eq("item_id", itemId).single();
-          if (existingInv.data) {
-            await supabase.from("inventory").update({ quantity: existingInv.data.quantity + 1 }).eq("id", existingInv.data.id);
-          } else {
-            await supabase.from("inventory").insert({ character_id: character.id, item_id: itemId, quantity: 1 });
-          }
-          rewards.push({ itemName: result.item_name, quantity: 1 });
-        }
-      }
-    }
-
-    await supabase.from("actions").delete().eq("id", actionId);
-    setLastRewards(rewards);
+    const rewards = (data as { rewards?: { item_name: string; quantity: number }[] })?.rewards || [];
+    setLastRewards(rewards.map((r) => ({ itemName: r.item_name, quantity: r.quantity })));
     await fetchActions();
     await refreshCharacter();
   };
 
   if (!character) {
-    return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
+    return <div className="text-slate-500 text-center mt-20">Create a character first.</div>;
   }
 
   const now = Date.now();
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-tribal-100">Actions</h1>
-        <p className="text-tribal-500 text-sm mt-0.5">Craft, train, and hone your skills</p>
+        <h1 className="text-2xl font-bold text-slate-100">Actions</h1>
+        <p className="text-slate-500 text-sm mt-0.5">Craft, train, and hone your skills</p>
       </div>
 
       <div className="card">
         <StaminaBar current={character.computed_stamina} max={character.max_stamina} size="md" />
         {character.next_stamina_at && (
-          <p className="text-tribal-600 text-xs mt-2">
+          <p className="text-slate-600 text-xs mt-2">
             Next +1 stamina at {new Date(character.next_stamina_at).toLocaleTimeString()}
           </p>
         )}
@@ -252,7 +182,7 @@ export default function ActionsPage() {
           <div className="flex flex-wrap gap-3">
             {lastRewards.map((reward, i) => (
               <div key={i} className="flex items-center gap-2 bg-[#1a3a26]/30 px-3 py-2 rounded-lg border border-[#2d6e44]/30">
-                {reward.itemName === "Coins" ? <Coins size={14} className="text-tribal-300" /> : <Package size={14} className="text-[#4a9e6a]" />}
+                {reward.itemName === "Coins" ? <Coins size={14} className="text-slate-300" /> : <Package size={14} className="text-[#4a9e6a]" />}
                 <span className="text-[#6bc98a] text-sm font-semibold">{reward.itemName}</span>
                 <span className="text-[#4a9e6a] text-sm tabular-nums">+{reward.quantity}</span>
               </div>
@@ -263,15 +193,15 @@ export default function ActionsPage() {
 
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest">Active Actions</h2>
-          <span className="text-tribal-500 text-xs font-bold bg-tribal-900/60 px-2.5 py-1 rounded-full flex items-center gap-1 border border-tribal-800/30">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Actions</h2>
+          <span className="text-slate-500 text-xs font-bold bg-slate-900/60 px-2.5 py-1 rounded-full flex items-center gap-1 border border-slate-800/30">
             <Zap size={12} /> {actions.length} / {maxSlots}
           </span>
         </div>
         {actions.length === 0 ? (
           <div className="text-center py-8">
-            <Clock size={32} className="text-tribal-800 mx-auto mb-2" />
-            <p className="text-tribal-600">No active actions. Start one below.</p>
+            <Clock size={32} className="text-slate-800 mx-auto mb-2" />
+            <p className="text-slate-600">No active actions. Start one below.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -298,13 +228,13 @@ export default function ActionsPage() {
               }
 
               return (
-                <div key={action.id} className={`bg-tribal-900/40 p-4 rounded-lg border ${isComplete ? "border-[#2d6e44]/30" : "border-tribal-800/20"}`}>
+                <div key={action.id} className={`bg-slate-900/40 p-4 rounded-lg border ${isComplete ? "border-[#2d6e44]/30" : "border-slate-800/20"}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Icon size={16} className="text-tribal-500" />
-                      <span className="text-tribal-200 font-semibold capitalize text-sm">{action.type}</span>
+                      <Icon size={16} className="text-slate-500" />
+                      <span className="text-slate-200 font-semibold capitalize text-sm">{action.type}</span>
                       {resultPreview && (
-                        <span className="text-tribal-600 text-xs">— {resultPreview}</span>
+                        <span className="text-slate-600 text-xs">— {resultPreview}</span>
                       )}
                     </div>
                     {isComplete ? (
@@ -312,13 +242,13 @@ export default function ActionsPage() {
                         Collect
                       </Button>
                     ) : (
-                      <span className="text-tribal-500 text-sm font-mono tabular-nums">{minutes}:{seconds.toString().padStart(2, "0")}</span>
+                      <span className="text-slate-500 text-sm font-mono tabular-nums">{minutes}:{seconds.toString().padStart(2, "0")}</span>
                     )}
                   </div>
-                  <div className="w-full bg-tribal-900/80 rounded-full h-2">
+                  <div className="w-full bg-slate-900/80 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all duration-1000 ${
-                        isComplete ? "bg-[#3d8b5c]" : "bg-tribal-500"
+                        isComplete ? "bg-[#3d8b5c]" : "bg-slate-500"
                       }`}
                       style={{ width: `${progress}%` }}
                     />
@@ -331,26 +261,26 @@ export default function ActionsPage() {
       </div>
 
       <div className="card">
-        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Start New Action</h2>
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Start New Action</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {actionTypes.map((action) => {
             const Icon = action.icon;
             const canAfford = character.computed_stamina >= action.staminaCost;
             return (
-              <div key={action.type} className={`bg-tribal-900/40 p-4 rounded-lg border ${canAfford ? "border-tribal-800/20" : "border-tribal-700/20 opacity-75"}`}>
+              <div key={action.type} className={`bg-slate-900/40 p-4 rounded-lg border ${canAfford ? "border-slate-800/20" : "border-slate-700/20 opacity-75"}`}>
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-tribal-800/30 flex items-center justify-center shrink-0">
-                    <Icon size={20} className={canAfford ? "text-tribal-500" : "text-tribal-400/70"} />
+                  <div className="w-10 h-10 rounded-lg bg-slate-800/30 flex items-center justify-center shrink-0">
+                    <Icon size={20} className={canAfford ? "text-slate-500" : "text-slate-400/70"} />
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-tribal-200">{action.label}</div>
-                    <div className="text-sm text-tribal-600 mt-0.5">{action.description}</div>
+                    <div className="font-semibold text-slate-200">{action.label}</div>
+                    <div className="text-sm text-slate-600 mt-0.5">{action.description}</div>
                     <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-xs text-tribal-700 flex items-center gap-1">
+                      <span className="text-xs text-slate-700 flex items-center gap-1">
                         <Clock size={12} />
                         {action.duration >= 3600 ? `${Math.floor(action.duration / 3600)}h` : `${Math.floor(action.duration / 60)}m`}
                       </span>
-                      <span className={`text-xs font-semibold flex items-center gap-1 ${canAfford ? "text-tribal-400" : "text-tribal-300"}`}>
+                      <span className={`text-xs font-semibold flex items-center gap-1 ${canAfford ? "text-slate-400" : "text-slate-300"}`}>
                         <Zap size={12} /> {action.staminaCost} stamina
                       </span>
                     </div>

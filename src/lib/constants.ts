@@ -31,6 +31,18 @@ export const rarityColors: Record<number, string> = {
   7: "#e85050",
 };
 
+export const MAX_SKILL_LEVEL = 99;
+export const MAX_PLAYER_LEVEL = 495; // 99 * 5 skills
+
+export function xpForLevel(targetLevel: number): number {
+  if (targetLevel <= 1) return 0;
+  let total = 0;
+  for (let i = 1; i < targetLevel; i++) {
+    total += Math.floor(i + 300 * Math.pow(2, i / 7));
+  }
+  return Math.floor(total / 4);
+}
+
 export const SKILL_NAMES = ["Gathering", "Crafting", "Combat", "Woodcutting", "Mining"] as const;
 export type SkillName = (typeof SKILL_NAMES)[number];
 

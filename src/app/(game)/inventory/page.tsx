@@ -27,7 +27,7 @@ export default function InventoryPage() {
   }, []);
 
   if (!character) {
-    return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
+    return <div className="text-slate-500 text-center mt-20">Create a character first.</div>;
   }
 
   const equippedWeapon = character.inventory.find((inv) => inv.equipped && inv.item?.type === "weapon");
@@ -90,25 +90,13 @@ export default function InventoryPage() {
     setSuccess("");
 
     try {
+      const { error } = await supabase.rpc("use_consumable", {
+        p_character_id: character.id,
+        p_inventory_id: invId,
+      });
+      if (error) throw error;
+
       const heal = item.stats?.heal || 0;
-      if (heal > 0) {
-        const newStamina = Math.min(character.max_stamina, (character.computed_stamina || character.stamina) + heal);
-        const { error } = await supabase.from("characters").update({ stamina: newStamina, stamina_updated_at: new Date().toISOString() }).eq("id", character.id);
-        if (error) throw error;
-      }
-
-      const invItem = character.inventory.find((inv) => inv.id === invId);
-      if (invItem) {
-        const newQty = invItem.quantity - 1;
-        if (newQty <= 0) {
-          const { error } = await supabase.from("inventory").delete().eq("id", invId);
-          if (error) throw error;
-        } else {
-          const { error } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", invId);
-          if (error) throw error;
-        }
-      }
-
       setSuccess(heal > 0 ? `Used ${item.name}. Recovered ${heal} stamina.` : `Used ${item.name}.`);
       await refreshCharacter();
       setSelectedItem(null);
@@ -147,16 +135,16 @@ export default function InventoryPage() {
   };
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-tribal-100">Inventory</h1>
-          <p className="text-tribal-500 text-sm mt-0.5">Manage your equipment and items</p>
+          <h1 className="text-2xl font-bold text-slate-100">Inventory</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Manage your equipment and items</p>
         </div>
-        <div className="flex items-center gap-2 text-tribal-100 bg-tribal-900/60 px-4 py-2 rounded-lg border border-tribal-800/30">
-          <Coins size={16} className="text-tribal-400" />
+        <div className="flex items-center gap-2 text-slate-100 bg-slate-900/60 px-4 py-2 rounded-lg border border-slate-800/30">
+          <Coins size={16} className="text-slate-400" />
           <span className="font-bold tabular-nums">{character.gold}</span>
-          <span className="text-tribal-500 text-sm">gold</span>
+          <span className="text-slate-500 text-sm">gold</span>
         </div>
       </div>
 
@@ -164,16 +152,16 @@ export default function InventoryPage() {
       {success && <Alert variant="success" onDismiss={() => setSuccess("")}>{success}</Alert>}
 
       <div className="card">
-        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Equipment</h2>
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Equipment</h2>
         <div className="grid grid-cols-3 gap-4">
-          <div className={`bg-tribal-900/40 p-5 rounded-lg border text-center transition-colors ${
-            equippedWeapon ? "border-[#2d6e44]/30 hover:border-[#2d6e44]/40" : "border-tribal-800/20"
+          <div className={`bg-slate-900/40 p-5 rounded-lg border text-center transition-colors ${
+            equippedWeapon ? "border-[#2d6e44]/30 hover:border-[#2d6e44]/40" : "border-slate-800/20"
           }`}>
-            <Swords size={28} className={`mx-auto mb-2 ${equippedWeapon ? "text-[#4a9e6a]" : "text-tribal-600"}`} />
-            <div className="text-tribal-600 text-[11px] uppercase font-bold tracking-wider">Weapon</div>
+            <Swords size={28} className={`mx-auto mb-2 ${equippedWeapon ? "text-[#4a9e6a]" : "text-slate-600"}`} />
+            <div className="text-slate-600 text-[11px] uppercase font-bold tracking-wider">Weapon</div>
             {equippedWeapon ? (
               <>
-                <div className="text-tribal-100 font-semibold mt-1">{equippedWeapon.item?.name}</div>
+                <div className="text-slate-100 font-semibold mt-1">{equippedWeapon.item?.name}</div>
                 <div className="text-[#4a9e6a] text-xs mt-1">ATK +{totalAttackBonus}</div>
                 <Button variant="ghost" size="sm" className="mt-2" onClick={() => unequipItem(equippedWeapon.id)} loading={loading}>
                   Unequip
@@ -181,19 +169,19 @@ export default function InventoryPage() {
               </>
             ) : (
               <>
-                <div className="text-tribal-100 font-semibold mt-1">Bare Hands</div>
-                <div className="text-tribal-700 text-xs mt-1">ATK +0</div>
+                <div className="text-slate-100 font-semibold mt-1">Bare Hands</div>
+                <div className="text-slate-700 text-xs mt-1">ATK +0</div>
               </>
             )}
           </div>
-          <div className={`bg-tribal-900/40 p-5 rounded-lg border text-center transition-colors ${
-            equippedArmor ? "border-[#2d6e44]/30 hover:border-[#2d6e44]/40" : "border-tribal-800/20"
+          <div className={`bg-slate-900/40 p-5 rounded-lg border text-center transition-colors ${
+            equippedArmor ? "border-[#2d6e44]/30 hover:border-[#2d6e44]/40" : "border-slate-800/20"
           }`}>
-            <Shield size={28} className={`mx-auto mb-2 ${equippedArmor ? "text-[#4a9e6a]" : "text-tribal-600"}`} />
-            <div className="text-tribal-600 text-[11px] uppercase font-bold tracking-wider">Armor</div>
+            <Shield size={28} className={`mx-auto mb-2 ${equippedArmor ? "text-[#4a9e6a]" : "text-slate-600"}`} />
+            <div className="text-slate-600 text-[11px] uppercase font-bold tracking-wider">Armor</div>
             {equippedArmor ? (
               <>
-                <div className="text-tribal-100 font-semibold mt-1">{equippedArmor.item?.name}</div>
+                <div className="text-slate-100 font-semibold mt-1">{equippedArmor.item?.name}</div>
                 <div className="text-[#4a9e6a] text-xs mt-1">DEF +{totalDefenseBonus}</div>
                 <Button variant="ghost" size="sm" className="mt-2" onClick={() => unequipItem(equippedArmor.id)} loading={loading}>
                   Unequip
@@ -201,19 +189,19 @@ export default function InventoryPage() {
               </>
             ) : (
               <>
-                <div className="text-tribal-100 font-semibold mt-1">Cloth Wrap</div>
-                <div className="text-tribal-700 text-xs mt-1">DEF +0</div>
+                <div className="text-slate-100 font-semibold mt-1">Cloth Wrap</div>
+                <div className="text-slate-700 text-xs mt-1">DEF +0</div>
               </>
             )}
           </div>
-          <div className={`bg-tribal-900/40 p-5 rounded-lg border text-center transition-colors ${
-            equippedAccessory ? "border-[#2d6e44]/30 hover:border-[#2d6e44]/40" : "border-tribal-800/20"
+          <div className={`bg-slate-900/40 p-5 rounded-lg border text-center transition-colors ${
+            equippedAccessory ? "border-[#2d6e44]/30 hover:border-[#2d6e44]/40" : "border-slate-800/20"
           }`}>
-            <FlaskConical size={28} className={`mx-auto mb-2 ${equippedAccessory ? "text-[#4a9e6a]" : "text-tribal-600"}`} />
-            <div className="text-tribal-600 text-[11px] uppercase font-bold tracking-wider">Accessory</div>
+            <FlaskConical size={28} className={`mx-auto mb-2 ${equippedAccessory ? "text-[#4a9e6a]" : "text-slate-600"}`} />
+            <div className="text-slate-600 text-[11px] uppercase font-bold tracking-wider">Accessory</div>
             {equippedAccessory ? (
               <>
-                <div className="text-tribal-100 font-semibold mt-1">{equippedAccessory.item?.name}</div>
+                <div className="text-slate-100 font-semibold mt-1">{equippedAccessory.item?.name}</div>
                 <div className="text-[#4a9e6a] text-xs mt-1">
                   {(() => {
                     const stats = equippedAccessory.item?.stats as Record<string, number>;
@@ -227,26 +215,26 @@ export default function InventoryPage() {
               </>
             ) : (
               <>
-                <div className="text-tribal-100 font-semibold mt-1">Empty Slot</div>
-                <div className="text-tribal-700 text-xs mt-1">No bonuses</div>
+                <div className="text-slate-100 font-semibold mt-1">Empty Slot</div>
+                <div className="text-slate-700 text-xs mt-1">No bonuses</div>
               </>
             )}
           </div>
         </div>
         {(totalAttackBonus > 0 || totalDefenseBonus > 0) && (
-          <div className="mt-3 text-xs text-tribal-500 text-center">
+          <div className="mt-3 text-xs text-slate-500 text-center">
             Equipment Bonuses: ATK +{totalAttackBonus} / DEF +{totalDefenseBonus}
           </div>
         )}
       </div>
 
       <div className="card">
-        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Items</h2>
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Items</h2>
         {unequippedItems.length === 0 ? (
           <div className="text-center py-8">
-            <Package size={32} className="text-tribal-800 mx-auto mb-2" />
-            <p className="text-tribal-600">Your inventory is empty.</p>
-            <p className="text-tribal-700 text-sm mt-1">Go gather or craft some items!</p>
+            <Package size={32} className="text-slate-800 mx-auto mb-2" />
+            <p className="text-slate-600">Your inventory is empty.</p>
+            <p className="text-slate-700 text-sm mt-1">Go gather or craft some items!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -258,16 +246,16 @@ export default function InventoryPage() {
               return (
                 <div
                   key={inv.id}
-                  className={`bg-tribal-900/40 p-3 rounded-lg border text-center hover:border-tribal-700/30 transition-colors cursor-pointer ${
-                    selectedItem === inv.id ? "border-tribal-600/30 ring-1 ring-tribal-600/20" : "border-tribal-800/20"
+                  className={`bg-slate-900/40 p-3 rounded-lg border text-center hover:border-slate-700/30 transition-colors cursor-pointer ${
+                    selectedItem === inv.id ? "border-slate-600/30 ring-1 ring-slate-600/20" : "border-slate-800/20"
                   }`}
                   onClick={() => setSelectedItem(selectedItem === inv.id ? null : inv.id)}
                 >
-                  <Icon size={20} className="text-tribal-500 mx-auto mb-1" />
-                  <div className="text-tribal-200 text-sm font-medium">{item.name}</div>
-                  <div className="text-tribal-600 text-xs tabular-nums">x{inv.quantity}</div>
+                  <Icon size={20} className="text-slate-500 mx-auto mb-1" />
+                  <div className="text-slate-200 text-sm font-medium">{item.name}</div>
+                  <div className="text-slate-600 text-xs tabular-nums">x{inv.quantity}</div>
                   {item.rarity > 1 && (
-                    <div className="text-tribal-700 text-xs mt-0.5">Rarity {item.rarity}</div>
+                    <div className="text-slate-700 text-xs mt-0.5">Rarity {item.rarity}</div>
                   )}
                 </div>
               );
@@ -282,31 +270,31 @@ export default function InventoryPage() {
             <div className="flex items-center gap-3">
               {(() => {
                 const Icon = typeIcons[selectedInvItem.item!.type] || Package;
-                return <Icon size={24} className="text-tribal-400" />;
+                return <Icon size={24} className="text-slate-400" />;
               })()}
               <div>
-                <h3 className="text-tribal-100 font-bold text-lg">{selectedInvItem.item!.name}</h3>
+                <h3 className="text-slate-100 font-bold text-lg">{selectedInvItem.item!.name}</h3>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-tribal-500 text-xs capitalize">{selectedInvItem.item!.type}</span>
+                  <span className="text-slate-500 text-xs capitalize">{selectedInvItem.item!.type}</span>
                   {selectedInvItem.item!.rarity > 1 && (
-                    <span className="text-tribal-700 text-xs bg-tribal-900/60 px-1.5 py-0.5 rounded">Rarity {selectedInvItem.item!.rarity}</span>
+                    <span className="text-slate-700 text-xs bg-slate-900/60 px-1.5 py-0.5 rounded">Rarity {selectedInvItem.item!.rarity}</span>
                   )}
-                  <span className="text-tribal-600 text-xs">x{selectedInvItem.quantity}</span>
+                  <span className="text-slate-600 text-xs">x{selectedInvItem.quantity}</span>
                 </div>
               </div>
             </div>
-            <button onClick={() => setSelectedItem(null)} className="text-tribal-600 hover:text-tribal-300 transition-colors">
+            <button onClick={() => setSelectedItem(null)} className="text-slate-600 hover:text-slate-300 transition-colors">
               <X size={16} />
             </button>
           </div>
 
           {(selectedInvItem.item!.stats && typeof selectedInvItem.item!.stats === "object" && Object.keys(selectedInvItem.item!.stats).length > 0) && (
             <div className="mb-4">
-              <p className="text-xs font-bold text-tribal-400 uppercase tracking-wider mb-2">Stats</p>
-              <div className="bg-tribal-900/30 rounded-lg p-3 space-y-1">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Stats</p>
+              <div className="bg-slate-900/30 rounded-lg p-3 space-y-1">
                 {getStatDisplay(selectedInvItem.item as ItemDetail)?.map((s) => (
                   <div key={s.label} className="flex items-center justify-between text-sm">
-                    <span className="text-tribal-300 capitalize">{s.label}</span>
+                    <span className="text-slate-300 capitalize">{s.label}</span>
                     <span className="text-[#4a9e6a] font-semibold">+{s.value}</span>
                   </div>
                 ))}
@@ -333,22 +321,22 @@ export default function InventoryPage() {
       )}
 
       <div className="card">
-        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">Pets</h2>
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Pets</h2>
         {!character.pets || character.pets.length === 0 ? (
           <div className="text-center py-6">
-            <PawPrint size={32} className="text-tribal-800 mx-auto mb-2" />
-            <p className="text-tribal-600">No pets yet.</p>
-            <p className="text-tribal-700 text-sm mt-1">Visit the marketplace to find a companion.</p>
+            <PawPrint size={32} className="text-slate-800 mx-auto mb-2" />
+            <p className="text-slate-600">No pets yet.</p>
+            <p className="text-slate-700 text-sm mt-1">Visit the marketplace to find a companion.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {character.pets.map((pet) => (
-              <div key={pet.id} className="bg-tribal-900/40 p-3 rounded-lg flex items-center justify-between border border-tribal-800/20">
+              <div key={pet.id} className="bg-slate-900/40 p-3 rounded-lg flex items-center justify-between border border-slate-800/20">
                 <div className="flex items-center gap-3">
-                  <PawPrint size={18} className={pet.equipped ? "text-[#4a9e6a]" : "text-tribal-500"} />
+                  <PawPrint size={18} className={pet.equipped ? "text-[#4a9e6a]" : "text-slate-500"} />
                   <div>
-                    <span className="text-tribal-200 font-semibold">{pet.name}</span>
-                    <span className="text-tribal-500 text-sm capitalize ml-2">{pet.type}</span>
+                    <span className="text-slate-200 font-semibold">{pet.name}</span>
+                    <span className="text-slate-500 text-sm capitalize ml-2">{pet.type}</span>
                     {pet.equipped && (
                       <span className="text-[#4a9e6a] text-xs ml-2 font-bold uppercase">Equipped</span>
                     )}
@@ -361,10 +349,9 @@ export default function InventoryPage() {
                   onClick={async () => {
                     setLoading(true);
                     if (pet.equipped) {
-                      await supabase.from("pets").update({ equipped: false }).eq("id", pet.id);
+                      await supabase.rpc("unequip_pet", { p_character_id: character.id, p_pet_id: pet.id });
                     } else {
-                      await supabase.from("pets").update({ equipped: false }).eq("character_id", character.id);
-                      await supabase.from("pets").update({ equipped: true }).eq("id", pet.id);
+                      await supabase.rpc("equip_pet", { p_character_id: character.id, p_pet_id: pet.id });
                     }
                     await refreshCharacter();
                     setLoading(false);

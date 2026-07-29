@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
-import { Flame, UserPlus } from "lucide-react";
+import { Flame, UserPlus, Loader2, MailCheck } from "lucide-react";
 
 export default function SignupPage() {
   const { signUp, signInWithGoogle } = useAuth();
@@ -13,38 +14,116 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [creatingCharacter, setCreatingCharacter] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   useEffect(() => {
     document.title = "Sign Up — TribalMMO";
   }, []);
 
+  useEffect(() => {
+    if (!creatingCharacter) return;
+    let cancelled = false;
+    let attempts = 0;
+
+    const poll = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setCreatingCharacter(false);
+        setError("Session not found after signup. Please log in.");
+        return;
+      }
+
+      while (!cancelled && attempts < 20) {
+        attempts++;
+        const { data } = await supabase
+          .from("characters")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (data) {
+          setCreatingCharacter(false);
+          navigate("/");
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 750));
+      }
+      if (!cancelled) {
+        setCreatingCharacter(false);
+        setError("Character creation is taking longer than expected. Please refresh the page.");
+      }
+    };
+
+    poll();
+    return () => { cancelled = true; };
+  }, [creatingCharacter, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setNeedsConfirmation(false);
     const result = await signUp(email, password, username);
     if (result.error) {
       setError(result.error);
       setLoading(false);
+    } else if (result.needsEmailConfirmation) {
+      setNeedsConfirmation(true);
+      setLoading(false);
     } else {
-      navigate("/");
+      setCreatingCharacter(true);
     }
   };
 
   const handleGoogle = async () => {
     setError("");
-    const result = await signInWithGoogle();
-    if (result.error) setError(result.error);
+    await signInWithGoogle();
   };
+
+  if (needsConfirmation) {
+    return (
+      <div className="animate-fade-in">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-500 flex items-center justify-center mb-4">
+            <MailCheck size={32} className="text-slate-950" />
+          </div>
+          <h1 className="text-3xl font-bold text-slate-100">Check Your Email</h1>
+          <p className="text-slate-500 mt-2">We sent a confirmation link to <strong className="text-slate-300">{email}</strong></p>
+        </div>
+        <div className="card text-center">
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Click the link in the email to verify your account, then log in.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (creatingCharacter) {
+    return (
+      <div className="animate-fade-in">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-500 flex items-center justify-center mb-4">
+            <Flame size={32} className="text-slate-950" />
+          </div>
+          <h1 className="text-3xl font-bold text-slate-100">Creating Your Character</h1>
+          <p className="text-slate-500 mt-2">Forging your legend in Nervella...</p>
+        </div>
+        <div className="card flex items-center justify-center py-8">
+          <Loader2 size={28} className="text-slate-400 animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-tribal-500 flex items-center justify-center mb-4">
-          <Flame size={32} className="text-tribal-950" />
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-500 flex items-center justify-center mb-4">
+          <Flame size={32} className="text-slate-950" />
         </div>
-        <h1 className="text-3xl font-bold text-tribal-100">Join the Tribe</h1>
-        <p className="text-tribal-500 mt-2">Create your account to begin</p>
+        <h1 className="text-3xl font-bold text-slate-100">Join the Tribe</h1>
+        <p className="text-slate-500 mt-2">Create your account to begin</p>
       </div>
       <div className="card">
         <Button
@@ -65,16 +144,16 @@ export default function SignupPage() {
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-tribal-800/30"></div>
+            <div className="w-full border-t border-slate-800/30"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-[#1a181e] text-tribal-600">or sign up with email</span>
+            <span className="px-3 bg-[#1a181e] text-slate-600">or sign up with email</span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-tribal-400 mb-2 uppercase tracking-wider">Username</label>
+            <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Username</label>
             <input
               type="text"
               value={username}
@@ -86,7 +165,7 @@ export default function SignupPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-tribal-400 mb-2 uppercase tracking-wider">Email</label>
+            <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Email</label>
             <input
               type="email"
               value={email}
@@ -97,7 +176,7 @@ export default function SignupPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-tribal-400 mb-2 uppercase tracking-wider">Password</label>
+            <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Password</label>
             <input
               type="password"
               value={password}
@@ -107,7 +186,7 @@ export default function SignupPage() {
               required
               minLength={6}
             />
-            <p className="text-tribal-600 text-xs mt-1.5">Minimum 6 characters</p>
+            <p className="text-slate-600 text-xs mt-1.5">Minimum 6 characters</p>
           </div>
           {error && (
             <Alert variant="error" onDismiss={() => setError("")}>
@@ -118,10 +197,10 @@ export default function SignupPage() {
             Create Account
           </Button>
         </form>
-        <div className="mt-6 pt-4 border-t border-tribal-800/20 text-center">
-          <p className="text-tribal-500 text-sm">
+        <div className="mt-6 pt-4 border-t border-slate-800/20 text-center">
+          <p className="text-slate-500 text-sm">
             Already have an account?{" "}
-            <a href="/login" className="text-tribal-400 hover:text-tribal-300 font-semibold transition-colors">
+            <a href="/login" className="text-slate-400 hover:text-slate-300 font-semibold transition-colors">
               Login
             </a>
           </p>

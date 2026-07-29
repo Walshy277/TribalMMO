@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Database } from "@/types/database";
+import { MAX_PLAYER_LEVEL } from "@/lib/constants";
 
 function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -24,6 +25,12 @@ type ClanMemberWithClan = ClanMember & {
   clan: Clan & { clan_members: (ClanMember & { character?: { name: string } | null })[] };
 };
 
+type ClanEvent = Database["public"]["Tables"]["clan_events"]["Row"];
+type ClanProject = Database["public"]["Tables"]["clan_projects"]["Row"];
+type Notification = Database["public"]["Tables"]["notifications"]["Row"];
+type WorldEvent = Database["public"]["Tables"]["world_events"]["Row"];
+type Achievement = Database["public"]["Tables"]["achievements"]["Row"];
+
 export interface CharacterWithSkills extends Character {
   skills: Skill[];
   inventory: (InventoryRow & { item: Item })[];
@@ -32,9 +39,14 @@ export interface CharacterWithSkills extends Character {
   computed_stamina: number;
   next_stamina_at: string | null;
   level: number;
+  clanProjects?: ClanProject[];
+  clanEvents?: ClanEvent[];
+  notifications?: Notification[];
+  worldEvents?: WorldEvent[];
+  achievements?: Achievement[];
 }
 
-const MAX_LEVEL = 100;
+export { MAX_PLAYER_LEVEL };
 
 export async function recalculateCharacterLevel(characterId: string, supabaseClient: typeof supabase) {
   const { data: skills } = await supabaseClient
@@ -45,11 +57,10 @@ export async function recalculateCharacterLevel(characterId: string, supabaseCli
   if (!skills) return;
 
   const totalSkillLevels = skills.reduce((sum, s) => sum + (s.level || 1), 0);
-  const newLevel = Math.min(totalSkillLevels, MAX_LEVEL);
 
   await supabaseClient
     .from("characters")
-    .update({ level: newLevel })
+    .update({ level: totalSkillLevels })
     .eq("id", characterId);
 }
 
@@ -101,16 +112,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { data: char, error: charError } = await withTimeout(
-        supabase
-          .from("characters")
-          .select("*")
-          .eq("user_id", user.id)
-          .single(),
-        8000
-      );
+      let char = null;
 
-      if (charError || !char) {
+      for (let attempt = 0; attempt < 6; attempt++) {
+        if (attempt > 0) await new Promise((r) => setTimeout(r, 1000));
+        const { data } = await withTimeout(
+          supabase.from("characters").select("*").eq("user_id", user.id).maybeSingle(),
+          8000
+        );
+        if (data) { char = data; break; }
+      }
+
+      if (!char) {
         setCharacter(null);
         setLoading(false);
         setInitialLoadDone(true);
@@ -123,6 +136,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
         withTimeout(supabase.from("inventory").select("*").eq("character_id", char.id), 8000),
         withTimeout(supabase.from("clan_members").select("*, clan:clans(*, clan_members(*))").eq("character_id", char.id).maybeSingle(), 8000),
       ]);
+
+      let clanProjects: ClanProject[] = [];
+      let clanEvents: ClanEvent[] = [];
+      let notifications: Notification[] = [];
+      let worldEvents: WorldEvent[] = [];
+      let achievements: Achievement[] = [];
+
+      if (clanResult.data) {
+        const clanId = clanResult.data.clan_id;
+        const [projectsRes, eventsRes, notifsRes, worldRes, achievRes] = await Promise.all([
+          withTimeout(supabase.from("clan_projects").select("*").eq("clan_id", clanId).order("created_at", { ascending: false }).limit(5), 8000),
+          withTimeout(supabase.from("clan_events").select("*").eq("clan_id", clanId).order("created_at", { ascending: false }).limit(20), 8000),
+          withTimeout(supabase.from("notifications").select("*").eq("character_id", char.id).order("created_at", { ascending: false }).limit(20), 8000),
+          withTimeout(supabase.from("world_events").select("*").eq("status", "active").limit(5), 8000),
+          withTimeout(supabase.from("achievements").select("*").eq("character_id", char.id).limit(20), 8000),
+        ]);
+        clanProjects = (projectsRes.data ?? []) as ClanProject[];
+        clanEvents = (eventsRes.data ?? []) as ClanEvent[];
+        notifications = (notifsRes.data ?? []) as Notification[];
+        worldEvents = (worldRes.data ?? []) as WorldEvent[];
+        achievements = (achievRes.data ?? []) as Achievement[];
+      }
 
       const inventory = inventoryResult.data ?? [];
       const items: Record<string, Database["public"]["Tables"]["items"]["Row"]> = {};
@@ -155,10 +190,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         char.stamina_updated_at = new Date().toISOString();
       }
 
-      // Compute level from total skill levels
       const computedLevel = Math.min(
         (skillsResult.data ?? []).reduce((sum, s) => sum + (s.level || 1), 0),
-        100
+        MAX_PLAYER_LEVEL
       );
 
       // Persist level if changed
@@ -179,6 +213,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         computed_stamina,
         next_stamina_at,
         level: computedLevel,
+        clanProjects,
+        clanEvents,
+        notifications,
+        worldEvents,
+        achievements,
       } as CharacterWithSkills);
     } catch {
       setCharacter(null);

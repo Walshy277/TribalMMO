@@ -3,11 +3,12 @@ import { useGame } from "@/lib/game";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
-import { Gift, Coins, Clock, CheckCircle, Star, Flame, Package, Shield } from "lucide-react";
+import { Gift, Coins, Clock, CheckCircle, Star, Flame, Package, Shield, Gem } from "lucide-react";
 
 interface DailyReward {
   day: number;
   gold: number;
+  treasureCoins?: number;
   bonusItem?: string;
   bonusQuantity?: number;
   icon: typeof Coins;
@@ -15,13 +16,13 @@ interface DailyReward {
 }
 
 const dailyRewards: DailyReward[] = [
-  { day: 1, gold: 10, icon: Coins, color: "text-tribal-300" },
-  { day: 2, gold: 15, icon: Coins, color: "text-tribal-300" },
-  { day: 3, gold: 25, icon: Coins, color: "text-tribal-300" },
-  { day: 4, gold: 30, bonusItem: "Herbs", bonusQuantity: 5, icon: Package, color: "text-[#4a9e6a]" },
-  { day: 5, gold: 40, bonusItem: "Hides", bonusQuantity: 3, icon: Shield, color: "text-[#6a90a8]" },
-  { day: 6, gold: 60, icon: Coins, color: "text-tribal-300" },
-  { day: 7, gold: 100, bonusItem: "Stamina Potion", bonusQuantity: 2, icon: Star, color: "text-[#8a6aaa]" },
+  { day: 1, gold: 5, icon: Coins, color: "text-slate-300" },
+  { day: 2, gold: 10, icon: Coins, color: "text-slate-300" },
+  { day: 3, gold: 15, icon: Coins, color: "text-slate-300" },
+  { day: 4, gold: 20, treasureCoins: 1, bonusItem: "Wild Herbs", bonusQuantity: 5, icon: Gem, color: "text-[#4a9e6a]" },
+  { day: 5, gold: 25, icon: Coins, color: "text-slate-300" },
+  { day: 6, gold: 30, icon: Coins, color: "text-slate-300" },
+  { day: 7, gold: 50, treasureCoins: 3, bonusItem: "Stamina Potion", bonusQuantity: 2, icon: Gem, color: "text-[#8a6aaa]" },
 ];
 
 export default function RewardsPage() {
@@ -95,33 +96,33 @@ export default function RewardsPage() {
       return;
     }
 
-    const reward = result as { day: number; gold: number; bonus_item: string | null; bonus_qty: number | null; streak: number };
+    const reward = result as { day: number; gold: number; treasure_coins: number; bonus_item: string | null; bonus_qty: number | null; streak: number };
 
     setStreak(reward.streak);
     setClaimedToday(true);
     setNextClaimAt(new Date(Date.now() + 24 * 60 * 60 * 1000));
-    setSuccess(`Claimed Day ${reward.day}: ${reward.gold} gold${reward.bonus_item ? ` + ${reward.bonus_qty}x ${reward.bonus_item}` : ""}!`);
+    setSuccess(`Claimed Day ${reward.day}: ${reward.gold} gold${reward.treasure_coins ? ` + ${reward.treasure_coins} Treasure Coin${reward.treasure_coins > 1 ? 's' : ''}` : ""}${reward.bonus_item ? ` + ${reward.bonus_qty}x ${reward.bonus_item}` : ""}!`);
 
     setLoading(false);
     await refreshCharacter();
   };
 
-  if (!character) return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
+  if (!character) return <div className="text-slate-500 text-center mt-20">Create a character first.</div>;
 
   const currentDay = ((streak) % 7) + 1;
   const nextReward = dailyRewards.find((r) => r.day === currentDay);
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-tribal-100">Daily Rewards</h1>
-          <p className="text-tribal-500 text-sm mt-0.5">Claim your daily login rewards</p>
+          <h1 className="text-2xl font-bold text-slate-100">Daily Rewards</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Claim your daily login rewards</p>
         </div>
-        <div className="flex items-center gap-2 text-tribal-100 bg-tribal-900/60 px-4 py-2 rounded-lg border border-tribal-800/30">
-          <Flame size={16} className="text-tribal-300" />
+        <div className="flex items-center gap-2 text-slate-100 bg-slate-900/60 px-4 py-2 rounded-lg border border-slate-800/30">
+          <Flame size={16} className="text-slate-300" />
           <span className="font-bold tabular-nums">{streak}</span>
-          <span className="text-tribal-500 text-sm">day streak</span>
+          <span className="text-slate-500 text-sm">day streak</span>
         </div>
       </div>
 
@@ -134,19 +135,24 @@ export default function RewardsPage() {
       )}
 
       {migrationMissing && (
-        <div className="bg-tribal-900/40 border border-tribal-700/40 rounded-lg p-4 text-tribal-300 text-sm">
+        <div className="bg-slate-900/40 border border-slate-700/40 rounded-lg p-4 text-slate-300 text-sm">
           <p className="font-semibold mb-1">Daily rewards require migration 004</p>
-          <p className="text-tribal-300/70 text-xs">Run <code>004_economy_system.sql</code> in the Supabase SQL editor to enable streak tracking. Gold is still awarded.</p>
+          <p className="text-slate-300/70 text-xs">Run <code>004_economy_system.sql</code> in the Supabase SQL editor to enable streak tracking. Gold is still awarded.</p>
         </div>
       )}
 
       <div className="card">
         <div className="text-center mb-6">
-          <Gift size={40} className="text-tribal-500 mx-auto mb-3" />
-          <h2 className="text-lg font-bold text-tribal-100">Day {currentDay} Reward</h2>
+          <Gift size={40} className="text-slate-500 mx-auto mb-3" />
+          <h2 className="text-lg font-bold text-slate-100">Day {currentDay} Reward</h2>
           {nextReward && (
             <div className="mt-2 space-y-1">
-              <p className="text-tribal-300 font-semibold">{nextReward.gold} Gold</p>
+              <p className="text-slate-300 font-semibold">{nextReward.gold} Gold</p>
+              {nextReward.treasureCoins && (
+                <p className="text-amber-400 text-sm flex items-center justify-center gap-1">
+                  <Gem size={14} /> +{nextReward.treasureCoins} Treasure Coin{nextReward.treasureCoins > 1 ? 's' : ''}
+                </p>
+              )}
               {nextReward.bonusItem && (
                 <p className="text-[#4a9e6a] text-sm">+ {nextReward.bonusQuantity}x {nextReward.bonusItem}</p>
               )}
@@ -156,12 +162,12 @@ export default function RewardsPage() {
 
         {claimedToday ? (
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 text-tribal-500 mb-3">
+            <div className="flex items-center justify-center gap-2 text-slate-500 mb-3">
               <Clock size={16} />
               <span className="text-sm">Already claimed today</span>
             </div>
             {nextClaimAt && (
-              <p className="text-tribal-600 text-xs">
+              <p className="text-slate-600 text-xs">
                 Next reward at: {nextClaimAt.toLocaleString()}
               </p>
             )}
@@ -181,7 +187,7 @@ export default function RewardsPage() {
       </div>
 
       <div className="card">
-        <h2 className="text-xs font-bold text-tribal-400 uppercase tracking-widest mb-4">7-Day Reward Cycle</h2>
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">7-Day Reward Cycle</h2>
         <div className="grid grid-cols-7 gap-2">
           {dailyRewards.map((reward) => {
             const isCurrentDay = reward.day === currentDay;
@@ -192,19 +198,24 @@ export default function RewardsPage() {
                 key={reward.day}
                 className={`text-center p-3 rounded-lg border transition-all ${
                   isCurrentDay
-                    ? "bg-tribal-800/60 border-tribal-400/40"
+                    ? "bg-slate-800/60 border-slate-400/40"
                     : isPast
-                    ? "bg-tribal-900/20 border-tribal-800/10 opacity-50"
-                    : "bg-tribal-900/30 border-tribal-800/20"
+                    ? "bg-slate-900/20 border-slate-800/10 opacity-50"
+                    : "bg-slate-900/30 border-slate-800/20"
                 }`}
               >
-                <div className={`text-[10px] font-bold uppercase mb-1 ${isCurrentDay ? "text-tribal-300" : "text-tribal-600"}`}>
+                <div className={`text-[10px] font-bold uppercase mb-1 ${isCurrentDay ? "text-slate-300" : "text-slate-600"}`}>
                   Day {reward.day}
                 </div>
                 <Icon size={18} className={`mx-auto my-1.5 ${reward.color} ${isPast ? "opacity-40" : ""}`} />
-                <div className={`text-xs font-bold tabular-nums ${isPast ? "text-tribal-700" : "text-tribal-200"}`}>
+                <div className={`text-xs font-bold tabular-nums ${isPast ? "text-slate-700" : "text-slate-200"}`}>
                   {reward.gold}g
                 </div>
+                {reward.treasureCoins && (
+                  <div className="text-[10px] text-amber-400 mt-0.5 flex items-center justify-center gap-0.5">
+                    <Gem size={10} />+{reward.treasureCoins}
+                  </div>
+                )}
                 {reward.bonusItem && (
                   <div className="text-[10px] text-[#4a9e6a] mt-0.5">
                     +{reward.bonusQuantity}
@@ -217,7 +228,7 @@ export default function RewardsPage() {
             );
           })}
         </div>
-        <p className="text-tribal-700 text-xs mt-3 text-center">
+        <p className="text-slate-700 text-xs mt-3 text-center">
           Streak resets if you miss a day. Cycle repeats every 7 days with increasing rewards.
         </p>
       </div>

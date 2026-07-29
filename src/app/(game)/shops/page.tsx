@@ -38,7 +38,8 @@ export default function ShopsPage() {
     if (error && (error.code === "42P01" || error.message?.includes("does not exist"))) {
       setMigrationMissing(true);
     }
-    setShopItems((data as ShopItem[]) || []);
+    const items = (data as ShopItem[]) || [];
+    setShopItems(items);
   };
 
   const buyFromShop = async (item: ShopItem) => {
@@ -82,7 +83,6 @@ export default function ShopsPage() {
     }
 
     const qty = Math.min(sellQuantities[invItem.item_id] || 1, invItem.quantity);
-    const totalValue = shopItem.sell_price * qty;
 
     setLoading(true);
     setError("");
@@ -92,19 +92,21 @@ export default function ShopsPage() {
       p_character_id: character.id,
       p_inventory_id: invItem.id,
       p_quantity: qty,
-      p_total_value: totalValue,
-      p_item_name: invItem.item.name,
     });
 
-    if (rpcError) { setError(rpcError.message); setLoading(false); return; }
+    if (rpcError) {
+      setError(rpcError.message || "Failed to sell item.");
+      setLoading(false);
+      return;
+    }
 
-    setSuccess(`Sold ${qty}x ${invItem.item.name} for ${totalValue} gold.`);
+    setSuccess(`Sold ${qty}x ${invItem.item.name} to the shop.`);
     setSellQuantities((prev) => ({ ...prev, [invItem.item_id]: 1 }));
     setLoading(false);
     await refreshCharacter();
   };
 
-  if (!character) return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
+  if (!character) return <div className="text-slate-500 text-center mt-20">Create a character first.</div>;
 
   const itemTypes = [...new Set(shopItems.map((si) => si.type))];
 
@@ -123,17 +125,18 @@ export default function ShopsPage() {
   );
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-tribal-100">General Store</h1>
-          <p className="text-tribal-500 text-sm mt-0.5">Buy supplies and sell your resources</p>
+          <h1 className="text-2xl font-bold text-slate-100">General Store</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Buy supplies and sell your resources</p>
         </div>
-        <div className="flex items-center gap-2 text-tribal-100 bg-tribal-900/60 px-4 py-2 rounded-lg border border-tribal-800/30">
-          <Coins size={16} className="text-tribal-400" />
+        <div className="flex items-center gap-2 text-slate-100 bg-slate-900/60 px-4 py-2 rounded-lg border border-slate-800/30">
+          <Coins size={16} className="text-slate-400" />
           <span className="font-bold tabular-nums">{character.gold}</span>
-          <span className="text-tribal-500 text-sm">gold</span>
+          <span className="text-slate-500 text-sm">gold</span>
         </div>
+
       </div>
 
       {error && (
@@ -143,7 +146,7 @@ export default function ShopsPage() {
         <Alert variant="success" onDismiss={() => setSuccess("")}>{success}</Alert>
       )}
       {migrationMissing && (
-        <div className="bg-tribal-900/40 border border-tribal-700/40 rounded-lg p-3 text-tribal-300 text-sm">
+        <div className="bg-slate-900/40 border border-slate-700/40 rounded-lg p-3 text-slate-300 text-sm">
           Shop requires migration 004. Run <code>004_economy_system.sql</code> in the Supabase SQL editor.
         </div>
       )}
@@ -155,8 +158,8 @@ export default function ShopsPage() {
             onClick={() => { setTab(t); setError(""); setSuccess(""); }}
             className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
               tab === t
-                ? "bg-tribal-800/60 text-tribal-100 border-tribal-600/30"
-                : "text-tribal-500 hover:text-tribal-300 border border-transparent"
+                ? "bg-slate-800/60 text-slate-100 border-slate-600/30"
+                : "text-slate-500 hover:text-slate-300 border border-transparent"
             }`}
           >
             <span className="flex items-center gap-1.5">
@@ -171,7 +174,7 @@ export default function ShopsPage() {
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <div className="relative flex-1 min-w-[150px]">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-tribal-600" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
               <input
                 type="text"
                 value={searchQuery}
@@ -194,8 +197,8 @@ export default function ShopsPage() {
 
           {filteredShopItems.length === 0 ? (
             <div className="text-center py-8">
-              <Store size={32} className="text-tribal-800 mx-auto mb-2" />
-              <p className="text-tribal-600">No items available.</p>
+              <Store size={32} className="text-slate-800 mx-auto mb-2" />
+              <p className="text-slate-600">No items available.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -206,21 +209,21 @@ export default function ShopsPage() {
                 const canAfford = character.gold >= totalCost;
 
                 return (
-                  <div key={item.id} className="bg-tribal-900/40 p-4 rounded-lg border border-tribal-800/20 hover:border-tribal-700/30 transition-colors">
+                  <div key={item.id} className="bg-slate-900/40 p-4 rounded-lg border border-slate-800/20 hover:border-slate-700/30 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-tribal-800/30 flex items-center justify-center shrink-0">
-                          <Icon size={18} className="text-tribal-500" />
+                        <div className="w-10 h-10 rounded-lg bg-slate-800/30 flex items-center justify-center shrink-0">
+                          <Icon size={18} className="text-slate-500" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-tribal-200 font-semibold text-sm">{item.name}</span>
+                            <span className="text-slate-200 font-semibold text-sm">{item.name}</span>
                             {item.rarity > 1 && (
-                              <span className="text-tribal-700 text-xs bg-tribal-900/60 px-1.5 py-0.5 rounded">R{item.rarity}</span>
+                              <span className="text-slate-700 text-xs bg-slate-900/60 px-1.5 py-0.5 rounded">R{item.rarity}</span>
                             )}
                           </div>
                           {item.description && (
-                            <p className="text-tribal-600 text-xs mt-0.5">{item.description}</p>
+                            <p className="text-slate-600 text-xs mt-0.5">{item.description}</p>
                           )}
                           {item.stats && typeof item.stats === "object" && Object.keys(item.stats).length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-1">
@@ -232,7 +235,7 @@ export default function ShopsPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-tribal-400 text-sm font-semibold flex items-center gap-1 tabular-nums">
+                        <span className="text-slate-400 text-sm font-semibold flex items-center gap-1 tabular-nums">
                           <Coins size={14} /> {item.buy_price}
                         </span>
                         <div className="flex items-center gap-1">
@@ -263,12 +266,12 @@ export default function ShopsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-tribal-500 text-sm">Sell your resources and items to the shop at fixed prices.</p>
+          <p className="text-slate-500 text-sm">Sell your resources and items to the shop at fixed prices.</p>
           {sellableItems.length === 0 ? (
             <div className="text-center py-8">
-              <Package size={32} className="text-tribal-800 mx-auto mb-2" />
-              <p className="text-tribal-600">No items to sell.</p>
-              <p className="text-tribal-700 text-sm mt-1">Gather resources or craft items to sell here.</p>
+              <Package size={32} className="text-slate-800 mx-auto mb-2" />
+              <p className="text-slate-600">No items to sell.</p>
+              <p className="text-slate-700 text-sm mt-1">Gather resources or craft items to sell here.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -278,24 +281,26 @@ export default function ShopsPage() {
                 if (!shopItem) return null;
                 const Icon = typeIcons[item.type] || Package;
                 const qty = Math.min(sellQuantities[inv.item_id] || 1, inv.quantity);
-                const totalValue = shopItem.sell_price * qty;
+                const unitPrice = Math.max(1, Math.floor((item.market_value || 0) * shopItem.buy_rate));
+                const totalValue = unitPrice * qty;
 
                 return (
-                  <div key={inv.id} className="bg-tribal-900/40 p-4 rounded-lg border border-tribal-800/20 hover:border-tribal-700/30 transition-colors">
+                  <div key={inv.id} className="bg-slate-900/40 p-4 rounded-lg border border-slate-800/20 hover:border-slate-700/30 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Icon size={18} className="text-tribal-500" />
+                        <Icon size={18} className="text-slate-500" />
                         <div>
-                          <span className="text-tribal-200 font-semibold text-sm">{item.name}</span>
-                          <span className="text-tribal-600 text-sm ml-2 tabular-nums">x{inv.quantity}</span>
+                          <span className="text-slate-200 font-semibold text-sm">{item.name}</span>
+                          <span className="text-slate-600 text-sm ml-2 tabular-nums">x{inv.quantity}</span>
                            {item.rarity > 1 && (
-                            <span className="text-tribal-700 text-xs ml-2">Rarity {item.rarity}</span>
+                            <span className="text-slate-700 text-xs ml-2">Rarity {item.rarity}</span>
                           )}
+                          <p className="text-slate-600 text-xs mt-0.5">Market: {item.market_value || 0}g &middot; Shop pays {Math.round(shopItem.buy_rate * 100)}%</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-tribal-400 text-sm font-semibold flex items-center gap-1 tabular-nums">
-                          <Coins size={14} /> {shopItem.sell_price} <span className="text-tribal-700 text-xs">each</span>
+                        <span className="text-slate-400 text-sm font-semibold flex items-center gap-1 tabular-nums">
+                          <Coins size={14} /> {unitPrice} <span className="text-slate-700 text-xs">each</span>
                         </span>
                         <div className="flex items-center gap-1">
                           <input

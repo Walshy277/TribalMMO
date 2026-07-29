@@ -24,7 +24,6 @@ import { useLocation } from "react-router-dom";
 import LandingPage from "@/app/page";
 import LoginPage from "@/app/(auth)/login/page";
 import SignupPage from "@/app/(auth)/signup/page";
-import Dashboard from "@/app/(game)/play/page";
 import CharacterPage from "@/app/(game)/character/page";
 import TrainPage from "@/app/(game)/train/page";
 import WoodcuttingPage from "@/app/(game)/woodcutting/page";
@@ -50,14 +49,23 @@ import ShrinePage from "@/app/(game)/shrine/page";
 import TownCentrePage from "@/app/(game)/town-centre/page";
 
 function GameLayout({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
   return (
-    <>
-      <Header />
-      <div className="flex flex-1 overflow-hidden">
-        <Navigation />
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto">{children}</main>
+    <div className="min-h-screen flex flex-col">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-[400px] h-[400px] rounded-full bg-[rgba(59,130,246,0.015)] blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] rounded-full bg-[rgba(59,130,246,0.01)] blur-[100px]" />
       </div>
-    </>
+      <Header />
+      <div className="flex flex-1 overflow-hidden relative">
+        <Navigation />
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+          <div key={pathname} className="animate-slide-up max-w-5xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
 
@@ -77,8 +85,8 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#0e0c10" }}>
-        <div className="text-[#6e656c] text-xs uppercase tracking-widest" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0c1222]">
+        <div className="text-slate-500 text-[10px] uppercase tracking-[0.2em]">Loading...</div>
       </div>
     );
   }
@@ -86,16 +94,19 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0e0c10" }}>
-      <aside className="w-52 bg-[#0e0c10] border-r border-[#262328] flex flex-col shrink-0">
-        <div className="p-4 border-b border-[#262328]">
+    <div className="min-h-screen flex" style={{ background: "#0c1222" }}>
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/3 w-[500px] h-[500px] rounded-full bg-[rgba(59,130,246,0.015)] blur-[120px]" />
+      </div>
+      <aside className="w-52 bg-[#162032] border-r border-[rgba(59,130,246,0.06)] flex flex-col shrink-0 relative">
+        <div className="p-4 border-b border-[rgba(59,130,246,0.06)]">
           <Link to="/" className="flex items-center gap-2 group mb-3">
-            <div className="w-7 h-7 bg-[#8c2e2e] flex items-center justify-center rounded-sm">
-              <Flame size={14} className="text-[#f5e8e8]" />
+            <div className="w-7 h-7 bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center rounded-[5px]">
+              <Flame size={14} className="text-[#0c1222]" />
             </div>
-            <span className="text-sm font-bold text-[#e6ddd2] uppercase tracking-wide" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>Admin</span>
+            <span className="text-sm font-bold text-slate-300 uppercase tracking-wide font-heading">Admin</span>
           </Link>
-          <Link to="/" className="flex items-center gap-1.5 text-[#6e656c] hover:text-[#b39b7c] text-xs transition-colors">
+          <Link to="/" className="flex items-center gap-1.5 text-slate-600 hover:text-slate-400 text-xs transition-colors">
             <ArrowLeft size={11} />
             Back to game
           </Link>
@@ -104,25 +115,26 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 p-2.5 space-y-px overflow-y-auto">
           {adminNavItems.map((item) => {
             const Icon = item.icon;
+            const active = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 to={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-colors duration-100 ${
-                  pathname === item.href
-                    ? "text-[#e88] bg-[#8c2e2e]/[0.08]"
-                    : "text-[#6e656c] hover:text-[#b39b7c] hover:bg-[#1a181e]"
+                className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-colors duration-100 rounded-md ${
+                  active
+                    ? "text-slate-200 bg-[rgba(59,130,246,0.07)] shadow-[inset_2px_0_0_#3b82f6]"
+                    : "text-slate-500 hover:text-slate-300 hover:bg-[rgba(59,130,246,0.03)]"
                 }`}
               >
-                <Icon size={16} className={pathname === item.href ? "text-[#b83a3a]" : "text-[#4d3a27]"} />
+                <Icon size={16} className={active ? "text-blue-400" : "text-slate-600"} />
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-2.5 border-t border-[#262328]">
-          <Button variant="ghost" size="sm" className="w-full" icon={<LogOut size={14} />} onClick={signOut}>
+        <div className="p-2.5 border-t border-[rgba(59,130,246,0.06)]">
+          <Button variant="ghost" size="sm" className="w-full text-slate-500 hover:text-slate-300" icon={<LogOut size={14} />} onClick={signOut}>
             Logout
           </Button>
         </div>
@@ -137,12 +149,19 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
 
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "#0e0c10" }}>
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[#c04e20]/[0.02] blur-[100px]" />
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "#0c1222" }}>
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[rgba(59,130,246,0.02)] blur-[120px]" />
+        <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full bg-[rgba(59,130,246,0.012)] blur-[100px]" />
+        <div className="absolute top-1/4 right-1/4 w-[200px] h-[200px] rounded-full bg-[rgba(59,130,246,0.008)] blur-[80px]" />
       </div>
-      <div className="relative z-10 w-full max-w-md">
-        {children}
+      <div className="relative z-10 w-full max-w-md animate-slide-up">
+        <div className="relative">
+          <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-b from-[rgba(59,130,246,0.08)] to-[rgba(59,130,246,0.02)] pointer-events-none" />
+          <div className="relative forge-card bg-gradient-to-b from-[#1a2235] to-[#162032] rounded-xl">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -172,7 +191,6 @@ export default function App() {
         <Route path="/login" element={<AuthLayout><LoginPage /></AuthLayout>} />
         <Route path="/signup" element={<AuthLayout><SignupPage /></AuthLayout>} />
 
-        <Route path="/play" element={<ProtectedRoute><GameLayout><Dashboard /></GameLayout></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><GameLayout><CharacterPage /></GameLayout></ProtectedRoute>} />
         <Route path="/train" element={<ProtectedRoute><GameLayout><TrainPage /></GameLayout></ProtectedRoute>} />
         <Route path="/woodcutting" element={<ProtectedRoute><GameLayout><WoodcuttingPage /></GameLayout></ProtectedRoute>} />

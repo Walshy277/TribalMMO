@@ -76,8 +76,8 @@ export default function AdminToolsPage() {
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl">
       <div>
-        <h1 className="text-2xl font-bold text-tribal-100">Server Tools</h1>
-        <p className="text-tribal-400 text-sm mt-0.5">Administrative utilities</p>
+        <h1 className="text-2xl font-bold text-slate-100">Server Tools</h1>
+        <p className="text-slate-400 text-sm mt-0.5">Administrative utilities</p>
       </div>
 
       {result && (
@@ -89,7 +89,7 @@ export default function AdminToolsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-[#1a181e] border border-[#262328] rounded-xl p-5">
-          <h2 className="text-xs font-bold text-tribal-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <h2 className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
             <RotateCcw size={14} /> Bulk Actions
           </h2>
           <div className="space-y-2">
@@ -106,7 +106,7 @@ export default function AdminToolsPage() {
         </div>
 
         <div className="bg-[#1a181e] border border-[#262328] rounded-xl p-5">
-          <h2 className="text-xs font-bold text-tribal-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <h2 className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
             <Users size={14} /> Per-Character Tools
           </h2>
           <input
@@ -120,8 +120,8 @@ export default function AdminToolsPage() {
             {filtered.map((char) => (
               <div key={char.id} className="flex items-center justify-between bg-[#1e1c22] rounded-lg px-3 py-2">
                 <div>
-                  <span className="text-tribal-200 text-sm font-medium">{char.name}</span>
-                  <span className="text-tribal-500 text-xs ml-2 tabular-nums">STA {char.stamina}/{char.max_stamina}</span>
+                  <span className="text-slate-200 text-sm font-medium">{char.name}</span>
+                  <span className="text-slate-500 text-xs ml-2 tabular-nums">STA {char.stamina}/{char.max_stamina}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="sm" icon={<RotateCcw size={12} />} onClick={() => resetStamina(char.id)} title="Reset stamina" />

@@ -5,17 +5,11 @@ import { Button } from "@/components/ui/Button";
 import { StaminaBar } from "@/components/ui/StaminaBar";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Alert } from "@/components/ui/Alert";
+import { xpForLevel, MAX_SKILL_LEVEL } from "@/lib/constants";
 import {
-  TreePine,
-  Mountain,
-  Axe,
-  Pickaxe,
-  Zap,
-  Package,
-  AlertTriangle,
-  CheckCircle,
-  Lock,
+  Package, Zap, Sprout, AlertTriangle, CheckCircle, Lock, Sparkles, Gem, Bug, Leaf, Feather, Star
 } from "lucide-react";
+import { chance, rangeInt, pick } from "@/lib/rng";
 
 interface GatherResult {
   skill: string;
@@ -28,70 +22,77 @@ interface GatherResult {
   message: string;
 }
 
-interface ResourceNode {
-  name: string;
-  minLevel: number;
-  desc: string;
+interface BonusEvent {
+  type: "double" | "extra" | "special" | "ambush";
+  text: string;
+  extraItem?: string;
+  extraQty?: number;
 }
 
-const woodcuttingResources: ResourceNode[] = [
-  { name: "Wood", minLevel: 1, desc: "Basic lumber for crafting" },
-  { name: "Oak Log", minLevel: 1, desc: "Sturdy wood, good for tools" },
-  { name: "Willow Log", minLevel: 2, desc: "Flexible, used for bows" },
-  { name: "Maple Log", minLevel: 3, desc: "Dense hardwood, highly valued" },
-  { name: "Yew Log", minLevel: 8, desc: "Rare and incredibly strong" },
+const BONUS_EVENTS: BonusEvent[] = [
+  { type: "double", text: "Lucky find! You double your haul!", extraQty: 0 },
+  { type: "extra", text: "You spot a rare patch of herbs nearby!", extraItem: "Golden Herb", extraQty: 1 },
+  { type: "extra", text: "A bird's nest yields something shiny!", extraItem: "Old Coin", extraQty: 2 },
+  { type: "extra", text: "You uncover a hidden cache of supplies!", extraItem: "Bark Fiber", extraQty: 3 },
+  { type: "special", text: "A glowing mushroom catches your eye!", extraItem: "Glowing Shroom", extraQty: 1 },
+  { type: "special", text: "You find a patch of rare flowers!", extraItem: "Spirit Bloom", extraQty: 1 },
+  { type: "ambush", text: "A startled viper strikes at you! You lose some stamina.", extraQty: 0 },
+  { type: "extra", text: "The ground gives way to a small cache of flint!", extraItem: "Flint", extraQty: 2 },
+  { type: "special", text: "You discover ancient bones in the soil!", extraItem: "Bone", extraQty: 2 },
+  { type: "extra", text: "A friendly trader shares some supplies!", extraItem: "Wild Berries", extraQty: 3 },
 ];
 
-const miningResources: ResourceNode[] = [
-  { name: "Stone", minLevel: 1, desc: "Common building material" },
-  { name: "Copper Ore", minLevel: 1, desc: "Soft metal for basic tools" },
-  { name: "Iron Ore", minLevel: 2, desc: "Strong metal for weapons" },
-  { name: "Coal", minLevel: 2, desc: "Fuel for smelting ores" },
-  { name: "Silver Ore", minLevel: 3, desc: "Precious metal for jewelry" },
-  { name: "Gemstone", minLevel: 3, desc: "Sparkling treasure from deep" },
-  { name: "Gold Ore", minLevel: 8, desc: "The ultimate precious metal" },
-  { name: "Emerald", minLevel: 8, desc: "A green gem of great value" },
-  { name: "Diamond", minLevel: 10, desc: "The rarest stone in the world" },
+const gatherResources = [
+  { name: "Wild Herbs", minLevel: 1, desc: "Aromatic plants used in poultices and cooking", rarity: 1 },
+  { name: "Wild Berries", minLevel: 1, desc: "Sweet and tart, a reliable food source", rarity: 1 },
+  { name: "Bark Fiber", minLevel: 1, desc: "Flexible tree bark for cordage and weaving", rarity: 1 },
+  { name: "Mushrooms", minLevel: 1, desc: "Earthy fungi, some rare and valuable", rarity: 1 },
+  { name: "Clay", minLevel: 2, desc: "Malleable earth for pottery and bricks", rarity: 2 },
+  { name: "Flint", minLevel: 2, desc: "Hard stone that sparks — essential for fire", rarity: 2 },
+  { name: "Reeds", minLevel: 3, desc: "Tall marsh grass, used for thatching and baskets", rarity: 3 },
+  { name: "Hides", minLevel: 3, desc: "Animal skins, can be cured into leather", rarity: 3 },
+  { name: "Bone", minLevel: 4, desc: "Strong and durable, useful for tools and trinkets", rarity: 4 },
 ];
+
+const PROC_CHANCE = 25;
 
 export default function GatheringPage() {
   const { character, refreshCharacter } = useGame();
   const [gathering, setGathering] = useState(false);
   const [lastResult, setLastResult] = useState<GatherResult | null>(null);
+  const [bonusEvent, setBonusEvent] = useState<BonusEvent | null>(null);
   const [error, setError] = useState("");
   const [sessionCount, setSessionCount] = useState(0);
-  const [actionType, setActionType] = useState<"woodcutting" | "mining">("woodcutting");
+  const [sessionProcCount, setSessionProcCount] = useState(0);
 
   useEffect(() => {
-    document.title = "Gather — TribalMMO";
+    document.title = "Gathering — TribalMMO";
   }, []);
 
   if (!character) {
-    return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
+    return <div className="text-slate-400 text-center mt-20">Create a character first.</div>;
   }
 
-  const woodcuttingSkill = character.skills?.find((s) => s.name === "Woodcutting");
-  const miningSkill = character.skills?.find((s) => s.name === "Mining");
-  const wcLevel = woodcuttingSkill?.level || 1;
-  const wcXp = woodcuttingSkill?.experience || 0;
-  const minLevel = miningSkill?.level || 1;
-  const minXp = miningSkill?.experience || 0;
-
-  const currentSkill = actionType === "woodcutting" ? wcLevel : minLevel;
-  const currentXp = actionType === "woodcutting" ? wcXp : minXp;
-  const xpMax = currentSkill * 100;
-  const xpPercent = Math.min((currentXp / xpMax) * 100, 100);
-  const staminaCost = 8 + Math.max(0, (currentSkill - 1) * 2);
+  const gatheringSkill = character.skills?.find((s) => s.name === "Gathering");
+  const currentLevel = gatheringSkill?.level || 1;
+  const xp = gatheringSkill?.experience || 0;
+  const xpForCurrent = xpForLevel(currentLevel);
+  const xpForNext = xpForLevel(Math.min(currentLevel + 1, MAX_SKILL_LEVEL));
+  const xpIntoLevel = xp - xpForCurrent;
+  const xpGap = xpForNext - xpForCurrent;
+  const xpPercent = xpGap > 0 ? Math.min((xpIntoLevel / xpGap) * 100, 100) : 100;
+  const staminaCost = 8 + Math.max(0, (currentLevel - 1) * 2);
 
   const gather = async () => {
     if (gathering) return;
     setGathering(true);
     setError("");
     setLastResult(null);
+    setBonusEvent(null);
 
     const { data, error: rpcError } = await supabase.rpc("gather_resource", {
       p_character_id: character.id,
-      p_action: actionType,
+      p_action: "gathering",
     });
 
     if (rpcError) {
@@ -103,21 +104,54 @@ export default function GatheringPage() {
     const result = data as unknown as GatherResult;
     setLastResult(result);
     setSessionCount((s) => s + 1);
+
+    if (result.success && chance(PROC_CHANCE + currentLevel)) {
+      const event = pick(BONUS_EVENTS);
+      setBonusEvent(event);
+      setSessionProcCount((s) => s + 1);
+
+      if (event.type === "double") {
+        const { data: giveData } = await supabase.rpc("gather_resource", {
+          p_character_id: character.id,
+          p_action: "gathering",
+        });
+        if (giveData) {
+          const extra = giveData as unknown as GatherResult;
+          result.xp_gained += extra.xp_gained || 0;
+          result.item_qty += extra.item_qty || 0;
+        }
+      } else if (event.extraItem && event.extraQty) {
+        await supabase.rpc("give_item", {
+          p_character_id: character.id,
+          p_item_name: event.extraItem,
+          p_quantity: event.extraQty,
+        });
+      } else if (event.type === "ambush") {
+        const penalty = rangeInt(3, 8);
+        await supabase.rpc("deduct_stamina", {
+          p_character_id: character.id,
+          p_amount: penalty,
+        });
+        event.text += ` (-${penalty} stamina)`;
+      }
+    }
+
     await refreshCharacter();
     setGathering(false);
   };
 
-  const resources = actionType === "woodcutting" ? woodcuttingResources : miningResources;
-  const accent = actionType === "woodcutting" ? "#4a9e6a" : "#8a7a6a";
+  const unlocked = gatherResources.filter((r) => r.minLevel <= currentLevel);
+  const locked = gatherResources.filter((r) => r.minLevel > currentLevel);
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in">
       <SectionHeader
-        title="Gather"
-        subtitle="Harvest resources from the wilds of Nervella"
+        title="Gathering"
+        subtitle="Forage herbs, fruits, and wild resources"
         right={sessionCount > 0 ? (
-          <div className="text-tribal-500 text-xs bg-tribal-900/60 px-3 py-1.5 rounded-lg border border-tribal-800/30">
-            {sessionCount} session{sessionCount !== 1 ? "s" : ""} today
+          <div className="text-slate-500 text-xs bg-slate-900/60 px-3 py-1.5 rounded border border-slate-800/30">
+            {sessionCount} session{sessionCount !== 1 ? "s" : ""}
+            {sessionProcCount > 0 && <span className="ml-2 text-[#c9a84c]">{sessionProcCount} proc{sessionProcCount !== 1 ? "s" : ""}</span>}
           </div>
         ) : undefined}
       />
@@ -132,162 +166,135 @@ export default function GatheringPage() {
         </Alert>
       )}
 
-      {lastResult && (
-        <div className="card animate-fade-in" style={{ background: lastResult.success ? "rgba(18,42,27,0.3)" : "rgba(42,18,18,0.3)", borderColor: lastResult.success ? "rgba(45,110,68,0.2)" : "rgba(110,36,36,0.2)" }}>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-bold" style={{ color: lastResult.success ? "#4a9e6a" : "#b83a3a", fontFamily: "Crimson Pro, Georgia, serif" }}>
-              {lastResult.success ? "Gathered!" : "Failed!"}
-            </h2>
-            <button onClick={() => setLastResult(null)} className="text-tribal-600 hover:text-tribal-400 text-xs">
-              dismiss
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.15)" }}>
-              <Zap size={14} className="text-[#c9a84c]" />
-              <span className="text-[#c9a84c] text-sm font-semibold">+{lastResult.xp_gained} {lastResult.skill} XP</span>
-            </div>
-            {lastResult.success && lastResult.item_name && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(74,158,106,0.08)", border: "1px solid rgba(74,158,106,0.15)" }}>
-                <Package size={14} className="text-[#4a9e6a]" />
-                <span className="text-[#6bc98a] text-sm font-semibold">+{lastResult.item_qty}x {lastResult.item_name}</span>
-              </div>
+      {bonusEvent && (
+        <div className="card animate-fade-in" style={{
+          background: bonusEvent.type === "ambush" ? "rgba(42,18,18,0.4)" : "rgba(18,42,27,0.4)",
+          borderColor: bonusEvent.type === "ambush" ? "rgba(110,36,36,0.3)" : "rgba(45,110,68,0.3)",
+        }}>
+          <div className="flex items-center gap-2">
+            {bonusEvent.type === "ambush" ? (
+              <AlertTriangle size={16} className="text-[#b83a3a]" />
+            ) : (
+              <Sparkles size={16} className="text-[#c9a84c]" />
             )}
+            <span className="text-sm font-medium text-slate-200">{bonusEvent.text}</span>
           </div>
-          {!lastResult.success && (
-            <p className="text-tribal-500 text-xs mt-2">{lastResult.message}</p>
+          {bonusEvent.extraItem && (
+            <div className="flex items-center gap-2 mt-1">
+              <Package size={12} className="text-slate-500" />
+              <span className="text-xs text-[#4a9e6a]">+{bonusEvent.extraQty}x {bonusEvent.extraItem}</span>
+            </div>
           )}
         </div>
       )}
 
-      <div className="card">
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => { setActionType("woodcutting"); setLastResult(null); setError(""); }}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold transition-all border ${
-              actionType === "woodcutting"
-                ? "bg-[rgba(74,158,106,0.08)] border-[rgba(74,158,106,0.2)] text-[#4a9e6a]"
-                : "bg-transparent border-[rgba(38,35,40,0.3)] text-tribal-500 hover:text-tribal-300"
-            }`}
-          >
-            <TreePine size={18} />
-            Woodcutting
-          </button>
-          <button
-            onClick={() => { setActionType("mining"); setLastResult(null); setError(""); }}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold transition-all border ${
-              actionType === "mining"
-                ? "bg-[rgba(138,122,106,0.08)] border-[rgba(138,122,106,0.2)] text-[#b39b7c]"
-                : "bg-transparent border-[rgba(38,35,40,0.3)] text-tribal-500 hover:text-tribal-300"
-            }`}
-          >
-            <Mountain size={18} />
-            Mining
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3 mb-4 px-1">
-          <div className="flex items-center gap-2">
-            {actionType === "woodcutting" ? <TreePine size={16} className="text-[#4a9e6a]" /> : <Mountain size={16} className="text-[#b39b7c]" />}
-            <span className="text-tribal-200 font-bold text-lg">Level {currentSkill}</span>
+      {lastResult && (
+        <div className="card animate-fade-in" style={{
+          background: lastResult.success ? "rgba(18,42,27,0.3)" : "rgba(42,18,18,0.3)",
+          borderColor: lastResult.success ? "rgba(45,110,68,0.2)" : "rgba(110,36,36,0.2)",
+        }}>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-bold font-heading" style={{ color: lastResult.success ? "#3b82f6" : "#b83a3a" }}>
+              {lastResult.success ? (
+                <><Sprout size={14} className="inline mr-1" /> Gathered!</>
+              ) : (
+                <><AlertTriangle size={14} className="inline mr-1" /> Failed!</>
+              )}
+            </h2>
+            <button onClick={() => setLastResult(null)} className="text-slate-600 hover:text-slate-400 text-xs">dismiss</button>
           </div>
-          <div className="flex-1">
-            <div className="w-full h-2 bg-[rgba(26,24,30,0.8)] rounded-full overflow-hidden border border-[rgba(38,35,40,0.5)]">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${xpPercent}%`, background: accent + "80" }}
-              />
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2 px-3 py-2 rounded bg-slate-900/40 border border-slate-800/30">
+              <Zap size={14} className="text-slate-400" />
+              <span className="text-slate-300 text-sm font-semibold">+{lastResult.xp_gained} {lastResult.skill} XP</span>
             </div>
-            <div className="text-tribal-600 text-[10px] mt-0.5">{currentXp}/{xpMax} XP</div>
+            {lastResult.success && lastResult.item_name && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded bg-slate-900/40 border border-slate-800/30">
+                <Package size={14} className="text-slate-400" />
+                <span className="text-slate-200 text-sm font-semibold">+{lastResult.item_qty}x {lastResult.item_name}</span>
+              </div>
+            )}
           </div>
+          {!lastResult.success && (
+            <p className="text-slate-500 text-xs mt-2">{lastResult.message}</p>
+          )}
         </div>
+      )}
 
-        <Button
-          variant="primary"
-          size="lg"
-          className="w-full"
-          icon={actionType === "woodcutting" ? <Axe size={18} /> : <Pickaxe size={18} />}
-          onClick={gather}
-          disabled={gathering || character.computed_stamina < staminaCost}
-          loading={gathering}
-        >
-          {character.computed_stamina < staminaCost
-            ? `Not Enough Stamina (need ${staminaCost})`
-            : actionType === "woodcutting"
-            ? "Chop Tree"
-            : "Mine Ore"}
-        </Button>
-        <p className="text-tribal-600 text-xs text-center mt-2">
-          Costs {staminaCost} stamina per action
+      <div className="forge-card">
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Gathering Skill</h2>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-slate-200 font-bold text-xl">Level {currentLevel} / {MAX_SKILL_LEVEL}</span>
+          <span className="text-slate-400 text-sm">{xp.toLocaleString()} XP</span>
+        </div>
+        <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800/20">
+          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${xpPercent}%`, background: "#3b82f680" }} />
+        </div>
+        <p className="text-slate-500 text-xs mt-1">
+          {currentLevel < MAX_SKILL_LEVEL ? `${xpIntoLevel.toLocaleString()} / ${(xpForNext - xpForCurrent).toLocaleString()} XP to next level` : "Max level reached"}
         </p>
       </div>
 
-      <div className="card">
-        <h2 className="text-sm font-bold text-tribal-300 mb-3" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>
-          {actionType === "woodcutting" ? "Trees" : "Ore Deposits"}
-        </h2>
+      <Button
+        variant="primary"
+        size="lg"
+        className="w-full"
+        icon={<Sprout size={18} />}
+        onClick={gather}
+        disabled={gathering || character.computed_stamina < staminaCost}
+        loading={gathering}
+      >
+        {character.computed_stamina < staminaCost
+          ? `Not Enough Stamina (need ${staminaCost})`
+          : `Forage (-${staminaCost} stamina)${currentLevel > 0 ? ` (${PROC_CHANCE + currentLevel}% proc)` : ""}`}
+      </Button>
+      <p className="text-slate-600 text-xs text-center -mt-3">
+        Costs {staminaCost} stamina per action &middot; Bonus events may trigger
+      </p>
+
+      <div className="forge-card">
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Wild Resources</h2>
         <div className="space-y-1.5">
-          {resources.map((res) => {
-            const unlocked = currentSkill >= res.minLevel;
+          {gatherResources.map((res) => {
+            const avail = currentLevel >= res.minLevel;
             return (
-              <div
-                key={res.name}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                  unlocked
-                    ? "bg-[rgba(26,24,30,0.4)] border border-[rgba(38,35,40,0.3)]"
-                    : "bg-[rgba(26,24,30,0.2)] border border-[rgba(38,35,40,0.15)] opacity-40"
-                }`}
-              >
-                <div
-                  className="w-8 h-8 rounded flex items-center justify-center shrink-0"
-                  style={{ background: unlocked ? accent + "12" : "rgba(255,255,255,0.02)" }}
-                >
-                  {unlocked ? (
-                    actionType === "woodcutting" ? <TreePine size={16} style={{ color: accent }} /> : <Mountain size={16} style={{ color: accent }} />
-                  ) : (
-                    <Lock size={14} className="text-tribal-700" />
-                  )}
+              <div key={res.name} className={`flex items-center gap-3 px-3 py-2.5 rounded transition-all ${
+                avail ? "bg-slate-900/30 border border-slate-800/20" : "bg-slate-900/10 border border-slate-800/10 opacity-40"
+              }`}>
+                <div className="w-8 h-8 rounded flex items-center justify-center shrink-0" style={{ background: avail ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.02)" }}>
+                  {avail ? <Sprout size={16} className="text-slate-400" /> : <Lock size={14} className="text-slate-700" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm font-semibold ${unlocked ? "text-tribal-200" : "text-tribal-500"}`}>{res.name}</span>
-                    <span className="text-tribal-600 text-[10px] font-bold bg-tribal-900/60 px-1.5 py-0.5 rounded border border-tribal-800/20">
-                      Lvl {res.minLevel}
-                    </span>
+                    <span className={`text-sm font-semibold ${avail ? "text-slate-200" : "text-slate-500"}`}>{res.name}</span>
+                    <span className="text-slate-600 text-[10px] font-bold bg-slate-900/60 px-1.5 py-0.5 rounded border border-slate-800/20">Lvl {res.minLevel}</span>
                   </div>
-                  <p className="text-tribal-600 text-xs">{res.desc}</p>
+                  <p className="text-slate-500 text-xs">{res.desc}</p>
                 </div>
-                {unlocked && (
-                  <CheckCircle size={14} style={{ color: accent }} className="shrink-0 opacity-60" />
-                )}
+                {avail && <CheckCircle size={14} className="text-slate-400 shrink-0 opacity-60" />}
               </div>
             );
           })}
         </div>
       </div>
 
-      <div className="card">
-        <h2 className="text-sm font-bold text-tribal-300 mb-3" style={{ fontFamily: "Crimson Pro, Georgia, serif" }}>Gathering Skills</h2>
-        <div className="space-y-2">
+      <div className="forge-card">
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Bonus Events</h2>
+        <p className="text-slate-600 text-xs mb-3">Each successful gather has a {PROC_CHANCE}+Level% chance to trigger a bonus event</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {[
-            { name: "Woodcutting", level: wcLevel, xp: wcXp, icon: TreePine, color: "#4a9e6a" },
-            { name: "Mining", level: minLevel, xp: minXp, icon: Mountain, color: "#8a7a6a" },
-          ].map((skill) => {
-            const Icon = skill.icon;
-            const max = skill.level * 100;
-            const pct = Math.min((skill.xp / max) * 100, 100);
+            { type: "Double Gather", desc: "Instantly gather again for double haul!", icon: Star, color: "#c9a84c" },
+            { type: "Extra Finds", desc: "Find bonus items alongside your gather", icon: Gem, color: "#4a9e6a" },
+            { type: "Special Discovery", desc: "Uncover rare and unique items", icon: Sparkles, color: "#8a6aaa" },
+            { type: "Wild Ambush", desc: "A creature surprises you — lose stamina!", icon: Bug, color: "#b83a3a" },
+          ].map((e, i) => {
+            const Icon = e.icon;
             return (
-              <div key={skill.name} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-tribal-900/30 border border-tribal-800/20">
-                <div className="w-1.5 h-6 rounded-full shrink-0" style={{ background: skill.color }} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-tribal-200 text-sm font-medium">{skill.name}</span>
-                    <span className="text-tribal-600 text-[10px] font-bold">Level {skill.level}</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-tribal-900 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: skill.color + "80" }} />
-                  </div>
-                  <div className="text-tribal-700 text-[10px] mt-0.5">{skill.xp}/{max} XP</div>
+              <div key={i} className="flex items-start gap-2 p-2 rounded bg-slate-900/40 border border-slate-800/20">
+                <Icon size={14} className="mt-0.5 shrink-0" style={{ color: e.color }} />
+                <div>
+                  <div className="text-slate-300 text-xs font-semibold">{e.type}</div>
+                  <div className="text-slate-600 text-[10px]">{e.desc}</div>
                 </div>
               </div>
             );

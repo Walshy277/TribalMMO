@@ -51,8 +51,8 @@ export default function AdminClansPage() {
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl">
       <div>
-        <h1 className="text-2xl font-bold text-tribal-100">Clan Oversight</h1>
-        <p className="text-tribal-400 text-sm mt-0.5">{clans.length} clans total</p>
+        <h1 className="text-2xl font-bold text-slate-100">Clan Oversight</h1>
+        <p className="text-slate-400 text-sm mt-0.5">{clans.length} clans total</p>
       </div>
 
       <div className="space-y-2">
@@ -66,33 +66,33 @@ export default function AdminClansPage() {
                 onClick={() => setExpanded(isOpen ? null : clan.id)}
               >
                 <div className="flex items-center gap-4">
-                  <Shield size={20} className="text-tribal-300" />
+                  <Shield size={20} className="text-slate-300" />
                   <div>
-                    <div className="text-tribal-100 font-semibold">{clan.name}</div>
-                    <div className="text-tribal-500 text-xs capitalize">{clan.philosophy} &middot; Founded {new Date(clan.created_at).toLocaleDateString()}</div>
+                    <div className="text-slate-100 font-semibold">{clan.name}</div>
+                    <div className="text-slate-500 text-xs capitalize">{clan.philosophy} &middot; Founded {new Date(clan.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-tribal-400 text-sm flex items-center gap-1 tabular-nums">
+                  <span className="text-slate-400 text-sm flex items-center gap-1 tabular-nums">
                     <Users size={14} /> {memberCount}
                   </span>
-                  {isOpen ? <ChevronUp size={18} className="text-tribal-400" /> : <ChevronDown size={18} className="text-tribal-400" />}
+                  {isOpen ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
                 </div>
               </button>
 
               {isOpen && (
                 <div className="border-t border-[#262328] p-5 space-y-4 animate-fade-in">
                   <div>
-                    <h3 className="text-xs font-bold text-tribal-300 uppercase tracking-widest mb-3">Members</h3>
+                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">Members</h3>
                     {memberCount === 0 ? (
-                      <p className="text-tribal-500 text-sm">No members.</p>
+                      <p className="text-slate-500 text-sm">No members.</p>
                     ) : (
                       <div className="space-y-1">
                         {clan.clan_members.map((member) => (
                           <div key={member.id} className="flex items-center justify-between bg-[#1e1c22] rounded-lg px-3 py-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-tribal-200 text-sm font-medium">{member.character?.name || "Unknown"}</span>
-                              <span className="text-xs bg-[#1a181e] text-tribal-400 px-2 py-0.5 rounded-full">{member.role}</span>
+                              <span className="text-slate-200 text-sm font-medium">{member.character?.name || "Unknown"}</span>
+                              <span className="text-xs bg-[#1a181e] text-slate-400 px-2 py-0.5 rounded-full">{member.role}</span>
                             </div>
                             <Button variant="ghost" size="sm" icon={<UserMinus size={12} />} onClick={() => removeMember(member.id)} />
                           </div>
@@ -111,8 +111,8 @@ export default function AdminClansPage() {
 
         {clans.length === 0 && (
           <div className="text-center py-12">
-            <Shield size={32} className="text-tribal-700 mx-auto mb-2" />
-            <p className="text-tribal-500">No clans exist yet.</p>
+            <Shield size={32} className="text-slate-700 mx-auto mb-2" />
+            <p className="text-slate-500">No clans exist yet.</p>
           </div>
         )}
       </div>

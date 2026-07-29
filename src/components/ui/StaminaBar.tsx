@@ -29,7 +29,7 @@ export function StaminaBar({ current, max, showLabel = true, size = "sm" }: Stam
           <span className="text-[#cfc1ae] text-xs font-bold tabular-nums">{current} / {max}</span>
         </div>
       )}
-      <div className={`w-full bg-[rgba(26,24,30,0.8)] ${h} overflow-hidden rounded-full border border-[rgba(38,35,40,0.5)]`}>
+      <div className={`w-full bg-[rgba(26,24,30,0.8)] ${h} overflow-hidden rounded-full border border-[rgba(59,130,246,0.15)]`}>
         <div
           className={`${getStaminaColor(percent)} ${getStaminaGlow(percent)} ${h} transition-all duration-700 ease-out rounded-full`}
           style={{ width: `${percent}%` }}

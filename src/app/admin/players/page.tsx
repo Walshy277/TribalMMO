@@ -136,18 +136,18 @@ export default function AdminPlayersPage() {
     { key: "strength", label: "STR", icon: Dumbbell, color: "text-[#b83a3a]" },
     { key: "defence", label: "DEF", icon: Shield, color: "text-[#6a90a8]" },
     { key: "speed", label: "SPD", icon: Zap, color: "text-[#4a9e6a]" },
-    { key: "vitality", label: "VIT", icon: Heart, color: "text-[#c9a84c]" },
+    { key: "vitality", label: "VIT", icon: Heart, color: "text-slate-400" },
   ];
 
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl">
       <div>
-        <h1 className="text-2xl font-bold text-tribal-100">Player Manager</h1>
-        <p className="text-tribal-400 text-sm mt-0.5">{characters.length} characters total</p>
+        <h1 className="text-2xl font-bold text-slate-100">Player Manager</h1>
+        <p className="text-slate-400 text-sm mt-0.5">{characters.length} characters total</p>
       </div>
 
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-tribal-500" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
         <input
           type="text"
           value={search}
@@ -167,12 +167,12 @@ export default function AdminPlayersPage() {
                 onClick={() => toggleExpand(char.id)}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#c04e20] flex items-center justify-center text-sm font-bold text-tribal-900">
+                  <div className="w-10 h-10 rounded-full bg-slate-400 flex items-center justify-center text-sm font-bold text-slate-900">
                     {char.name[0]}
                   </div>
                   <div>
-                    <div className="text-tribal-100 font-semibold">{char.name}</div>
-                    <div className="text-tribal-500 text-xs">{char.background} &middot; {char.skills.length} skills &middot; {char.inventory.length} items</div>
+                    <div className="text-slate-100 font-semibold">{char.name}</div>
+                    <div className="text-slate-500 text-xs">{char.background} &middot; {char.skills.length} skills &middot; {char.inventory.length} items</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -183,18 +183,18 @@ export default function AdminPlayersPage() {
                       </span>
                     ))}
                   </div>
-                  {isOpen ? <ChevronUp size={18} className="text-tribal-400" /> : <ChevronDown size={18} className="text-tribal-400" />}
+                  {isOpen ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
                 </div>
               </button>
 
               {isOpen && (
                 <div className="border-t border-[#262328] p-5 space-y-5 animate-fade-in">
                   <div>
-                    <h3 className="text-xs font-bold text-tribal-300 uppercase tracking-widest mb-3">Stats</h3>
+                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">Stats</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {statConfig.map((s) => (
                         <div key={s.key}>
-                          <label className="text-[10px] font-bold text-tribal-400 uppercase mb-1 block">{s.label}</label>
+                          <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{s.label}</label>
                           <input
                             type="number"
                             value={editStats[s.key] ?? 0}
@@ -204,7 +204,7 @@ export default function AdminPlayersPage() {
                         </div>
                       ))}
                       <div>
-                        <label className="text-[10px] font-bold text-tribal-400 uppercase mb-1 block">Stamina</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Stamina</label>
                         <input
                           type="number"
                           value={editStats.stamina ?? 0}
@@ -213,7 +213,7 @@ export default function AdminPlayersPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-tribal-400 uppercase mb-1 block">Max Stamina</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Max Stamina</label>
                         <input
                           type="number"
                           value={editStats.max_stamina ?? 0}
@@ -228,13 +228,13 @@ export default function AdminPlayersPage() {
                   </div>
 
                   <div>
-                    <h3 className="text-xs font-bold text-tribal-300 uppercase tracking-widest mb-3">Skills</h3>
+                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">Skills</h3>
                     <div className="space-y-2">
                       {char.skills.map((skill) => (
                         <div key={skill.id} className="flex items-center gap-3 bg-[#1e1c22] rounded-lg p-3">
-                          <span className="text-tribal-200 font-medium text-sm w-24">{skill.name}</span>
+                          <span className="text-slate-200 font-medium text-sm w-24">{skill.name}</span>
                           <div className="flex items-center gap-2">
-                              <label className="text-tribal-500 text-[10px] uppercase">Level</label>
+                              <label className="text-slate-500 text-[10px] uppercase">Level</label>
                             <input
                               type="number"
                               value={skill.level}
@@ -244,7 +244,7 @@ export default function AdminPlayersPage() {
                             />
                           </div>
                           <div className="flex items-center gap-2">
-                            <label className="text-tribal-500 text-[10px] uppercase">XP</label>
+                            <label className="text-slate-500 text-[10px] uppercase">XP</label>
                             <input
                               type="number"
                               value={skill.experience}
@@ -265,14 +265,14 @@ export default function AdminPlayersPage() {
                   </div>
 
                   <div>
-                    <h3 className="text-xs font-bold text-tribal-300 uppercase tracking-widest mb-3">Inventory</h3>
+                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3">Inventory</h3>
                     {char.inventory.length === 0 ? (
-                      <p className="text-tribal-500 text-sm">Empty inventory.</p>
+                      <p className="text-slate-500 text-sm">Empty inventory.</p>
                     ) : (
                       <div className="space-y-1 mb-3">
                         {char.inventory.map((inv) => (
                           <div key={inv.id} className="flex items-center justify-between bg-[#1e1c22] rounded-lg px-3 py-2">
-                            <span className="text-tribal-200 text-sm">{inv.item?.name || "Unknown"} <span className="text-tribal-500">x{inv.quantity}</span></span>
+                            <span className="text-slate-200 text-sm">{inv.item?.name || "Unknown"} <span className="text-slate-500">x{inv.quantity}</span></span>
                             <Button variant="ghost" size="sm" icon={<Trash2 size={12} />} onClick={() => removeInventoryItem(inv.id)} />
                           </div>
                         ))}
@@ -299,8 +299,8 @@ export default function AdminPlayersPage() {
 
         {filtered.length === 0 && (
           <div className="text-center py-12">
-            <Users size={32} className="text-tribal-700 mx-auto mb-2" />
-            <p className="text-tribal-500">No characters found.</p>
+            <Users size={32} className="text-slate-700 mx-auto mb-2" />
+            <p className="text-slate-500">No characters found.</p>
           </div>
         )}
       </div>

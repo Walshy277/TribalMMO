@@ -73,8 +73,8 @@ export default function AdminItemsPage() {
     <div className="space-y-6 animate-fade-in max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-tribal-100">Item Manager</h1>
-          <p className="text-tribal-400 text-sm mt-0.5">{items.length} items in database</p>
+          <h1 className="text-2xl font-bold text-slate-100">Item Manager</h1>
+          <p className="text-slate-400 text-sm mt-0.5">{items.length} items in database</p>
         </div>
         <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => { resetForm(); setShowCreate(!showCreate); }}>
           {showCreate ? "Cancel" : "Create Item"}
@@ -83,20 +83,20 @@ export default function AdminItemsPage() {
 
       {(showCreate || editing) && (
         <div className="bg-[#1a181e] border border-[#262328] rounded-xl p-5 space-y-4 animate-fade-in">
-          <h2 className="text-xs font-bold text-tribal-300 uppercase tracking-widest">{editing ? "Edit Item" : "New Item"}</h2>
+          <h2 className="text-xs font-bold text-slate-300 uppercase tracking-widest">{editing ? "Edit Item" : "New Item"}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-[10px] font-bold text-tribal-400 uppercase mb-1 block">Name</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Name</label>
               <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" placeholder="Item name..." />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-tribal-400 uppercase mb-1 block">Type</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Type</label>
               <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="input">
                 {itemTypes.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-tribal-400 uppercase mb-1 block">Rarity</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Rarity</label>
               <select value={form.rarity} onChange={(e) => setForm({ ...form, rarity: Number(e.target.value) })} className="input">
                 {Object.entries(rarityNames).map(([val, name]) => (
                   <option key={val} value={val}>{name}</option>
@@ -105,7 +105,7 @@ export default function AdminItemsPage() {
             </div>
           </div>
           <div>
-            <label className="text-[10px] font-bold text-tribal-400 uppercase mb-1 block">Stats (JSON)</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Stats (JSON)</label>
             <textarea value={form.stats} onChange={(e) => setForm({ ...form, stats: e.target.value })} className="input font-mono text-xs" rows={4} placeholder='{"attack": 5}' />
           </div>
           <div className="flex gap-2">
@@ -119,21 +119,21 @@ export default function AdminItemsPage() {
         <table className="w-full text-sm min-w-[500px]">
           <thead>
             <tr className="border-b border-[#262328]">
-              <th className="text-left text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Name</th>
-              <th className="text-left text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Type</th>
-              <th className="text-left text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Rarity</th>
-              <th className="text-right text-[10px] font-bold text-tribal-400 uppercase tracking-wider p-3">Actions</th>
+              <th className="text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider p-3">Name</th>
+              <th className="text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider p-3">Type</th>
+              <th className="text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider p-3">Rarity</th>
+              <th className="text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider p-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
               <tr key={item.id} className="border-b border-[#1e1c22] hover:bg-[#1e1c22] transition-colors">
-                <td className="p-3 text-tribal-200 font-medium">{item.name}</td>
+                <td className="p-3 text-slate-200 font-medium">{item.name}</td>
                 <td className="p-3">
-                  <span className="text-xs bg-[#1a181e] text-tribal-300 px-2 py-1 rounded-full border border-tribal-600/30">{item.type}</span>
+                  <span className="text-xs bg-[#1a181e] text-slate-300 px-2 py-1 rounded-full border border-slate-600/30">{item.type}</span>
                 </td>
                 <td className="p-3">
-                  <span className="text-xs font-semibold" style={{ color: rarityColors[item.rarity] || "#6e656c" }}>
+                  <span className="text-xs font-semibold" style={{ color: rarityColors[item.rarity] || "#a09a88" }}>
                     {rarityNames[item.rarity] || `Level ${item.rarity}`}
                   </span>
                 </td>
@@ -149,8 +149,8 @@ export default function AdminItemsPage() {
         </table>
         {items.length === 0 && (
           <div className="text-center py-12">
-            <Package size={32} className="text-tribal-700 mx-auto mb-2" />
-            <p className="text-tribal-500">No items yet.</p>
+            <Package size={32} className="text-slate-700 mx-auto mb-2" />
+            <p className="text-slate-500">No items yet.</p>
           </div>
         )}
       </div>

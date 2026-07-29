@@ -45,6 +45,7 @@ export default function AuctionHousePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [bidAmounts, setBidAmounts] = useState<Record<string, number>>({});
   const [confirmBid, setConfirmBid] = useState<string | null>(null);
+  const [listingsCount, setListingsCount] = useState(0);
   const [, setTick] = useState(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -64,6 +65,18 @@ export default function AuctionHousePage() {
       .select("*, seller:characters!seller_id(name, id), item:items(name, type), current_bidder:characters!current_bidder_id(name)")
       .order("ends_at", { ascending: true }) as { data: AuctionRow[] | null };
     setAuctions(data || []);
+
+    if (character) {
+      const { count: marketCount } = await supabase
+        .from("marketplace_listings")
+        .select("*", { count: "exact", head: true })
+        .eq("seller_id", character.id);
+      const { count: auctionCount } = await supabase
+        .from("auction_house")
+        .select("*", { count: "exact", head: true })
+        .eq("seller_id", character.id);
+      setListingsCount((marketCount || 0) + (auctionCount || 0));
+    }
   };
 
   const createAuction = async (e: React.FormEvent) => {
@@ -128,25 +141,17 @@ export default function AuctionHousePage() {
     setLoading(true);
     setError("");
 
-    if (auction.current_bidder_id && auction.current_bidder_id !== character.id) {
-      const { error: refundError } = await supabase.rpc("refund_bidder", { p_bidder_id: auction.current_bidder_id, p_amount: auction.current_bid });
-      if (refundError) { setError("Failed to refund previous bidder. Please try again."); setLoading(false); return; }
-    }
-
-    const { error: bidError } = await supabase.from("characters").update({ gold: character.gold - bidAmount }).eq("id", character.id);
-    if (bidError) { setError("Failed to deduct gold. Please try again."); setLoading(false); return; }
-
-    const { error: updateError } = await supabase.from("auction_house").update({
-      current_bid: bidAmount,
-      current_bidder_id: character.id,
-    }).eq("id", auction.id);
-    if (updateError) { setError("Failed to place bid. Please try again."); setLoading(false); return; }
-
-    await logTransaction(character.id, "auction_bid", -bidAmount, `Bid on ${auction.item?.name || "item"}`, {
-      item_name: auction.item?.name,
-      auction_id: auction.id,
-      bid_amount: bidAmount,
+    const { error: bidError } = await supabase.rpc("place_bid", {
+      p_character_id: character.id,
+      p_auction_id: auction.id,
+      p_bid_amount: bidAmount,
     });
+
+    if (bidError) {
+      setError(bidError.message);
+      setLoading(false);
+      return;
+    }
 
     setLoading(false);
     setConfirmBid(null);
@@ -188,7 +193,7 @@ export default function AuctionHousePage() {
     };
   };
 
-  if (!character) return <div className="text-tribal-500 text-center mt-20">Create a character first.</div>;
+  if (!character) return <div className="text-slate-500 text-center mt-20">Create a character first.</div>;
 
   const sellableItems = character.inventory.filter((inv) => inv.item && !inv.equipped && inv.quantity > 0);
   const activeAuctions = auctions.filter((a) => new Date(a.ends_at).getTime() > Date.now() || a.seller_id === character.id || a.current_bidder_id === character.id);
@@ -204,16 +209,22 @@ export default function AuctionHousePage() {
     : displayAuctions;
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-tribal-100">Auction House</h1>
-          <p className="text-tribal-500 text-sm mt-0.5">Bid on rare items and sell your loot</p>
+          <h1 className="text-2xl font-bold text-slate-100">Auction House</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Bid on rare items and sell your loot</p>
         </div>
-        <div className="flex items-center gap-2 text-tribal-100 bg-tribal-900/60 px-4 py-2 rounded-lg border border-tribal-800/30">
-          <Coins size={16} className="text-tribal-400" />
-          <span className="font-bold tabular-nums">{character.gold}</span>
-          <span className="text-tribal-500 text-sm">gold</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-slate-100 bg-slate-900/60 px-4 py-2 rounded-lg border border-slate-800/30">
+            <Coins size={16} className="text-slate-400" />
+            <span className="font-bold tabular-nums">{character.gold}</span>
+            <span className="text-slate-500 text-sm">gold</span>
+          </div>
+          <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-900/60 px-3 py-2 rounded-lg border border-slate-800/30">
+            <span className="tabular-nums">{listingsCount}</span>
+            <span className="text-slate-500">/ 5 listings</span>
+          </div>
         </div>
       </div>
 
@@ -226,8 +237,8 @@ export default function AuctionHousePage() {
                 onClick={() => setTab(t)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
                   tab === t
-                    ? "bg-tribal-800/60 text-tribal-100 border border-tribal-600/30"
-                    : "text-tribal-500 hover:text-tribal-300 border border-transparent"
+                    ? "bg-slate-800/60 text-slate-100 border border-slate-600/30"
+                    : "text-slate-500 hover:text-slate-300 border border-transparent"
                 }`}
               >
                 {t === "browse" ? "Browse" : t === "my_selling" ? `Selling (${mySelling.length})` : `Bidding (${myBidding.length})`}
@@ -245,9 +256,9 @@ export default function AuctionHousePage() {
         </div>
 
         {showCreate && (
-          <form onSubmit={createAuction} className="space-y-3 mb-4 p-4 bg-tribal-900/30 rounded-lg border border-tribal-800/20 animate-fade-in">
+          <form onSubmit={createAuction} className="space-y-3 mb-4 p-4 bg-slate-900/30 rounded-lg border border-slate-800/20 animate-fade-in">
             <div>
-              <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Item</label>
+              <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Item</label>
               <select value={selectedInvItem} onChange={(e) => setSelectedInvItem(e.target.value)} className="input" required>
                 <option value="">Select an item...</option>
                 {sellableItems.map((inv) => (
@@ -259,16 +270,16 @@ export default function AuctionHousePage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Quantity</label>
+                <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Quantity</label>
                 <input type="number" value={quantity} onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))} className="input" min={1} required />
               </div>
               <div>
-                <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Starting Price</label>
+                <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Starting Price</label>
                 <input type="number" value={startingPrice} onChange={(e) => setStartingPrice(Math.max(1, Number(e.target.value)))} className="input" min={1} required />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-bold text-tribal-300 mb-2 uppercase tracking-wider">Duration</label>
+              <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Duration</label>
               <div className="grid grid-cols-5 gap-2">
                 {durations.map((d) => (
                   <button
@@ -277,8 +288,8 @@ export default function AuctionHousePage() {
                     onClick={() => setDuration(d.value)}
                     className={`px-2 py-2 rounded-lg text-xs font-bold transition-all border ${
                       duration === d.value
-                        ? "bg-tribal-800/60 text-tribal-100 border-tribal-600/30"
-                        : "bg-tribal-900/30 text-tribal-500 border-tribal-800/20 hover:border-tribal-700/30"
+                        ? "bg-slate-800/60 text-slate-100 border-slate-600/30"
+                        : "bg-slate-900/30 text-slate-500 border-slate-800/20 hover:border-slate-700/30"
                     }`}
                   >
                     {d.label}
@@ -286,6 +297,7 @@ export default function AuctionHousePage() {
                 ))}
               </div>
             </div>
+            <p className="text-slate-700 text-xs">3% listing fee (1g minimum) applies.</p>
             {error && (
               <Alert variant="error" onDismiss={() => setError("")}>{error}</Alert>
             )}
@@ -297,7 +309,7 @@ export default function AuctionHousePage() {
 
         <div className="mb-4">
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-tribal-600" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
             <input
               type="text"
               value={searchQuery}
@@ -314,8 +326,8 @@ export default function AuctionHousePage() {
 
         {filteredAuctions.length === 0 ? (
           <div className="text-center py-8">
-            <Gavel size={32} className="text-tribal-800 mx-auto mb-2" />
-            <p className="text-tribal-600">
+            <Gavel size={32} className="text-slate-800 mx-auto mb-2" />
+            <p className="text-slate-600">
               {tab === "my_selling" ? "You have no auctions." :
                tab === "my_bidding" ? "You're not bidding on anything." :
                "No active auctions."}
@@ -332,23 +344,23 @@ export default function AuctionHousePage() {
               const isConfirming = confirmBid === auction.id;
 
               return (
-                <div key={auction.id} className={`bg-tribal-900/40 p-4 rounded-lg border transition-colors ${
-                  timer.ended ? "border-tribal-800/10 opacity-75" :
-                   timer.urgent ? "border-tribal-700/30" :
-                  "border-tribal-800/20 hover:border-tribal-700/30"
+                <div key={auction.id} className={`bg-slate-900/40 p-4 rounded-lg border transition-colors ${
+                  timer.ended ? "border-slate-800/10 opacity-75" :
+                   timer.urgent ? "border-slate-700/30" :
+                  "border-slate-800/20 hover:border-slate-700/30"
                 }`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <Package size={18} className={timer.ended ? "text-tribal-700" : "text-tribal-500"} />
+                      <Package size={18} className={timer.ended ? "text-slate-700" : "text-slate-500"} />
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-tribal-200 font-semibold text-sm">{auction.item?.name || "Unknown"}</span>
-                          {auction.quantity > 1 && <span className="text-tribal-600 text-sm tabular-nums">x{auction.quantity}</span>}
+                          <span className="text-slate-200 font-semibold text-sm">{auction.item?.name || "Unknown"}</span>
+                          {auction.quantity > 1 && <span className="text-slate-600 text-sm tabular-nums">x{auction.quantity}</span>}
                            {auction.item?.rarity && auction.item.rarity > 1 && (
-                            <span className="text-tribal-700 text-xs bg-tribal-900/60 px-1.5 py-0.5 rounded">R{auction.item.rarity}</span>
+                            <span className="text-slate-700 text-xs bg-slate-900/60 px-1.5 py-0.5 rounded">R{auction.item.rarity}</span>
                           )}
                         </div>
-                        <p className="text-tribal-700 text-xs">
+                        <p className="text-slate-700 text-xs">
                           by {auction.seller?.name || "Unknown"}{isOwn && " (you)"}
                           {auction.current_bidder && !isOwn && (
                             <span className={isHighBidder ? "text-[#3d8b5c] ml-1" : ""}>
@@ -360,8 +372,8 @@ export default function AuctionHousePage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className={`flex items-center gap-1 text-xs font-bold tabular-nums ${
-                        timer.urgent && !timer.ended ? "text-tribal-300" :
-                        timer.ended ? "text-tribal-600" : "text-tribal-400"
+                        timer.urgent && !timer.ended ? "text-slate-300" :
+                        timer.ended ? "text-slate-600" : "text-slate-400"
                       }`}>
                         <Clock size={12} />
                         {timer.text}
@@ -372,15 +384,15 @@ export default function AuctionHousePage() {
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div>
-                        <div className="text-tribal-700 text-[10px] uppercase font-bold tracking-wider">Start Price</div>
-                        <div className="text-tribal-400 text-sm font-semibold tabular-nums flex items-center gap-1">
+                        <div className="text-slate-700 text-[10px] uppercase font-bold tracking-wider">Start Price</div>
+                        <div className="text-slate-400 text-sm font-semibold tabular-nums flex items-center gap-1">
                           <Coins size={12} /> {auction.starting_price}
                         </div>
                       </div>
                       <div>
-                        <div className="text-tribal-700 text-[10px] uppercase font-bold tracking-wider">Current Bid</div>
-                        <div className="text-tribal-100 text-sm font-bold tabular-nums flex items-center gap-1">
-                          <Coins size={12} className="text-tribal-400" /> {auction.current_bid || "—"}
+                        <div className="text-slate-700 text-[10px] uppercase font-bold tracking-wider">Current Bid</div>
+                        <div className="text-slate-100 text-sm font-bold tabular-nums flex items-center gap-1">
+                          <Coins size={12} className="text-slate-400" /> {auction.current_bid || "—"}
                         </div>
                       </div>
                     </div>

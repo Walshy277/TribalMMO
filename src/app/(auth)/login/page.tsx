@@ -39,11 +39,11 @@ export default function LoginPage() {
   return (
     <div className="animate-fade-in">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-tribal-500 flex items-center justify-center mb-4">
-          <Flame size={32} className="text-tribal-950" />
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-500 flex items-center justify-center mb-4">
+          <Flame size={32} className="text-slate-950" />
         </div>
-        <h1 className="text-3xl font-bold text-tribal-100">Welcome Back</h1>
-        <p className="text-tribal-500 mt-2">Enter the world of Nervella</p>
+        <h1 className="text-3xl font-bold text-slate-100">Welcome Back</h1>
+        <p className="text-slate-500 mt-2">Enter the world of Nervella</p>
       </div>
       <div className="card">
         <Button
@@ -64,16 +64,16 @@ export default function LoginPage() {
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-tribal-800/30"></div>
+            <div className="w-full border-t border-slate-800/30"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-[#1a181e] text-tribal-600">or sign in with email</span>
+            <span className="px-3 bg-[#1a181e] text-slate-600">or sign in with email</span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-tribal-400 mb-2 uppercase tracking-wider">Email</label>
+            <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Email</label>
             <input
               type="email"
               value={email}
@@ -84,7 +84,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-tribal-400 mb-2 uppercase tracking-wider">Password</label>
+            <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Password</label>
             <input
               type="password"
               value={password}
@@ -103,10 +103,10 @@ export default function LoginPage() {
             Login
           </Button>
         </form>
-        <div className="mt-6 pt-4 border-t border-tribal-800/20 text-center">
-          <p className="text-tribal-500 text-sm">
+        <div className="mt-6 pt-4 border-t border-slate-800/20 text-center">
+          <p className="text-slate-500 text-sm">
             New to TribalMMO?{" "}
-            <a href="/signup" className="text-tribal-400 hover:text-tribal-300 font-semibold transition-colors">
+            <a href="/signup" className="text-slate-400 hover:text-slate-300 font-semibold transition-colors">
               Create an account
             </a>
           </p>
